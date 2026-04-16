@@ -1,0 +1,221 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remaz Pharm</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+<!-- TOPO -->
+<header class="topo">
+    <div class="container nav">
+        <div class="logo">REMAZ <span>PHARM</span></div>
+
+        <nav class="menu">
+            <a href="#">Home</a>
+            <a href="#sobre">Sobre</a>
+            <a href="#">Contato</a>
+        </nav>
+
+        <div class="acoes">
+            <a href="{% url 'login' %}" class="btn btn-claro">Entrar</a>
+            <a href="#" class="btn btn-vermelho">Inscreva-se</a>
+        </div>
+    </div>
+    <div class="linha"></div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="container hero-conteudo">
+
+        <div class="hero-texto">
+            <h1>
+                Mude a forma de comprar seus medicamentos:
+                mais fácil, rápido e sem sair de casa.
+            </h1>
+        </div>
+
+        <div class="hero-imagens">
+            <img src="{% static 'img/familia1.jpg' %}" class="bolha bolha1">
+            <img src="{% static 'img/familia2.jpg' %}" class="bolha bolha2">
+            <img src="{% static 'img/familia3.jpg' %}" class="bolha bolha3">
+        </div>
+
+    </div>
+    <div class="onda"></div>
+</section>
+
+<!-- QUEM SOMOS -->
+<section class="sobre" id="sobre">
+    <div class="container">
+
+        <h2>QUEM <span>SOMOS?</span></h2>
+
+        <div class="sobre-conteudo">
+
+            <div class="sobre-texto">
+                <p>
+                    Somos uma plataforma digital que conecta você às farmácias,
+                    facilitando a compra de medicamentos comuns e controlados
+                    de forma rápida, segura e prática.
+                </p>
+
+                <p>
+                    Nosso objetivo é levar mais comodidade para o seu dia a dia,
+                    permitindo que você encontre, compare preços e receba seus
+                    medicamentos sem sair de casa.
+                </p>
+
+                <p>
+                    Trabalhamos com responsabilidade, segurança e dentro das normas,
+                    garantindo confiança para você e para as farmácias parceiras.
+                </p>
+            </div>
+
+            <div class="sobre-imagem">
+                <img src="{% static 'img/casal.jpg' %}">
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<!-- COMO FUNCIONA -->
+<section class="funciona">
+    <div class="container">
+
+        <h2>COMO <span>FUNCIONA?</span></h2>
+
+        <div class="cards-funciona">
+
+            <div class="card-func">
+                <img src="{% static 'img/icon1.png' %}">
+                <div class="numero">1</div>
+                <h3>Busque o medicamento</h3>
+                <p>Encontre medicamentos comuns e controlados de forma rápida pelo aplicativo.</p>
+            </div>
+
+            <div class="card-func">
+                <img src="{% static 'img/icon2.png' %}">
+                <div class="numero verde">2</div>
+                <h3>Compare preços</h3>
+                <p>Veja preços de diferentes farmácias e escolha a melhor opção.</p>
+            </div>
+
+            <div class="card-func">
+                <img src="{% static 'img/icon3.png' %}">
+                <div class="numero azul">3</div>
+                <h3>Envie sua receita</h3>
+                <p>Para medicamentos controlados, envie a receita de forma segura.</p>
+            </div>
+
+            <div class="card-func">
+                <img src="{% static 'img/icon4.png' %}">
+                <div class="numero vermelho">4</div>
+                <h3>Receba em casa</h3>
+                <p>Receba seus medicamentos com rapidez e segurança onde estiver.</p>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<!-- PARA FARMÁCIAS -->
+<section class="farmacias">
+    <div class="container">
+
+        <h2>PARA <span>FARMÁCIAS</span></h2>
+
+        <h3 class="titulo-destaque">
+            Conecte sua farmácia a <span>Novos Clientes</span><br>
+            <span class="vermelho">E Aumente Suas Vendas!</span>
+        </h3>
+
+        <p class="descricao">
+            Nossa plataforma permite que sua farmácia alcance mais pessoas,
+            divulgue seus produtos e realize vendas de forma prática,
+            segura e eficiente.
+        </p>
+
+        <h4 class="beneficios-titulo">
+            Benefícios para <span>farmácias</span>
+        </h4>
+
+        <div class="farmacias-conteudo">
+
+            <div class="lista-beneficios">
+
+                <div class="item-beneficio">
+                    <img src="{% static 'img/benef1.png' %}">
+                    <div>
+                        <h5>Aumente suas vendas</h5>
+                        <p>Alcance novos clientes da sua região.</p>
+                    </div>
+                </div>
+
+                <div class="item-beneficio">
+                    <img src="{% static 'img/benef2.png' %}">
+                    <div>
+                        <h5>Destaque seus preços</h5>
+                        <p>Mostre seus medicamentos com preços competitivos.</p>
+                    </div>
+                </div>
+
+                <div class="item-beneficio">
+                    <img src="{% static 'img/benef3.png' %}">
+                    <div>
+                        <h5>Delivery facilitado</h5>
+                        <p>Gerencie pedidos e entregas.</p>
+                    </div>
+                </div>
+
+                <div class="item-beneficio">
+                    <img src="{% static 'img/benef4.png' %}">
+                    <div>
+                        <h5>Segurança e conformidade</h5>
+                        <p>Venda dentro das normas exigidas.</p>
+                    </div>
+                </div>
+
+                <div class="item-beneficio">
+                    <img src="{% static 'img/benef5.png' %}">
+                    <div>
+                        <h5>Gestão inteligente</h5>
+                        <p>Acompanhe desempenho em tempo real.</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="imagem-farmacia">
+                <img src="{% static 'img/farmaceutica.png' %}">
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<!-- RODAPÉ -->
+<footer class="rodape">
+    <div class="container">
+
+        <h2 class="logo-rodape">REMAZ <span>PHARM</span></h2>
+
+        <div class="links-rodape">
+            <a href="#">Careers</a>
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms & Conditions</a>
+        </div>
+
+    </div>
+</footer>
+
+</body>
+</html>
