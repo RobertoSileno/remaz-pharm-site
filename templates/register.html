@@ -1,0 +1,83 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar - Remaz Pharm</title>
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <section class="login-page">
+        <div class="lado-esquerdo">
+            <div class="logo-area">
+                <h1 class="logo">REMAZ <span>PHARM</span></h1>
+            </div>
+        </div>
+
+        <div class="lado-direito">
+            <div class="form-box">
+                <p class="boas-vindas">Seja bem vindo a Remaz!</p>
+
+                <div class="tabs">
+                    <a href="{% url 'login' %}" class="tab-link">
+                        <button type="button" class="tab">Entrar</button>
+                    </a>
+                    <a href="{% url 'register' %}" class="tab-link">
+                        <button type="button" class="tab ativo">Registrar</button>
+                    </a>
+                </div>
+
+                <p class="subtitulo-centralizado">Registre sua conta</p>
+
+                <form class="login-form" method="post">
+                    {% csrf_token %}
+
+                    <div class="campo">
+                        <label for="nome">Nome Completo</label>
+                        <input type="text" id="nome" name="nome" placeholder="Digite">
+                    </div>
+
+                    <div class="campo">
+                        <label for="cpf">CPF</label>
+                        <div class="input-container">
+                            <input type="password" id="cpf" name="cpf" placeholder="Digite">
+                            <i class="fa-solid fa-eye-slash toggle-icon" onclick="toggleField('cpf', this)"></i>
+                        </div>
+                    </div>
+
+                    <div class="campo">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" placeholder="Digite">
+                    </div>
+
+                    <div class="campo">
+                        <label for="senha">Senha</label>
+                        <div class="input-container">
+                            <input type="password" id="senha" name="senha" placeholder="Digite">
+                            <i class="fa-solid fa-eye-slash toggle-icon" onclick="toggleField('senha', this)"></i>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-entrar-acao">Registrar</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        function toggleField(id, icon) {
+            const input = document.getElementById(id);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            }
+        }
+    </script>
+</body>
+</html>
