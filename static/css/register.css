@@ -40,11 +40,11 @@ body {
 
 /* Lado do Formulário */
 .lado-direito {
-    width: 50%;
+    width: 45%;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 40px 60px;
 }
 
 .form-box {
@@ -60,11 +60,13 @@ body {
 
 /* ABAS - IGUAL À IMAGEM */
 .tabs {
-    background: #006b8d;
-    border-radius: 30px;
+    background: #2c7696;
+    border-radius: 40px;
     display: flex;
-    padding: 5px;
-    margin-bottom: 15px;
+    padding: 6px;
+    width: 100%;
+    max-width: 260px;
+    margin: 0 auto 40px;
 }
 
 .tab-link {
@@ -73,19 +75,19 @@ body {
 }
 
 .tab {
-    width: 100%;
-    border: none;
-    background: transparent;
+    text-align: center;
+    padding: 12px 0;
+    border-radius: 30px;
     color: white;
-    padding: 10px 0;
-    border-radius: 25px;
-    cursor: pointer;
+    font-size: 14px;
+    transition: 0.3s;
 }
 
-/* Aba Registrar fica vermelha */
 .tab.ativo {
     background: #ff3b30;
+    color: white;
 }
+
 
 /* Subtítulo Centralizado */
 .subtitulo-centralizado {
