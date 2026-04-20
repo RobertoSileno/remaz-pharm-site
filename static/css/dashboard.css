@@ -15,6 +15,7 @@ img {
     display: block;
 }
 
+/* HEADER */
 .topo-dashboard {
     background: #2b7695;
     height: 72px;
@@ -89,10 +90,12 @@ img {
     bottom: 4px;
 }
 
+/* LAYOUT PRINCIPAL */
 .pagina-dashboard {
     display: flex;
-    gap: 18px;
-    padding: 16px;
+    gap: 20px;
+    /* Adicionado padding na esquerda (80px) para distanciar a sidebar da borda da tela */
+    padding: 16px 16px 16px 80px; 
     align-items: flex-start;
 }
 
@@ -128,6 +131,8 @@ img {
 
 .conteudo-principal {
     flex: 1;
+    /* Garante que o conteúdo não fique "colado" na sidebar */
+    padding-left: 20px; 
 }
 
 .banner-principal {
@@ -142,10 +147,15 @@ img {
     border-radius: 18px;
 }
 
+/* GRID DE PRODUTOS - 3 COLUNAS */
 .produtos-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(140px, 1fr));
-    gap: 28px 34px;
+    /* Mantém as 3 colunas de 140px cada */
+    grid-template-columns: repeat(6, 140px);
+    /* O primeiro valor é o espaço vertical (28px) e o segundo é o lateral (12px) */
+    /* Reduzi de 34px para 12px para que fiquem mais próximos lateralmente */
+    gap: 28px 12px; 
+    justify-content: center;
 }
 
 .produto-card {
@@ -241,6 +251,7 @@ img {
     font-size: 18px;
 }
 
+/* FOOTER */
 .rodape-dashboard {
     background: #2b7695;
     margin-top: 50px;
@@ -272,9 +283,11 @@ img {
     text-decoration: none;
 }
 
+/* RESPONSIVIDADE */
 @media (max-width: 900px) {
     .pagina-dashboard {
         flex-direction: column;
+        padding-left: 16px; /* Remove o recuo extra no mobile */
     }
 
     .sidebar {
@@ -282,33 +295,7 @@ img {
     }
 
     .produtos-grid {
-        grid-template-columns: repeat(2, minmax(140px, 1fr));
-        justify-items: center;
-    }
-
-    .busca-topo {
-        width: 220px;
-    }
-}
-
-@media (max-width: 600px) {
-    .topo-dashboard {
-        flex-wrap: wrap;
-        height: auto;
-        gap: 10px;
-        padding: 12px;
-    }
-
-    .busca-topo {
-        width: 100%;
-        order: 3;
-    }
-
-    .produtos-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .produto-card {
-        margin: 0 auto;
+        grid-template-columns: repeat(2, 140px);
+        justify-content: center;
     }
 }
