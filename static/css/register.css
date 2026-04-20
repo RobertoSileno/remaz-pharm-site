@@ -95,11 +95,13 @@ body {
     font-size: 14px;
     color: #333;
     margin-bottom: 25px;
+    
 }
 
 /* CAMPOS E OLHO NO CANTO */
 .campo {
     margin-bottom: 15px;
+    margin-left: 10px
 }
 
 .campo label {

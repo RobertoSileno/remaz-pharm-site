@@ -1,0 +1,200 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remaz Pharm - Principal</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+</head>
+<body>
+
+<header class="topo-dashboard">
+    <div class="logo-topo">
+        <a href="{% url 'dashboard' %}">
+            <img src="{% static 'img/logo-remaz.png' %}" alt="Remaz Pharm">
+        </a>
+    </div>
+
+    <div class="busca-topo">
+        <input type="text" placeholder="Pesquisa">
+        <span class="icone-busca">⌕</span>
+    </div>
+
+    <div class="usuario-topo">
+        <span>Marco</span>
+        <div class="avatar"></div>
+    </div>
+</header>
+
+<main class="pagina-dashboard">
+    <aside class="sidebar">
+        <div class="filtro-box">
+            <h3>Categorias</h3>
+            <label><input type="checkbox"> Analgésicos (Dor)</label>
+            <label><input type="checkbox"> Antitérmicos (febre)</label>
+            <label><input type="checkbox"> Antialérgicos</label>
+            <label><input type="checkbox"> Anti-inflamatórios</label>
+            <label><input type="checkbox"> Antibióticos</label>
+            <label><input type="checkbox"> Controlados</label>
+            <label><input type="checkbox"> Dentários</label>
+        </div>
+
+        <div class="filtro-box">
+            <h3>Laboratórios</h3>
+            <label><input type="checkbox"> EMS</label>
+            <label><input type="checkbox"> Eurofarma</label>
+            <label><input type="checkbox"> Ache</label>
+            <label><input type="checkbox"> Neo Química</label>
+            <label><input type="checkbox"> Medley</label>
+            <label><input type="checkbox"> Cimed</label>
+            <label><input type="checkbox"> União Química</label>
+        </div>
+
+        <div class="filtro-box">
+            <h3>Higiene Pessoal</h3>
+            <label><input type="checkbox"> Sabonetes</label>
+            <label><input type="checkbox"> Shampoos</label>
+            <label><input type="checkbox"> Condicionadores</label>
+            <label><input type="checkbox"> Creme dental</label>
+            <label><input type="checkbox"> Perfumes</label>
+            <label><input type="checkbox"> Escovas dentais</label>
+            <label><input type="checkbox"> Desodorantes</label>
+        </div>
+    </aside>
+
+    <section class="conteudo-principal">
+        <div class="banner-principal">
+            <img src="{% static 'img/banner-dashboard.png' %}" alt="Banner principal">
+        </div>
+
+        <div class="produtos-grid">
+
+            <div class="produto-card">
+                <span class="selo selo-esq">Mais pedidos</span>
+                <span class="seta">›</span>
+                <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
+                <h4>Medicamento 20g</h4>
+                <div class="rodape-card">
+                    <div>
+                        <p>Valor</p>
+                        <strong>R$ 18,00</strong>
+                    </div>
+                    <button>🛒</button>
+                </div>
+            </div>
+
+            <div class="produto-card">
+                <span class="selo selo-dir">Novo valor</span>
+                <span class="seta">›</span>
+                <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
+                <h4>Medicamento 10g</h4>
+                <div class="rodape-card">
+                    <div>
+                        <p>Valor</p>
+                        <strong>R$ 12,00</strong>
+                    </div>
+                    <button>🛒</button>
+                </div>
+            </div>
+
+            <div class="produto-card">
+                <span class="seta">›</span>
+                <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
+                <h4>Medicamento 10g</h4>
+                <div class="rodape-card">
+                    <div>
+                        <p>Valor</p>
+                        <strong>R$ 12,00</strong>
+                    </div>
+                    <button>🛒</button>
+                </div>
+            </div>
+
+            <div class="produto-card">
+                <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
+                <h4>Medicamento 25g</h4>
+                <div class="rodape-card">
+                    <div>
+                        <p>Valor</p>
+                        <strong>R$ 15,00</strong>
+                    </div>
+                    <button>🛒</button>
+                </div>
+            </div>
+
+            <div class="produto-card">
+                <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
+                <h4>Medicamento 15g</h4>
+                <div class="rodape-card">
+                    <div>
+                        <p>Valor</p>
+                        <strong>R$ 17,50</strong>
+                    </div>
+                    <button>🛒</button>
+                </div>
+            </div>
+
+            <div class="produto-card">
+                <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
+                <h4>Medicamento 30g</h4>
+                <div class="rodape-card">
+                    <div>
+                        <p>Valor</p>
+                        <strong>R$ 24,70</strong>
+                    </div>
+                    <button>🛒</button>
+                </div>
+            </div>
+
+            <div class="produto-card">
+                <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
+                <h4>Medicamento 10g</h4>
+                <div class="rodape-card">
+                    <div>
+                        <p>Valor</p>
+                        <strong>R$ 10,67</strong>
+                    </div>
+                    <button>🛒</button>
+                </div>
+            </div>
+
+            <div class="produto-card">
+                <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
+                <h4>Medicamento 15g</h4>
+                <div class="rodape-card">
+                    <div>
+                        <p>Valor</p>
+                        <strong>R$ 16,40</strong>
+                    </div>
+                    <button>🛒</button>
+                </div>
+            </div>
+
+            <div class="produto-card">
+                <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
+                <h4>Medicamento 35g</h4>
+                <div class="rodape-card">
+                    <div>
+                        <p>Valor</p>
+                        <strong>R$ 29,00</strong>
+                    </div>
+                    <button>🛒</button>
+                </div>
+            </div>
+
+        </div>
+    </section>
+</main>
+
+<footer class="rodape-dashboard">
+    <div class="logo-rodape">REMAZ <span>PHARM</span></div>
+    <div class="links-rodape">
+        <a href="#">Careers</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms & Conditions</a>
+    </div>
+</footer>
+
+</body>
+</html>

@@ -162,8 +162,22 @@ body {
     background: #2c7696;
     color: white;
     font-size: 14px;
+    text-decoration: none;
     cursor: pointer;
     display: block;
+    margin-left: auto;
+}
+.btn-entrar-link {
+    width: 170px;
+    height: 52px;
+    border-radius: 28px;
+    background: #2c7696;
+    color: white;
+    font-size: 14px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin-left: auto;
 }
 
