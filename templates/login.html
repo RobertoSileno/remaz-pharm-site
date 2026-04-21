@@ -47,12 +47,12 @@
 
                 <div class="campo">
                     <label for="usuario">Nome ou CPF</label>
-                    <input type="text" id="usuario" name="usuario" placeholder="Digite">
+                    <input type="text" id="usuario" name="username" required placeholder="Digite">
                 </div>
 
                 <div class="campo">
                     <label for="senha">Senha</label>
-                    <input type="password" id="senha" name="senha" placeholder="Digite">
+                    <input type="password" id="senha" name="password" required placeholder="Digite">
                 </div>
 
                 <div class="opcoes">
@@ -68,11 +68,14 @@
 
                 </div>
 
-                <button type="submit" class="btn-entrar">
-                    <a href="{% url 'dashboard' %}" class="btn-entrar-link">Entrar</a>
-                </button>
+                <button type="submit" class="btn-entrar">Entrar</button>
 
             </form>
+            {% if messages %}
+                {% for message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
+            {% endif %}
 
         </div>
     </div>
