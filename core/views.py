@@ -26,6 +26,7 @@ def register_view(request):
         email = request.POST['email']
         password = request.POST['password']
         password_confirm = request.POST['password_confirm']
+        cpf = request.POST.get('cpf', '')
         
         if password != password_confirm:
             messages.error(request, 'Senhas não coincidem')
@@ -35,8 +36,17 @@ def register_view(request):
             messages.error(request, 'Usuário já existe')
             return render(request, 'register.html')
         
+        if cpf and User.objects.filter(profile__cpf=cpf).exists():
+            messages.error(request, 'CPF já cadastrado')
+            return render(request, 'register.html')
+        
         user = User.objects.create_user(username=username, email=email, password=password)
         user.save()
+        
+        # Criar perfil do usuário com CPF
+        from core.models import UserProfile
+        UserProfile.objects.create(user=user, cpf=cpf)
+        
         messages.success(request, 'Registro realizado! Faça login.')
         return redirect('login')
    
