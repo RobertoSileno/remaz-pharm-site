@@ -18,15 +18,26 @@ img {
 /* HEADER */
 .topo-dashboard {
     background: #2b7695;
-    height: 72px;
+    height: 110px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 18px;
+    padding: 0 60px;
+}
+
+.logo-topo {
+    display: flex;
+    align-items: center;
 }
 
 .logo-topo img {
-    height: 34px;
+    height: 80px;
+    width: auto;
+    transition: 0.3s;
+}
+
+.logo-topo img:hover {
+    transform: scale(1.05);
 }
 
 .busca-topo {
@@ -36,36 +47,59 @@ img {
 
 .busca-topo input {
     width: 100%;
-    height: 34px;
+    height: 38px;
     border-radius: 20px;
     border: none;
     outline: none;
     padding: 0 35px 0 14px;
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .icone-busca {
     position: absolute;
     right: 10px;
-    top: 7px;
+    top: 8px;
     font-size: 14px;
     color: #777;
 }
 
+/* PERFIL */
 .usuario-topo {
     display: flex;
     align-items: center;
-    gap: 8px;
     color: white;
-    font-size: 12px;
+    font-size: 13px;
+}
+
+.perfil-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.perfil-name {
+    text-align: center;
+    margin-top: 6px;
+    font-weight: bold;
+    color: white;
+    line-height: 1;
+}
+
+.perfil-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
 }
 
 .avatar {
-    width: 28px;
-    height: 28px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     background: white;
     position: relative;
+    flex-shrink: 0;
 }
 
 .avatar::after {
@@ -75,8 +109,8 @@ img {
     background: #7f97a4;
     border-radius: 50%;
     position: absolute;
-    left: 8px;
-    top: 4px;
+    left: 11px;
+    top: 6px;
 }
 
 .avatar::before {
@@ -86,17 +120,72 @@ img {
     background: #7f97a4;
     border-radius: 10px 10px 0 0;
     position: absolute;
-    left: 6px;
-    bottom: 4px;
+    left: 9px;
+    bottom: 6px;
 }
 
-/* LAYOUT PRINCIPAL */
-.pagina-dashboard {
+.menu-dropdown {
+    position: absolute;
+    top: 50px;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    min-width: 150px;
+    display: none;
+    flex-direction: column;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    z-index: 1000;
+}
+
+.menu-dropdown.ativo {
     display: flex;
-    gap: 20px;
-    /* Adicionado padding na esquerda (80px) para distanciar a sidebar da borda da tela */
-    padding: 16px 16px 16px 80px; 
+}
+
+.menu-dropdown a {
+    padding: 10px 15px;
+    text-decoration: none;
+    color: #333;
+    border-bottom: 1px solid #eee;
+    font-size: 13px;
+}
+
+.menu-dropdown a:last-child {
+    border-bottom: none;
+}
+
+.menu-dropdown a:hover {
+    background-color: #f5f5f5;
+}
+
+/* ESTRUTURA GERAL */
+.dashboard-wrapper {
+    padding: 24px 40px 0;
+}
+
+/* BANNER */
+.banner-area {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 34px;
+}
+
+.banner-principal {
+    display: flex;
+    justify-content: center;
+}
+
+.banner-principal img {
+    width: 100%;
+    max-width: 790px;
+    border-radius: 40px;
+}
+
+/* FILTROS + PRODUTOS */
+.area-produtos {
+    display: flex;
     align-items: flex-start;
+    gap: 30px;
 }
 
 .sidebar {
@@ -109,80 +198,65 @@ img {
     border: 1px solid #73a8c3;
     border-radius: 8px;
     padding: 8px 10px;
-    margin-bottom: 14px;
+    margin-bottom: 16px;
 }
 
 .filtro-box h3 {
     background: #2b7695;
     color: white;
-    font-size: 12px;
+    font-size: 13px;
     text-align: center;
-    padding: 4px;
+    padding: 5px;
     margin: -8px -10px 8px;
     border-radius: 7px 7px 0 0;
 }
 
 .filtro-box label {
     display: block;
-    font-size: 11px;
+    font-size: 12px;
     color: #387090;
-    margin-bottom: 4px;
+    margin-bottom: 5px;
 }
 
 .conteudo-principal {
     flex: 1;
-    /* Garante que o conteúdo não fique "colado" na sidebar */
-    padding-left: 20px; 
+    padding-left: 0;
 }
 
-.banner-principal {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 24px;
-}
-
-.banner-principal img {
-    width: 100%;
-    max-width: 520px;
-    border-radius: 18px;
-}
-
-/* GRID DE PRODUTOS - 3 COLUNAS */
+/* GRID DE PRODUTOS */
 .produtos-grid {
     display: grid;
-    /* Mantém as 3 colunas de 140px cada */
-    grid-template-columns: repeat(6, 140px);
-    /* O primeiro valor é o espaço vertical (28px) e o segundo é o lateral (12px) */
-    /* Reduzi de 34px para 12px para que fiquem mais próximos lateralmente */
-    gap: 28px 12px; 
+    grid-template-columns: repeat(6, 150px);
+    gap: 40px 20px; /* mais espaço entre medicamentos */
     justify-content: center;
 }
 
 .produto-card {
-    width: 140px;
-    min-height: 170px;
+    width: 150px;
+    min-height: 190px;
     background: #f3f3f3;
     border: 1px solid #9bb9c8;
     border-radius: 10px;
-    padding: 8px 8px 10px;
+    padding: 10px 10px 12px;
     position: relative;
     text-align: center;
     box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
 }
 
 .produto-card img {
-    width: 44px;
-    height: 58px;
+    width: 50px;
+    height: 64px;
     object-fit: contain;
-    margin: 0 auto 8px;
+    margin: 0 auto 10px;
 }
 
 .produto-card h4 {
-    font-size: 13px;
+    font-size: 15px; /* fonte maior */
     font-weight: normal;
     color: #2e6585;
-    min-height: 32px;
-    margin-bottom: 8px;
+    min-height: 38px;
+    margin-bottom: 10px;
+    line-height: 1.3;
 }
 
 .selo {
@@ -223,27 +297,28 @@ img {
     justify-content: space-between;
     border: 1px solid #9bb9c8;
     border-radius: 6px;
-    padding: 6px 8px;
+    padding: 7px 8px;
     background: #fffaf5;
-    margin-top: 6px;
+    margin-top: 8px;
 }
 
 .rodape-card p {
-    font-size: 11px;
+    font-size: 12px; /* um pouco maior */
     color: #6a737a;
     text-align: left;
 }
 
 .rodape-card strong {
     display: block;
-    font-size: 16px;
+    font-size: 20px; /* preço maior */
     color: #d6472d;
     font-weight: normal;
+    line-height: 1.1;
 }
 
 .rodape-card button {
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
     border: 1px solid #9bb9c8;
     border-radius: 6px;
     background: #f2f2f2;
@@ -284,10 +359,35 @@ img {
 }
 
 /* RESPONSIVIDADE */
+@media (max-width: 1200px) {
+    .topo-dashboard {
+        padding: 0 30px;
+    }
+
+    .produtos-grid {
+        grid-template-columns: repeat(4, 150px);
+    }
+}
+
 @media (max-width: 900px) {
-    .pagina-dashboard {
+    .topo-dashboard {
+        flex-wrap: wrap;
+        height: auto;
+        gap: 14px;
+        padding: 20px;
+    }
+
+    .busca-topo {
+        width: 100%;
+        max-width: 320px;
+    }
+
+    .dashboard-wrapper {
+        padding: 20px 16px 0;
+    }
+
+    .area-produtos {
         flex-direction: column;
-        padding-left: 16px; /* Remove o recuo extra no mobile */
     }
 
     .sidebar {
@@ -295,59 +395,21 @@ img {
     }
 
     .produtos-grid {
-        grid-template-columns: repeat(2, 140px);
+        grid-template-columns: repeat(2, 150px);
         justify-content: center;
     }
 }
 
-.perfil-container {
-    position: relative;
-}
+@media (max-width: 600px) {
+    .produtos-grid {
+        grid-template-columns: repeat(1, 150px);
+    }
 
-.perfil-name {
-    text-align: center;
-    margin-bottom: 10px;
-    font-weight: bold;
-}
+    .banner-principal img {
+        border-radius: 20px;
+    }
 
-.perfil-icon {
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-}
-
-.menu-dropdown {
-    position: absolute;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    min-width: 150px;
-    display: none;
-    flex-direction: column;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    right: 100%;
-    left: auto;
-    top: -10px;
-    margin-right: 10px;
-    z-index: 1000;
-}
-
-.menu-dropdown.ativo {
-    display: flex;
-}
-
-.menu-dropdown a {
-    padding: 10px 15px;
-    text-decoration: none;
-    color: #333;
-    border-bottom: 1px solid #eee;
-}
-
-.menu-dropdown a:last-child {
-    border-bottom: none;
-}
-
-.menu-dropdown a:hover {
-    background-color: #f5f5f5;
+    .logo-topo img {
+        height: 60px;
+    }
 }
