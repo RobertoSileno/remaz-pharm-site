@@ -35,15 +35,9 @@ img {
     gap: 20px;
 }
 
-.logo {
-    color: white;
-    font-size: 30px;
-    font-weight: bold;
-    letter-spacing: 1px;
-}
-
-.logo span {
-    color: #ff4d43;
+.logo img {
+    height: 70px;
+    width: auto;
 }
 
 .menu {
@@ -130,34 +124,48 @@ img {
     height: 330px;
 }
 
+/* padrão das bolhas */
 .bolha {
     position: absolute;
     object-fit: cover;
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
 }
 
+/* BOLHA 1 (fica na frente) */
 .bolha1 {
     width: 290px;
     height: 185px;
     right: 90px;
     top: 70px;
-    border-radius: 48px;
+
+    border-radius: 48px; 
+    z-index: 2; 
+    box-shadow: 0 4px 4px 0 #000;
 }
 
+/* BOLHA 2 (meio) */
 .bolha2 {
-    width: 145px;
-    height: 145px;
-    right: 0;
+    width: 200px;
+    height: 130px;
+    left: 360px;
+    right: 45px;
     top: 10px;
-    border-radius: 50%;
+
+    border-radius: 40px;
+    z-index: 1;
+    box-shadow: 0 4px 4px 0 #000;
 }
 
+/* BOLHA 3 (fica atrás) */
 .bolha3 {
-    width: 120px;
-    height: 120px;
-    left: 20px;
-    bottom: 15px;
-    border-radius: 50%;
+    width: 200px;
+    height: 130px;
+    left: 25px;
+    bottom: 10px;
+
+    border-radius: 40px;
+    z-index: 3;
+    box-shadow: 0 4px 4px 0 #000;
 }
 
 .onda {
@@ -213,7 +221,7 @@ img {
 }
 
 .sobre-imagem {
-    width: 48%;
+    width: 40%;
     text-align: center;
 }
 

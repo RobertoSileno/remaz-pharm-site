@@ -9,6 +9,7 @@ body {
     background-color: #f3f3f3;
 }
 
+/* LAYOUT GERAL */
 .login-page {
     width: 100%;
     min-height: 100vh;
@@ -16,47 +17,40 @@ body {
     overflow: hidden;
 }
 
+/* LADO ESQUERDO */
 .lado-esquerdo {
     width: 50%;
     background: #2c7696;
-    border-top-right-radius: 55% 120% ;
-    border-bottom-right-radius: 55% 120% ;
+
+    border-top-right-radius: 55% 120%;
+    border-bottom-right-radius: 55% 120%;
+
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 40px;
 }
 
+/* LOGO */
 .logo-area {
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .logo {
-    font-size: 88px;
-    color: white;
-    font-weight: 900;
-    line-height: 0.95;
-    letter-spacing: 2px;
+    margin: 0;
+    font-size: 0;      
+    line-height: 0;
 }
 
-.logo span {
+.logo img {
+    height: 220px;    
+    width: auto;
     display: block;
-    font-size: 52px;
-    font-weight: 300;
-    color: white;
-    position: relative;
 }
 
-.logo span::before {
-    content: "+";
-    color: #ff3b30;
-    font-size: 72px;
-    font-weight: bold;
-    position: absolute;
-    left: -48px;
-    top: -18px;
-}
-
+/* LADO DIREITO */
 .lado-direito {
     width: 45%;
     display: flex;
@@ -65,11 +59,13 @@ body {
     padding: 40px 60px;
 }
 
+/* BOX FORM */
 .form-box {
     width: 100%;
     max-width: 420px;
 }
 
+/* TEXTO */
 .boas-vindas {
     text-align: center;
     font-size: 14px;
@@ -77,6 +73,7 @@ body {
     margin-bottom: 24px;
 }
 
+/* TABS */
 .tabs {
     background: #2c7696;
     border-radius: 40px;
@@ -103,10 +100,9 @@ body {
 
 .tab.ativo {
     background: #ff3b30;
-    color: white;
 }
 
-
+/* CAMPOS */
 .campo {
     margin-bottom: 22px;
 }
@@ -134,6 +130,7 @@ body {
     color: #b5b5b5;
 }
 
+/* OPÇÕES */
 .opcoes {
     display: flex;
     justify-content: space-between;
@@ -155,19 +152,8 @@ body {
     color: #444;
 }
 
-.btn-entrar {
-    width: 170px;
-    height: 52px;
-    border: none;
-    border-radius: 28px;
-    background: #2c7696;
-    color: white;
-    font-size: 14px;
-    text-decoration: none;
-    cursor: pointer;
-    display: block;
-    margin-left: auto;
-}
+/* BOTÃO */
+.btn-entrar,
 .btn-entrar-link {
     width: 170px;
     height: 52px;
@@ -180,8 +166,11 @@ body {
     align-items: center;
     justify-content: center;
     margin-left: auto;
+    border: none;
+    cursor: pointer;
 }
 
+/* RESPONSIVO */
 @media (max-width: 980px) {
     .login-page {
         flex-direction: column;
@@ -200,18 +189,8 @@ body {
         border-bottom-right-radius: 50% 20%;
     }
 
-    .logo {
-        font-size: 56px;
-    }
-
-    .logo span {
-        font-size: 34px;
-    }
-
-    .logo span::before {
-        font-size: 48px;
-        left: -30px;
-        top: -10px;
+    .logo img {
+        height: 80px;
     }
 
     .lado-direito {

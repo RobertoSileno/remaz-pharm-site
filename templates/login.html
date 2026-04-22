@@ -12,72 +12,71 @@
 
 <section class="login-page">
 
+    <!-- LADO ESQUERDO -->
     <div class="lado-esquerdo">
+
         <div class="logo-area">
             <h1 class="logo">
-                REMAZ
-                <span>PHARM</span>
+                <img src="{% static 'img/logo/logo.png' %}" alt="Logo Remaz Pharm">
             </h1>
         </div>
+
     </div>
 
+    <!-- LADO DIREITO -->
     <div class="lado-direito">
+
         <div class="form-box">
 
             <p class="boas-vindas">Bem-vindo de volta!</p>
 
+            <!-- TABS -->
             <div class="tabs">
 
                 <a href="{% url 'login' %}" class="tab-link">
-                    <div class="tab {% if request.path == '/login/' %}ativo{% endif %}">
-                        Entrar
-                    </div>
+                    <div class="tab ativo">Entrar</div>
                 </a>
 
                 <a href="{% url 'registro' %}" class="tab-link">
-                    <div class="tab {% if request.path == '/registro/' %}ativo{% endif %}">
-                        Registrar
-                    </div>
+                    <div class="tab">Registrar</div>
                 </a>
 
             </div>
 
-            <form class="login-form" method="post">
+            <!-- FORM -->
+            <form method="post">
                 {% csrf_token %}
 
                 <div class="campo">
-                    <label for="usuario">Nome ou CPF</label>
-                    <input type="text" id="usuario" name="username" required placeholder="Digite">
+                    <label>Nome ou CPF</label>
+                    <input type="text" placeholder="Digite">
                 </div>
 
                 <div class="campo">
-                    <label for="senha">Senha</label>
-                    <input type="password" id="senha" name="password" required placeholder="Digite">
+                    <label>Senha</label>
+                    <input type="password" placeholder="Digite">
                 </div>
 
                 <div class="opcoes">
 
                     <label class="lembrar">
-                        <input type="checkbox" name="lembrar">
+                        <input type="checkbox">
                         lembrar de mim?
                     </label>
 
-                    <a href="{% url 'recuperar_senha' %}" class="esqueci">
-                        esqueceu a senha ?
-                    </a>
+                    <a href="#" class="esqueci">esqueceu a senha ?</a>
 
                 </div>
 
-                <button type="submit" class="btn-entrar">Entrar</button>
+                <!-- BOTÃO -->
+                <button type="submit" class="btn-entrar">
+                    Entrar
+                </button>
 
             </form>
-            {% if messages %}
-                {% for message in messages %}
-                    <p>{{ message }}</p>
-                {% endfor %}
-            {% endif %}
 
         </div>
+
     </div>
 
 </section>
