@@ -109,7 +109,7 @@ body {
 
 .campo label {
     display: block;
-    text-align: center;
+    text-align: left;
     font-size: 14px;
     color: #111;
     margin-bottom: 10px;

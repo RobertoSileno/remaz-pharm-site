@@ -36,7 +36,7 @@ img {
 }
 
 .logo img {
-    height: 70px;
+    height: 90px;
     width: auto;
 }
 
@@ -124,47 +124,39 @@ img {
     height: 330px;
 }
 
-/* padrão das bolhas */
 .bolha {
     position: absolute;
     object-fit: cover;
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
 }
 
-/* BOLHA 1 (fica na frente) */
 .bolha1 {
     width: 290px;
     height: 185px;
     right: 90px;
     top: 70px;
-
-    border-radius: 48px; 
-    z-index: 2; 
+    border-radius: 48px;
+    z-index: 2;
     box-shadow: 0 4px 4px 0 #000;
 }
 
-/* BOLHA 2 (meio) */
 .bolha2 {
     width: 200px;
     height: 130px;
     left: 360px;
-    right: 45px;
     top: 10px;
-
     border-radius: 40px;
-    z-index: 1;
+    z-index: 3;
     box-shadow: 0 4px 4px 0 #000;
 }
 
-/* BOLHA 3 (fica atrás) */
 .bolha3 {
     width: 200px;
     height: 130px;
     left: 25px;
     bottom: 10px;
-
     border-radius: 40px;
-    z-index: 3;
+    z-index: 1;
     box-shadow: 0 4px 4px 0 #000;
 }
 
@@ -179,7 +171,7 @@ img {
     border-top-right-radius: 50% 100%;
 }
 
-/* TITULOS GERAIS */
+/* TITULOS */
 .sobre h2,
 .funciona h2,
 .farmacias h2 {
@@ -220,16 +212,16 @@ img {
     color: #2c5f84;
 }
 
-.sobre-imagem {
+.casal-imagem {
     width: 40%;
     text-align: center;
 }
 
-.sobre-imagem img {
+.casal-imagem img {
     width: 100%;
     max-width: 520px;
-    border-radius: 36px;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 40px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
 }
 
 /* COMO FUNCIONA */
@@ -303,7 +295,7 @@ img {
     line-height: 1.5;
 }
 
-/* FARMACIAS */
+/* FARMÁCIAS */
 .farmacias {
     padding: 20px 0 0;
     text-align: center;
@@ -335,9 +327,9 @@ img {
 }
 
 .beneficios-titulo {
-    font-size: 22px;
+    font-size: 35px;
     color: #2c5f84;
-    margin-bottom: 10px;
+    margin-bottom: -110px;
     font-weight: 500;
 }
 
@@ -345,16 +337,15 @@ img {
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    gap: 40px;
-    margin-top: 10px;
+    margin-top: -40px;
 }
 
 .lista-beneficios {
-    width: 48%;
+    width: 60%;
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    padding-bottom: 20px;
+    gap: 25px;
+    padding-bottom: 90px;
 }
 
 .item-beneficio {
@@ -375,30 +366,32 @@ img {
 }
 
 .item-beneficio h5 {
-    font-size: 15px;
+    font-size: 20px;
     color: #46566a;
     margin-bottom: 4px;
 }
 
 .item-beneficio p {
-    font-size: 12px;
+    font-size: 16px;
     color: #666;
     line-height: 1.45;
 }
 
-.imagem-farmacia {
-    width: 42%;
+.imagem-farmaceutica {
+    width: 50%;
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: flex-end;
 }
 
-.imagem-farmacia img {
-    max-width: 380px;
+.imagem-farmaceutica img {
+    max-width: 750px;
     width: 100%;
+    transform: translateX(-20px);
+    
 }
 
-/* RODAPE */
+/* RODAPÉ */
 .rodape {
     background-color: #2c7696;
     padding: 55px 0 24px;
@@ -473,6 +466,7 @@ img {
     }
 
     .bolha2 {
+        left: auto;
         right: 20px;
         top: 0;
     }
@@ -493,8 +487,13 @@ img {
         border-radius: 35px;
     }
 
+    .imagem-farmacia {
+        justify-content: center;
+    }
+
     .imagem-farmacia img {
-        max-width: 300px;
+        max-width: 350px;
+        transform: none;
     }
 }
 
@@ -527,12 +526,12 @@ img {
     }
 
     .bolha2 {
-        width: 110px;
-        height: 110px;
+        width: 140px;
+        height: 95px;
     }
 
     .bolha3 {
-        width: 95px;
+        width: 140px;
         height: 95px;
     }
 
