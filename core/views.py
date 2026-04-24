@@ -10,24 +10,48 @@ def home(request):
 
 def login_view(request):
     if request.method == 'POST':
-        username = request.POST['username']
+        email_or_cpf = request.POST['username']  # campo do form
         password = request.POST['password']
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            return redirect('dashboard')
+        
+        user = None
+        
+        # Verifica se é email (contém @)
+        if '@' in email_or_cpf:
+            try:
+                user = User.objects.get(email=email_or_cpf)
+            except User.DoesNotExist:
+                pass
         else:
-            messages.error(request, 'Usuário ou senha inválidos')
-
+            # Trata como CPF (remove pontos e hífen)
+            cpf_limpo = email_or_cpf.replace('.', '').replace('-', '')
+            try:
+                from core.models import UserProfile
+                profile = UserProfile.objects.get(cpf=cpf_limpo)
+                user = profile.user
+            except UserProfile.DoesNotExist:
+                pass
+        
+        # Verifica se o usuário foi encontrado
+        if user is None:
+            messages.error(request, 'Email/CPF não encontrado')
+        else:
+            # Tenta autenticar com a senha
+            user_auth = authenticate(request, username=user.username, password=password)
+            if user_auth is None:
+                messages.error(request, 'Senha incorreta')
+            else:
+                login(request, user_auth)
+                return redirect('dashboard')
+    
     return render(request, 'login.html')
 
 def register_view(request):
     if request.method == 'POST':
-        username = request.POST['username']
+        username = request.POST['username']  # Nome completo (ou altere para email se preferir)
         email = request.POST['email']
         password = request.POST['password']
         password_confirm = request.POST['password_confirm']
-        cpf = request.POST.get('cpf', '')
+        cpf = request.POST.get('cpf', '').replace('.', '').replace('-', '')  # Limpa o CPF
         
         if password != password_confirm:
             messages.error(request, 'Senhas não coincidem')
@@ -44,7 +68,7 @@ def register_view(request):
         user = User.objects.create_user(username=username, email=email, password=password)
         user.save()
         
-        # Criar perfil do usuário com CPF
+        # Criar perfil do usuário com CPF (sem nickname)
         from core.models import UserProfile
         UserProfile.objects.create(user=user, cpf=cpf)
         

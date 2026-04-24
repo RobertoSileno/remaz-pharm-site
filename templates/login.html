@@ -48,7 +48,7 @@
                 {% csrf_token %}
 
                 <div class="campo">
-                    <label>Nome ou CPF</label>
+                    <label>Email ou CPF</label>
                     <input type="text" name="username" placeholder="Digite">
                 </div>
 
@@ -75,6 +75,13 @@
                 </button>
 
             </form>
+
+             <!-- MENSAGENS DE ERRO -->
+            {% if messages %}
+                {% for message in messages %}
+                    <p style="color: red; margin-top: 10px;">{{ message }}</p>
+                {% endfor %}
+            {% endif %}
 
         </div>
 

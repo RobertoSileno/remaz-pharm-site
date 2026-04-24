@@ -54,7 +54,7 @@
 
                 <div class="campo">
                     <label for="cpf">CPF</label>
-                    <input type="text" id="cpf" name="cpf" placeholder="Digite seu CPF" pattern="[0-9]{3}\.[0-9]{3}\.[0-9]{3}\-[0-9]{2}" title="Somente números são permitidos" inputmode="numeric">
+                    <input type="text" id="cpf" name="cpf" placeholder="Digite seu CPF" pattern="(\d{3}\.\d{3}\.\d{3}-\d{2}|\d{11})" title="Somente números são permitidos" inputmode="numeric">
                 </div>
 
                 <div class="campo">
@@ -93,7 +93,7 @@
     
     // Campo CPF - apenas números
     document.getElementById('cpf').addEventListener('input', function(e) {
-        this.value = this.value.replace(/[^0-9]/g, '');
+        this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11);
         // Formata automaticamente: XXX.XXX.XXX-XX
         if (this.value.length > 0) {
             this.value = this.value
