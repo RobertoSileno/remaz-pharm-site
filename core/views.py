@@ -3,6 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from .models import Medicine
 
 def home(request):
     return render(request, 'home.html')
@@ -63,3 +64,6 @@ def password_recovery_view(request):
 def dashboard_view(request):
     return render(request, 'dashboard.html')    
 
+def list_medicines(request):
+    medicines = Medicine.objects.all()
+    return render(request, 'medicines.html', {'medicines': medicines})
