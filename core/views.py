@@ -86,7 +86,14 @@ def password_recovery_view(request):
 
 @login_required(login_url='login')
 def dashboard_view(request):
-    return render(request, 'dashboard.html')    
+    username = request.user.username.strip()
+    parts = username.split()
+    if len(parts) >= 2:
+        display_name = f"{parts[0]} {parts[-1]}"
+    else:
+        display_name = username
+
+    return render(request, 'dashboard.html', {'display_name': display_name})    
 
 def list_medicines(request):
     medicines = Medicine.objects.all()
