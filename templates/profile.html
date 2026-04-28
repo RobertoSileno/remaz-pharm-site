@@ -1,0 +1,136 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remaz Pharm - Usuário</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+</head>
+
+<body>
+
+<header class="topo-dashboard">
+    <div class="logo-topo">
+        <a href="{% url 'dashboard' %}">
+            <img src="{% static 'img/logo/logo.png' %}" alt="Logo">
+        </a>
+    </div>
+
+    <div class="busca-topo">
+        <input type="text" placeholder="Pesquisa">
+        <span class="icone-busca">⌕</span>
+    </div>
+
+    <div class="usuario-topo">
+        <div class="perfil-container">
+            <button class="perfil-icon" id="perfil-btn" type="button">
+                <div class="avatar"></div>
+            </button>
+            <div class="perfil-name">{{ display_name }}</div>
+
+            <div class="menu-dropdown" id="menu-dropdown">
+                <a href="#">Configurações</a>
+                <a href="#">Pagamento</a>
+                <a href="#">Pedidos</a>
+                <a href="#">Ajuda</a>
+                <a href="{% url 'logout' %}">Sair</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="dashboard-wrapper">
+
+    <!-- FORMULÁRIO DE USUÁRIO -->
+    <section class="usuario-area">
+
+        <h2>Cadastro de Usuário</h2>
+
+        <form class="form-usuario">
+
+            <div class="form-linha">
+                <div class="form-grupo">
+                    <label>Nome completo</label>
+                    <input type="text" placeholder="Digite">
+                </div>
+
+                <div class="form-grupo">
+                    <label>Email de recuperação de senha</label>
+                    <input type="email" placeholder="Digite">
+                </div>
+            </div>
+
+            <div class="form-linha">
+                <div class="form-grupo">
+                    <label>Usuário</label>
+                    <input type="text" placeholder="Digite">
+                </div>
+
+                <div class="form-grupo">
+                    <label>Confirmar e-mail</label>
+                    <input type="email" placeholder="Digite">
+                </div>
+            </div>
+
+            <div class="form-linha">
+                <div class="form-grupo">
+                    <label>CPF</label>
+                    <input type="text" placeholder="Digite">
+                </div>
+
+                <div class="form-grupo">
+                    <label>Telefone</label>
+                    <input type="text" placeholder="Digite">
+                </div>
+            </div>
+
+            <div class="form-linha">
+                <div class="form-grupo">
+                    <label>Senha</label>
+                    <input type="password" placeholder="Digite">
+                </div>
+
+                <div class="form-grupo">
+                    <label>Confirmar senha</label>
+                    <input type="password" placeholder="Digite">
+                </div>
+            </div>
+
+            <div class="form-acoes">
+                <button type="submit">Salvar</button>
+            </div>
+
+        </form>
+
+    </section>
+
+</main>
+
+<footer class="rodape-dashboard">
+    <div class="logo-rodape">REMAZ <span>PHARM</span></div>
+    <div class="links-rodape">
+        <a href="#">Careers</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms & Conditions</a>
+    </div>
+</footer>
+
+<script>
+    const perfilBtn = document.getElementById('perfil-btn');
+    const menuDropdown = document.getElementById('menu-dropdown');
+
+    perfilBtn.addEventListener('click', function() {
+        menuDropdown.classList.toggle('ativo');
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.perfil-container')) {
+            menuDropdown.classList.remove('ativo');
+        }
+    });
+</script>
+
+</body>
+</html>
