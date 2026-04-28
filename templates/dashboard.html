@@ -89,298 +89,33 @@
         <section class="conteudo-principal">
             <div class="produtos-grid">
 
-                <div class="produto-card">
-                    <span class="selo selo-esq">Mais pedidos</span>
-                    <span class="seta">›</span>
-                    <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
-                    <h4>Medicamento 20g</h4>
-                    <div class="rodape-card">
-                        <div>
-                            <p>Valor</p>
-                            <strong>R$ 18,00</strong>
-                        </div>
-                        <button>🛒</button>
-                    </div>
-                </div>
+    {% for medicine in medicines %}
+    <div class="produto-card">
 
-                <div class="produto-card">
-                    <span class="selo selo-dir">Novo valor</span>
-                    <span class="seta">›</span>
-                    <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
-                    <h4>Medicamento 10g</h4>
-                    <div class="rodape-card">
-                        <div>
-                            <p>Valor</p>
-                            <strong>R$ 12,00</strong>
-                        </div>
-                        <button>🛒</button>
-                    </div>
-                </div>
+        <span class="seta">›</span>
 
-                <div class="produto-card">
-                    <span class="seta">›</span>
-                    <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
-                    <h4>Medicamento 10g</h4>
-                    <div class="rodape-card">
-                        <div>
-                            <p>Valor</p>
-                            <strong>R$ 12,00</strong>
-                        </div>
-                        <button>🛒</button>
-                    </div>
-                </div>
+        {% if medicine.image %}
+            <img src="{{ medicine.image }}" alt="{{ medicine.name }}">
+        {% else %}
+            <img src="{% static 'img/medicamento.png' %}" alt="Sem imagem">
+        {% endif %}
 
-                <div class="produto-card">
-                    <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
-                    <h4>Medicamento 25g</h4>
-                    <div class="rodape-card">
-                        <div>
-                            <p>Valor</p>
-                            <strong>R$ 15,00</strong>
-                        </div>
-                        <button>🛒</button>
-                    </div>
-                </div>
+        <h4>{{ medicine.name }}</h4>
 
-                <div class="produto-card">
-                    <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
-                    <h4>Medicamento 15g</h4>
-                    <div class="rodape-card">
-                        <div>
-                            <p>Valor</p>
-                            <strong>R$ 17,50</strong>
-                        </div>
-                        <button>🛒</button>
-                    </div>
-                </div>
+        <div class="rodape-card">
+            <div>
+                <p>Valor</p>
+                <strong>R$ {{ medicine.price }}</strong>
+            </div>
+            <button>🛒</button>
+        </div>
 
-                <div class="produto-card">
-                    <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
-                    <h4>Medicamento 30g</h4>
-                    <div class="rodape-card">
-                        <div>
-                            <p>Valor</p>
-                            <strong>R$ 24,70</strong>
-                        </div>
-                        <button>🛒</button>
-                    </div>
-                </div>
+    </div>
+    {% empty %}
+        <p>Nenhum produto cadastrado.</p>
+    {% endfor %}
 
-                <div class="produto-card">
-                    <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
-                    <h4>Medicamento 10g</h4>
-                    <div class="rodape-card">
-                        <div>
-                            <p>Valor</p>
-                            <strong>R$ 10,67</strong>
-                        </div>
-                        <button>🛒</button>
-                    </div>
-                </div>
-
-                <div class="produto-card">
-                    <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
-                    <h4>Medicamento 15g</h4>
-                    <div class="rodape-card">
-                        <div>
-                            <p>Valor</p>
-                            <strong>R$ 16,40</strong>
-                        </div>
-                        <button>🛒</button>
-                    </div>
-                </div>
-
-                <div class="produto-card">
-                    <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
-                    <h4>Medicamento 35g</h4>
-                    <div class="rodape-card">
-                        <div>
-                            <p>Valor</p>
-                            <strong>R$ 29,00</strong>
-                        </div>
-                        <button>🛒</button>
-                    </div>
-                </div>
-
-                <div class="produto-card">
-                    <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
-                    <h4>Medicamento 35g</h4>
-                    <div class="rodape-card">
-                        <div>
-                            <p>Valor</p>
-                            <strong>R$ 29,00</strong>
-                        </div>
-                        <button>🛒</button>
-                    </div>
-                </div>
-
-                <div class="produto-card">
-                    <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
-                    <h4>Medicamento 35g</h4>
-                    <div class="rodape-card">
-                        <div>
-                            <p>Valor</p>
-                            <strong>R$ 29,00</strong>
-                        </div>
-                        <button>🛒</button>
-                    </div>
-                </div>
-
-                <div class="produto-card">
-                    <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
-                    <h4>Medicamento 35g</h4>
-                    <div class="rodape-card">
-                        <div>
-                            <p>Valor</p>
-                            <strong>R$ 29,00</strong>
-                        </div>
-                        <button>🛒</button>
-                    </div>
-                </div>
-
-                <div class="produto-card">
-                    <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
-                    <h4>Medicamento 35g</h4>
-                    <div class="rodape-card">
-                        <div>
-                            <p>Valor</p>
-                            <strong>R$ 29,00</strong>
-                        </div>
-                        <button>🛒</button>
-                    </div>
-                </div>
-
-                <div class="produto-card">
-                    <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
-                    <h4>Medicamento 35g</h4>
-                    <div class="rodape-card">
-                        <div>
-                            <p>Valor</p>
-                            <strong>R$ 29,00</strong>
-                        </div>
-                        <button>🛒</button>
-                    </div>
-                </div>
-
-                <div class="produto-card">
-                    <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
-                    <h4>Medicamento 35g</h4>
-                    <div class="rodape-card">
-                        <div>
-                            <p>Valor</p>
-                            <strong>R$ 29,00</strong>
-                        </div>
-                        <button>🛒</button>
-                    </div>
-                </div>
-
-                <div class="produto-card">
-                    <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
-                    <h4>Medicamento 35g</h4>
-                    <div class="rodape-card">
-                        <div>
-                            <p>Valor</p>
-                            <strong>R$ 29,00</strong>
-                        </div>
-                        <button>🛒</button>
-                    </div>
-                </div>
-
-                <div class="produto-card">
-                    <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
-                    <h4>Medicamento 35g</h4>
-                    <div class="rodape-card">
-                        <div>
-                            <p>Valor</p>
-                            <strong>R$ 29,00</strong>
-                        </div>
-                        <button>🛒</button>
-                    </div>
-                </div>
-
-                <div class="produto-card">
-                    <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
-                    <h4>Medicamento 35g</h4>
-                    <div class="rodape-card">
-                        <div>
-                            <p>Valor</p>
-                            <strong>R$ 29,00</strong>
-                        </div>
-                        <button>🛒</button>
-                    </div>
-                </div>
-
-                <div class="produto-card">
-                    <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
-                    <h4>Medicamento 35g</h4>
-                    <div class="rodape-card">
-                        <div>
-                            <p>Valor</p>
-                            <strong>R$ 29,00</strong>
-                        </div>
-                        <button>🛒</button>
-                    </div>
-                </div>
-
-                <div class="produto-card">
-                    <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
-                    <h4>Medicamento 35g</h4>
-                    <div class="rodape-card">
-                        <div>
-                            <p>Valor</p>
-                            <strong>R$ 29,00</strong>
-                        </div>
-                        <button>🛒</button>
-                    </div>
-                </div>
-
-                <div class="produto-card">
-                    <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
-                    <h4>Medicamento 35g</h4>
-                    <div class="rodape-card">
-                        <div>
-                            <p>Valor</p>
-                            <strong>R$ 29,00</strong>
-                        </div>
-                        <button>🛒</button>
-                    </div>
-                </div>
-
-                <div class="produto-card">
-                    <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
-                    <h4>Medicamento 35g</h4>
-                    <div class="rodape-card">
-                        <div>
-                            <p>Valor</p>
-                            <strong>R$ 29,00</strong>
-                        </div>
-                        <button>🛒</button>
-                    </div>
-                </div>
-
-                <div class="produto-card">
-                    <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
-                    <h4>Medicamento 35g</h4>
-                    <div class="rodape-card">
-                        <div>
-                            <p>Valor</p>
-                            <strong>R$ 29,00</strong>
-                        </div>
-                        <button>🛒</button>
-                    </div>
-                </div>
-
-                <div class="produto-card">
-                    <img src="{% static 'img/medicamento.png' %}" alt="Medicamento">
-                    <h4>Medicamento 35g</h4>
-                    <div class="rodape-card">
-                        <div>
-                            <p>Valor</p>
-                            <strong>R$ 29,00</strong>
-                        </div>
-                        <button>🛒</button>
-                    </div>
-                </div>
+</div>
 
             </div>
         </section>

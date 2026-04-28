@@ -28,7 +28,7 @@ class Medicine(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
 
     # imagem do produto
-    image = models.ImageField(upload_to='medicines/')
+    image = models.URLField(blank=True, null=True)
 
     # categorias (analgésico, antibiótico, etc)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)

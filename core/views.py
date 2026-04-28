@@ -88,13 +88,15 @@ def password_recovery_view(request):
 def dashboard_view(request):
     username = request.user.username.strip()
     parts = username.split()
+
     if len(parts) >= 2:
         display_name = f"{parts[0]} {parts[-1]}"
     else:
         display_name = username
 
-    return render(request, 'dashboard.html', {'display_name': display_name})    
+    medicines = Medicine.objects.all()  # 👈 pega do banco
 
-def list_medicines(request):
-    medicines = Medicine.objects.all()
-    return render(request, 'medicines.html', {'medicines': medicines})
+    return render(request, 'dashboard.html', {
+        'display_name': display_name,
+        'medicines': medicines  # 👈 envia pro HTML
+    })
