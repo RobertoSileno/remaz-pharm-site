@@ -178,3 +178,7 @@ media/
 #.idea/
 
 # End of https://www.toptal.com/developers/gitignore/api/django
+.env*
+.flaskenv*
+!.env.project
+!.env.vault
