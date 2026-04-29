@@ -1,4 +1,4 @@
-/* RESET */
+/* Estilo para o formulário de usuário */
 * {
     margin: 0;
     padding: 0;
@@ -149,12 +149,14 @@ img {
 
 /* ===== FORMULÁRIO ===== */
 
-.usuario-area {
+.usuario-area,
+.endereco-area {
     max-width: 850px;
     margin: auto;
 }
 
-.usuario-area h2 {
+.usuario-area h2,
+.endereco-area h2 {
     margin-bottom: 25px;
     font-size: 20px;
 }
@@ -292,4 +294,53 @@ img {
         flex-direction: column;
         gap: 12px;
     }
+}
+
+/* Estilos para o formulário de Endereço */
+.endereco-area {
+    margin-top: 40px;
+}
+
+.endereco-area h2 {
+    margin-bottom: 25px;
+    font-size: 20px;
+}
+
+/* Formulário de Endereço */
+.form-endereco .form-linha {
+    margin-bottom: 18px;
+}
+
+.form-endereco .form-grupo input {
+    height: 40px;
+    border-radius: 20px;
+    border: 1px solid #73a8c3;
+    padding: 0 14px;
+    font-size: 13px;
+    background: #f7f7f7;
+    outline: none;
+    transition: 0.2s;
+}
+
+.form-endereco .form-grupo input:focus {
+    border-color: #2b7695;
+    background: white;
+}
+
+.form-endereco .form-acoes {
+    margin-top: 25px;
+    text-align: right;
+}
+
+.form-endereco .form-acoes button {
+    background: #2b7695;
+    color: white;
+    border: none;
+    padding: 10px 26px;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.form-endereco .form-acoes button:hover {
+    background: #225d78;
 }
