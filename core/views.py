@@ -188,3 +188,18 @@ def cart_view(request):
         'items': items,
         'total': total,
     })
+
+@login_required(login_url='login')
+def profile_view(request):
+    username = request.user.username.strip()
+    parts = username.split()
+
+    if len(parts) >= 2:
+        display_name = f"{parts[0]} {parts[-1]}"
+    else:
+        display_name = username
+
+    return render(request, 'profile.html', {
+        'display_name': display_name
+    })
+

@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Remaz Pharm - Usuário</title>
-    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/profile.css' %}">
 </head>
 
 <body>
@@ -32,6 +32,7 @@
 
             <div class="menu-dropdown" id="menu-dropdown">
                 <a href="#">Configurações</a>
+                <a href="{% url 'perfil' %}">Perfil</a>
                 <a href="#">Pagamento</a>
                 <a href="#">Pedidos</a>
                 <a href="#">Ajuda</a>

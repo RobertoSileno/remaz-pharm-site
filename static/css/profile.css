@@ -150,7 +150,7 @@ img {
 /* ===== FORMULÁRIO ===== */
 
 .usuario-area {
-    max-width: 900px;
+    max-width: 850px;
     margin: auto;
 }
 
@@ -162,17 +162,48 @@ img {
 /* LINHAS */
 .form-linha {
     display: flex;
-    gap: 40px;
+    gap: 25px;
     margin-bottom: 18px;
 }
 
 /* GRUPOS */
 .form-grupo {
-    flex: 1;
     display: flex;
     flex-direction: column;
 }
 
+/* CONTROLE DE TAMANHO DOS CAMPOS */
+
+/* Nome + Email */
+.form-linha:nth-child(1) .form-grupo:first-child {
+    flex: 1.2;
+}
+.form-linha:nth-child(1) .form-grupo:last-child {
+    flex: 1;
+}
+
+/* Usuário + Confirmar email */
+.form-linha:nth-child(2) .form-grupo:first-child {
+    flex: 0.9;
+}
+.form-linha:nth-child(2) .form-grupo:last-child {
+    flex: 1.1;
+}
+
+/* CPF + Telefone */
+.form-linha:nth-child(3) .form-grupo:first-child {
+    flex: 0.6;
+}
+.form-linha:nth-child(3) .form-grupo:last-child {
+    flex: 1.4;
+}
+
+/* Senha + Confirmar senha */
+.form-linha:nth-child(4) .form-grupo {
+    flex: 1;
+}
+
+/* LABEL */
 .form-grupo label {
     font-size: 12px;
     margin-bottom: 6px;
