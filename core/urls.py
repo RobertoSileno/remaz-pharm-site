@@ -6,6 +6,7 @@ from .views import (
     logout_view,
     register_view,
     password_recovery_view,
+    profile_view,
 )
 
 urlpatterns = [
@@ -15,4 +16,5 @@ urlpatterns = [
     path('dashboard/', dashboard_view, name='dashboard'),
     path('recuperar-senha/', password_recovery_view, name='recuperar_senha'),
     path('logout/', logout_view, name='logout'),
+    path('perfil/', profile_view, name='perfil'),      
 ]
