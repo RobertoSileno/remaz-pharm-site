@@ -1,0 +1,143 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remaz Pharm - Pagamento</title>
+    <link rel="stylesheet" href="{% static 'css/payment.css' %}">
+</head>
+
+<body>
+
+<header class="topo-dashboard">
+    <div class="logo-topo">
+        <a href="{% url 'dashboard' %}">
+            <img src="{% static 'img/logo/logo.png' %}" alt="Logo">
+        </a>
+    </div>
+
+    <div class="busca-topo">
+        <input type="text" placeholder="Pesquisa">
+        <span class="icone-busca">⌕</span>
+    </div>
+
+    <div class="usuario-topo">
+        <div class="perfil-container">
+            <button class="perfil-icon" id="perfil-btn" type="button">
+                <div class="avatar"></div>
+            </button>
+            <div class="perfil-name">{{ display_name }}</div>
+
+            <div class="menu-dropdown" id="menu-dropdown">
+                <a href="#">Configurações</a>
+                <a href="{% url 'perfil' %}">Perfil</a>
+                <a href="{% url 'pagamento' %}">Pagamento</a>
+                <a href="#">Pedidos</a>
+                <a href="#">Ajuda</a>
+                <a href="{% url 'logout' %}">Sair</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="pagamento-wrapper">
+
+    <h2 class="titulo">Formas de pagamento</h2>
+
+    <!-- DÉBITO -->
+    <div class="card-section">
+        <div class="card-header" onclick="toggleCard(this)">
+            <span>Adicionar um Cartão de Débito</span>
+            <span class="seta">▼</span>
+        </div>
+
+        <div class="card-body">
+            <label>Nome no cartão</label>
+            <input type="text" placeholder="Digite">
+
+            <label>Número do cartão</label>
+            <input type="text" placeholder="Digite">
+
+            <div class="linha">
+                <div>
+                    <label>Validade</label>
+                    <input type="text" placeholder="MM/AA">
+                </div>
+                <div>
+                    <label>CVV</label>
+                    <input type="text" placeholder="Digite">
+                </div>
+            </div>
+
+            <button class="btn-salvar">Salvar</button>
+        </div>
+    </div>
+
+    <!-- CRÉDITO -->
+    <div class="card-section">
+        <div class="card-header" onclick="toggleCard(this)">
+            <span>Adicionar um Cartão de Crédito</span>
+            <span class="seta">▼</span>
+        </div>
+
+        <div class="card-body">
+            <label>Nome no cartão</label>
+            <input type="text" placeholder="Digite">
+
+            <label>Número do cartão</label>
+            <input type="text" placeholder="Digite">
+
+            <div class="linha">
+                <div>
+                    <label>Validade</label>
+                    <input type="text" placeholder="MM/AA">
+                </div>
+                <div>
+                    <label>CVV</label>
+                    <input type="text" placeholder="Digite">
+                </div>
+            </div>
+
+            <button class="btn-salvar">Salvar</button>
+        </div>
+    </div>
+
+</main>
+
+<!-- RODAPÉ ORIGINAL RESTAURADO -->
+<footer class="rodape-dashboard">
+    <div class="logo-rodape">REMAZ <span>PHARM</span></div>
+
+    <div class="links-rodape">
+        <a href="#">Careers</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms & Conditions</a>
+    </div>
+</footer>
+
+<script>
+    const perfilBtn = document.getElementById('perfil-btn');
+    const menuDropdown = document.getElementById('menu-dropdown');
+
+    perfilBtn.addEventListener('click', function() {
+        menuDropdown.classList.toggle('ativo');
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.perfil-container')) {
+            menuDropdown.classList.remove('ativo');
+        }
+    });
+
+    function toggleCard(element) {
+        const body = element.nextElementSibling;
+        const seta = element.querySelector('.seta');
+
+        body.classList.toggle('ativo');
+        seta.classList.toggle('girar');
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,207 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f0f0f0;
+
+    /* CORREÇÃO DO RODAPÉ */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* HEADER */
+.topo-dashboard {
+    background: #2b7695;
+    height: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 60px;
+}
+
+.logo-topo img {
+    height: 80px;
+}
+
+.busca-topo {
+    position: relative;
+    width: 380px;
+}
+
+.busca-topo input {
+    width: 100%;
+    height: 38px;
+    border-radius: 20px;
+    border: none;
+    padding: 0 35px 0 14px;
+}
+
+.icone-busca {
+    position: absolute;
+    right: 10px;
+    top: 8px;
+}
+
+/* PERFIL */
+.usuario-topo {
+    color: white;
+}
+
+.perfil-container {
+    position: relative;
+    text-align: center;
+}
+
+.avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: white;
+}
+
+.menu-dropdown {
+    position: absolute;
+    top: 50px;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    min-width: 150px;
+    display: none;
+    flex-direction: column;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    z-index: 1000;
+}
+
+.menu-dropdown.ativo {
+    display: flex;
+}
+
+.menu-dropdown a {
+    padding: 10px;
+    text-decoration: none;
+    color: #333;
+}
+
+/* PAGAMENTO */
+.pagamento-wrapper {
+    max-width: 500px;
+    margin: 50px auto;
+    text-align: center;
+
+    /* FAZ O CONTEÚDO EMPURRAR O RODAPÉ */
+    flex: 1;
+}
+
+.titulo {
+    margin-bottom: 30px;
+}
+
+/* CARD */
+.card-section {
+    margin-bottom: 20px;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    cursor: pointer;
+    padding: 10px;
+}
+
+.seta {
+    transition: 0.3s;
+}
+
+.seta.girar {
+    transform: rotate(180deg);
+}
+
+.card-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: 0.3s;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.card-body.ativo {
+    max-height: 500px;
+    margin-top: 10px;
+}
+
+.card-body label {
+    font-size: 12px;
+    text-align: left;
+}
+
+.card-body input {
+    height: 40px;
+    border-radius: 20px;
+    border: 1px solid #73a8c3;
+    padding: 0 10px;
+}
+
+/* LINHA */
+.linha {
+    display: flex;
+    gap: 10px;
+}
+
+.linha div {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* BOTÃO */
+.btn-salvar {
+    margin-top: 10px;
+    background: #2b7695;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.btn-salvar:hover {
+    background: #225d78;
+}
+
+/* RODAPÉ */
+.rodape-dashboard {
+    background: #2b7695;
+    padding: 30px;
+    text-align: center;
+
+    /* GARANTE QUE FIQUE NO FINAL */
+    margin-top: auto;
+}
+
+.logo-rodape {
+    font-size: 28px;
+    color: white;
+    font-weight: bold;
+}
+
+.logo-rodape span {
+    color: #ff4a3d;
+}
+
+.links-rodape {
+    margin-top: 10px;
+}
+
+.links-rodape a {
+    color: rgba(255,255,255,0.7);
+    margin: 0 10px;
+    font-size: 12px;
+    text-decoration: none;
+}

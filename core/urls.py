@@ -7,6 +7,7 @@ from .views import (
     register_view,
     password_recovery_view,
     profile_view,
+    payment_view,
 )
 
 urlpatterns = [
@@ -16,5 +17,6 @@ urlpatterns = [
     path('dashboard/', dashboard_view, name='dashboard'),
     path('recuperar-senha/', password_recovery_view, name='recuperar_senha'),
     path('logout/', logout_view, name='logout'),
-    path('perfil/', profile_view, name='perfil'),      
+    path('perfil/', profile_view, name='perfil'), 
+    path('pagamento/', payment_view, name='pagamento'),     
 ]
