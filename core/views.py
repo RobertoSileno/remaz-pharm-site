@@ -1,9 +1,11 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from .models import Medicine
+from .models import Medicine, Category, Cart, CartItem
+from django.db.models import Q
+from django.views.decorators.http import require_POST
 
 def home(request):
     return render(request, 'home.html')
@@ -94,9 +96,95 @@ def dashboard_view(request):
     else:
         display_name = username
 
-    medicines = Medicine.objects.all()  # 👈 pega do banco
+    search_query = request.GET.get('q', '').strip()
+    selected_categories = request.GET.getlist('category')
+    selected_tarja = request.GET.getlist('tarja')
+
+    medicines = Medicine.objects.select_related('category').all()
+
+    if search_query:
+        medicines = medicines.filter(
+            Q(name__icontains=search_query) |
+            Q(description__icontains=search_query)
+        )
+
+    if selected_categories:
+        medicines = medicines.filter(category_id__in=selected_categories)
+
+    if selected_tarja:
+        medicines = medicines.filter(tarja__in=selected_tarja)
+
+    categories = Category.objects.all()
 
     return render(request, 'dashboard.html', {
         'display_name': display_name,
-        'medicines': medicines  # 👈 envia pro HTML
+        'medicines': medicines,
+        'categories': categories,
+        'search_query': search_query,
+        'selected_categories': selected_categories,
+        'selected_tarja': selected_tarja,
+    })
+@login_required(login_url='login')
+@require_POST
+def add_to_cart(request, medicine_id):
+    medicine = get_object_or_404(Medicine, id=medicine_id)
+
+    cart, created = Cart.objects.get_or_create(user=request.user)
+
+    item, created = CartItem.objects.get_or_create(
+        cart=cart,
+        medicine=medicine
+    )
+
+    if not created:
+        item.quantity += 1
+        item.save()
+
+    return redirect('dashboard')
+
+
+@login_required(login_url='login')
+@require_POST
+def decrease_cart_item(request, item_id):
+    item = get_object_or_404(
+        CartItem,
+        id=item_id,
+        cart__user=request.user
+    )
+
+    if item.quantity > 1:
+        item.quantity -= 1
+        item.save()
+    else:
+        item.delete()
+
+    return redirect('cart')
+
+
+@login_required(login_url='login')
+@require_POST
+def remove_cart_item(request, item_id):
+    item = get_object_or_404(
+        CartItem,
+        id=item_id,
+        cart__user=request.user
+    )
+
+    item.delete()
+
+    return redirect('cart')
+
+
+@login_required(login_url='login')
+def cart_view(request):
+    cart, created = Cart.objects.get_or_create(user=request.user)
+
+    items = cart.cartitem_set.select_related('medicine').all()
+
+    total = sum(item.medicine.price * item.quantity for item in items)
+
+    return render(request, 'cart.html', {
+        'cart': cart,
+        'items': items,
+        'total': total,
     })
