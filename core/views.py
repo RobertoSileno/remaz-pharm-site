@@ -216,3 +216,17 @@ def payment_view(request):
     return render(request, 'payment.html', {
         'display_name': display_name
     })
+
+@login_required(login_url='login')
+def help_view(request):
+    username = request.user.username.strip()
+    parts = username.split()
+
+    if len(parts) >= 2:
+        display_name = f"{parts[0]} {parts[-1]}"
+    else:
+        display_name = username
+
+    return render(request, 'help.html', {
+        'display_name': display_name
+    })

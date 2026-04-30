@@ -1,0 +1,118 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajuda - Remaz Pharm</title>
+    <link rel="stylesheet" href="{% static 'css/help.css' %}">
+</head>
+
+<body>
+
+<header class="topo-dashboard">
+    <div class="logo-topo">
+        <a href="{% url 'dashboard' %}">
+            <img src="{% static 'img/logo/logo.png' %}">
+        </a>
+    </div>
+
+    <div class="busca-topo">
+        <input type="text" placeholder="Pesquisa">
+        <span class="icone-busca">⌕</span>
+    </div>
+
+    <div class="usuario-topo">
+        <div class="perfil-container">
+            <button class="perfil-icon" id="perfil-btn">
+                <div class="avatar"></div>
+            </button>
+            <div class="perfil-name">{{ display_name }}</div>
+
+            <div class="menu-dropdown" id="menu-dropdown">
+                <a href="#">Configurações</a>
+                <a href="{% url 'perfil' %}">Perfil</a>
+                <a href="{% url 'pagamento' %}">Pagamento</a>
+                <a href="#">Pedidos</a>
+                <a href="{% url 'ajuda' %}">Ajuda</a>
+                <a href="{% url 'logout' %}">Sair</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="help-wrapper">
+
+    <h2>Como podemos ajudar você?</h2>
+
+    <input class="campo-busca-ajuda" type="text" placeholder="Digite aqui...">
+
+    <h3>Acessos personalizados</h3>
+
+    <div class="box-ajuda">
+
+        <div class="item-ajuda" onclick="toggleItem(this)">
+            <span>Devolução de produtos</span>
+            <span class="seta">▶</span>
+        </div>
+        <div class="conteudo-ajuda"></div>
+
+        <div class="item-ajuda" onclick="toggleItem(this)">
+            <span>Prazo de recebimento das compras</span>
+            <span class="seta">▶</span>
+        </div>
+        <div class="conteudo-ajuda"></div>
+
+        <div class="item-ajuda" onclick="toggleItem(this)">
+            <span>Perguntas frequentes</span>
+            <span class="seta">▶</span>
+        </div>
+        <div class="conteudo-ajuda"></div>
+
+        <div class="item-ajuda" onclick="toggleItem(this)">
+            <span>Cupons</span>
+            <span class="seta">▶</span>
+        </div>
+        <div class="conteudo-ajuda"></div>
+
+    </div>
+
+    <button class="btn-contato">Fale conosco</button>
+
+</main>
+
+<footer class="rodape-dashboard">
+    <div class="logo-rodape">REMAZ <span>PHARM</span></div>
+
+    <div class="links-rodape">
+        <a href="#">Careers</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms & Conditions</a>
+    </div>
+</footer>
+
+<script>
+    const perfilBtn = document.getElementById('perfil-btn');
+    const menuDropdown = document.getElementById('menu-dropdown');
+
+    perfilBtn.addEventListener('click', () => {
+        menuDropdown.classList.toggle('ativo');
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.perfil-container')) {
+            menuDropdown.classList.remove('ativo');
+        }
+    });
+
+    function toggleItem(element) {
+        const conteudo = element.nextElementSibling;
+        const seta = element.querySelector('.seta');
+
+        conteudo.classList.toggle('ativo');
+        seta.classList.toggle('girar');
+    }
+</script>
+
+</body>
+</html>

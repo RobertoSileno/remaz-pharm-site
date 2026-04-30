@@ -1,0 +1,177 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f0f0f0;
+
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* HEADER */
+.topo-dashboard {
+    background: #2b7695;
+    height: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 60px;
+}
+
+.logo-topo img {
+    height: 80px;
+}
+
+.busca-topo {
+    position: relative;
+    width: 380px;
+}
+
+.busca-topo input {
+    width: 100%;
+    height: 38px;
+    border-radius: 20px;
+    border: none;
+    padding: 0 35px 0 14px;
+}
+
+.icone-busca {
+    position: absolute;
+    right: 10px;
+    top: 8px;
+}
+
+/* PERFIL */
+.usuario-topo {
+    color: white;
+}
+
+.perfil-container {
+    position: relative;
+    text-align: center;
+}
+
+.avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: white;
+}
+
+.menu-dropdown {
+    position: absolute;
+    top: 50px;
+    right: 0;
+    background: white;
+    display: none;
+    flex-direction: column;
+    border-radius: 6px;
+}
+
+.menu-dropdown.ativo {
+    display: flex;
+}
+
+.menu-dropdown a {
+    padding: 10px;
+    text-decoration: none;
+    color: #333;
+}
+
+/* CONTEÚDO */
+.help-wrapper {
+    flex: 1;
+    text-align: center;
+    padding: 40px;
+}
+
+.help-wrapper h2 {
+    margin-bottom: 20px;
+}
+
+.campo-busca-ajuda {
+    width: 300px;
+    height: 40px;
+    border-radius: 20px;
+    border: 1px solid #73a8c3;
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+/* BOX */
+.box-ajuda {
+    max-width: 700px;
+    margin: auto;
+    border: 1px solid #999;
+    padding: 20px;
+}
+
+/* ITEM */
+.item-ajuda {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #ddd;
+}
+
+/* SETA */
+.seta {
+    transition: 0.3s;
+}
+
+.seta.girar {
+    transform: rotate(90deg);
+}
+
+/* CONTEÚDO ESCONDIDO */
+.conteudo-ajuda {
+    max-height: 0;
+    overflow: hidden;
+    transition: 0.3s;
+}
+
+.conteudo-ajuda.ativo {
+    max-height: 100px;
+    padding: 10px;
+}
+
+/* BOTÃO */
+.btn-contato {
+    margin-top: 40px;
+    padding: 10px 30px;
+    border-radius: 20px;
+    border: 1px solid #2b7695;
+    background: transparent;
+    cursor: pointer;
+}
+
+/* RODAPÉ */
+.rodape-dashboard {
+    background: #2b7695;
+    padding: 30px;
+    text-align: center;
+    margin-top: auto;
+}
+
+.logo-rodape {
+    font-size: 28px;
+    color: white;
+    font-weight: bold;
+}
+
+.logo-rodape span {
+    color: #ff4a3d;
+}
+
+.links-rodape a {
+    color: rgba(255,255,255,0.7);
+    margin: 0 10px;
+    font-size: 12px;
+    text-decoration: none;
+}
