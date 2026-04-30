@@ -226,14 +226,14 @@ img {
 /* GRID DE PRODUTOS */
 .produtos-grid {
     display: grid;
-    grid-template-columns: repeat(6, 150px);
-    gap: 40px 20px; /* mais espaço entre medicamentos */
+    grid-template-columns: repeat(6, 200px);
+    gap: 70px 50px; /* mais espaço entre medicamentos */
     justify-content: center;
 }
 
 .produto-card {
-    width: 150px;
-    min-height: 190px;
+    width: 180px;
+    min-height: 220px;
     background: #f3f3f3;
     border: 1px solid #9bb9c8;
     border-radius: 10px;
@@ -244,8 +244,8 @@ img {
 }
 
 .produto-card img {
-    width: 50px;
-    height: 64px;
+    width: 100px;
+    height: 120px;
     object-fit: contain;
     margin: 0 auto 10px;
 }
