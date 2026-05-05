@@ -1,4 +1,4 @@
-/* Estilo para o formulário de usuário */
+/* Estilo Base */
 * {
     margin: 0;
     padding: 0;
@@ -148,7 +148,6 @@ img {
 }
 
 /* ===== FORMULÁRIO ===== */
-
 .usuario-area,
 .endereco-area {
     max-width: 850px;
@@ -161,70 +160,64 @@ img {
     font-size: 20px;
 }
 
-/* LINHAS */
 .form-linha {
     display: flex;
     gap: 25px;
     margin-bottom: 18px;
 }
 
-/* GRUPOS */
 .form-grupo {
     display: flex;
     flex-direction: column;
 }
 
-/* CONTROLE DE TAMANHO DOS CAMPOS */
+/* PROPORÇÕES DAS LINHAS */
+.usuario-area .form-linha:nth-of-type(1) .form-grupo:first-child { flex: 1.2; }
+.usuario-area .form-linha:nth-of-type(1) .form-grupo:last-child { flex: 1; }
 
-/* Nome + Email */
-.form-linha:nth-child(1) .form-grupo:first-child {
-    flex: 1.2;
-}
-.form-linha:nth-child(1) .form-grupo:last-child {
-    flex: 1;
-}
+.usuario-area .form-linha:nth-of-type(2) .form-grupo:nth-child(1) { flex: 0.8; }
+.usuario-area .form-linha:nth-of-type(2) .form-grupo:nth-child(2) { flex: 1; }
+.usuario-area .form-linha:nth-of-type(2) .form-grupo:nth-child(3) { flex: 0.6; }
 
-/* Usuário + Confirmar email */
-.form-linha:nth-child(2) .form-grupo:first-child {
-    flex: 0.9;
-}
-.form-linha:nth-child(2) .form-grupo:last-child {
-    flex: 1.1;
-}
+.usuario-area .form-linha:nth-of-type(3) .form-grupo:nth-child(1) { flex: 0.7; }
+.usuario-area .form-linha:nth-of-type(3) .form-grupo:nth-child(2) { flex: 0.9; }
+.usuario-area .form-linha:nth-of-type(3) .form-grupo:nth-child(3) { flex: 0.6; }
 
-/* CPF + Telefone */
-.form-linha:nth-child(3) .form-grupo:first-child {
-    flex: 0.6;
-}
-.form-linha:nth-child(3) .form-grupo:last-child {
-    flex: 1.4;
-}
+.usuario-area .form-linha:nth-of-type(4) .form-grupo { flex: 1; }
 
-/* Senha + Confirmar senha */
-.form-linha:nth-child(4) .form-grupo {
-    flex: 1;
-}
-
-/* LABEL */
+/* ESTILIZAÇÃO DOS CAMPOS (TEXTO, DATA E SELECT) */
 .form-grupo label {
     font-size: 12px;
     margin-bottom: 6px;
     color: #4a6f86;
 }
 
-/* INPUTS */
-.form-grupo input {
+/* Centralizando as regras de estilo para todos os tipos de entrada */
+.form-grupo input, 
+.form-grupo select {
     height: 40px;
     border-radius: 20px;
     border: 1px solid #73a8c3;
     padding: 0 14px;
-    font-size: 13px;
     background: #f7f7f7;
     outline: none;
     transition: 0.2s;
+    
+    /* Correção da Letra/Número pedida: */
+    font-family: Arial, sans-serif; /* Mesma fonte do body */
+    font-size: 13px;               /* Mesmo tamanho dos outros campos */
+    color: #22597a;                /* Mesma cor azulada do projeto */
 }
 
-.form-grupo input:focus {
+/* Ajuste específico para o campo de data (alguns navegadores forçam fonte diferente) */
+.form-grupo input[type="date"] {
+    font-family: Arial, sans-serif;
+    text-transform: uppercase; /* Deixa o dd/mm/aaaa mais limpo */
+    font-size: 13px;
+}
+
+.form-grupo input:focus,
+.form-grupo select:focus {
     border-color: #2b7695;
     background: white;
 }
@@ -262,13 +255,9 @@ img {
     font-weight: bold;
 }
 
-.logo-rodape span {
-    color: #ff4a3d;
-}
+.logo-rodape span { color: #ff4a3d; }
 
-.links-rodape {
-    margin-top: 10px;
-}
+.links-rodape { margin-top: 10px; }
 
 .links-rodape a {
     color: rgba(255,255,255,0.7);
@@ -285,62 +274,9 @@ img {
         padding: 20px;
         gap: 10px;
     }
-
-    .busca-topo {
-        width: 100%;
-    }
-
+    .busca-topo { width: 100%; }
     .form-linha {
         flex-direction: column;
         gap: 12px;
     }
-}
-
-/* Estilos para o formulário de Endereço */
-.endereco-area {
-    margin-top: 40px;
-}
-
-.endereco-area h2 {
-    margin-bottom: 25px;
-    font-size: 20px;
-}
-
-/* Formulário de Endereço */
-.form-endereco .form-linha {
-    margin-bottom: 18px;
-}
-
-.form-endereco .form-grupo input {
-    height: 40px;
-    border-radius: 20px;
-    border: 1px solid #73a8c3;
-    padding: 0 14px;
-    font-size: 13px;
-    background: #f7f7f7;
-    outline: none;
-    transition: 0.2s;
-}
-
-.form-endereco .form-grupo input:focus {
-    border-color: #2b7695;
-    background: white;
-}
-
-.form-endereco .form-acoes {
-    margin-top: 25px;
-    text-align: right;
-}
-
-.form-endereco .form-acoes button {
-    background: #2b7695;
-    color: white;
-    border: none;
-    padding: 10px 26px;
-    border-radius: 20px;
-    cursor: pointer;
-}
-
-.form-endereco .form-acoes button:hover {
-    background: #225d78;
 }
