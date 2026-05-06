@@ -185,14 +185,38 @@ img {
 
 .usuario-area .form-linha:nth-of-type(4) .form-grupo { flex: 1; }
 
-/* ESTILIZAÇÃO DOS CAMPOS (TEXTO, DATA E SELECT) */
+/* ===== AJUSTE ENDEREÇO (NOVO) ===== */
+
+/* desloca levemente para a direita para alinhar visualmente */
+.endereco-area .form-endereco {
+    padding-left: 0;
+}
+
+/* padroniza largura dos campos */
+.endereco-area .form-grupo {
+    flex: 1;
+}
+
+/* melhora alinhamento das linhas */
+.endereco-area .form-linha {
+    justify-content: flex-start;
+}
+
+/* deixa primeira linha com proporção parecida com topo */
+.endereco-area .form-linha:nth-of-type(1) .form-grupo:first-child { flex: 1; }
+.endereco-area .form-linha:nth-of-type(1) .form-grupo:last-child { flex: 1; }
+
+/* rua maior e número menor (igual sensação do layout acima) */
+.endereco-area .form-linha:nth-of-type(4) .form-grupo:first-child { flex: 1.3; }
+.endereco-area .form-linha:nth-of-type(4) .form-grupo:last-child { flex: 0.5; }
+
+/* ESTILIZAÇÃO DOS CAMPOS */
 .form-grupo label {
     font-size: 12px;
     margin-bottom: 6px;
     color: #4a6f86;
 }
 
-/* Centralizando as regras de estilo para todos os tipos de entrada */
 .form-grupo input, 
 .form-grupo select {
     height: 40px;
@@ -203,16 +227,14 @@ img {
     outline: none;
     transition: 0.2s;
     
-    /* Correção da Letra/Número pedida: */
-    font-family: Arial, sans-serif; /* Mesma fonte do body */
-    font-size: 13px;               /* Mesmo tamanho dos outros campos */
-    color: #22597a;                /* Mesma cor azulada do projeto */
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    color: #22597a;
 }
 
-/* Ajuste específico para o campo de data (alguns navegadores forçam fonte diferente) */
 .form-grupo input[type="date"] {
     font-family: Arial, sans-serif;
-    text-transform: uppercase; /* Deixa o dd/mm/aaaa mais limpo */
+    text-transform: uppercase;
     font-size: 13px;
 }
 
