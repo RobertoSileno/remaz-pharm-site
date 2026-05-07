@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Remaz Pharm - Principal</title>
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
 </head>
 <body>
 
@@ -26,6 +28,7 @@
             <button class="perfil-icon" id="perfil-btn" type="button">
                 <div class="avatar"></div>
             </button>
+
             <div class="perfil-name">{{ display_name }}</div>
 
             <div class="menu-dropdown" id="menu-dropdown">
@@ -42,6 +45,53 @@
 
 <main class="dashboard-wrapper">
 
+    <!-- ÍCONES -->
+    <section class="categorias-home">
+
+        <div class="categoria-item">
+            <div class="categoria-icon">
+                <i class="fa-solid fa-pills"></i>
+            </div>
+            <span>Medicamentos</span>
+        </div>
+
+        <div class="categoria-item">
+            <div class="categoria-icon">
+                <i class="fa-solid fa-pump-soap"></i>
+            </div>
+            <span>Higiene Pessoal</span>
+        </div>
+
+        <div class="categoria-item">
+            <div class="categoria-icon">
+                <i class="fa-solid fa-baby"></i>
+            </div>
+            <span>Baby</span>
+        </div>
+
+        <div class="categoria-item">
+            <div class="categoria-icon">
+                <i class="fa-solid fa-heart"></i>
+            </div>
+            <span>Beleza</span>
+        </div>
+
+        <div class="categoria-item">
+            <div class="categoria-icon">
+                <i class="fa-solid fa-tags"></i>
+            </div>
+            <span>Ofertas</span>
+        </div>
+
+        <div class="categoria-item">
+            <div class="categoria-icon">
+                <i class="fa-solid fa-shop"></i>
+            </div>
+            <span>Farmácias</span>
+        </div>
+
+    </section>
+
     <!-- BANNER -->
     <section class="banner-area">
         <div class="banner-principal">
@@ -49,82 +99,61 @@
         </div>
     </section>
 
-    <!-- FILTROS + PRODUTOS NO MESMO NÍVEL -->
-    <section class="area-produtos">
+    <!-- PRODUTOS -->
+    <section class="conteudo-principal">
 
-        <aside class="sidebar">
-            <div class="filtro-box">
-                <h3>Categorias</h3>
-                <label><input type="checkbox"> Analgésicos (Dor)</label>
-                <label><input type="checkbox"> Antitérmicos (febre)</label>
-                <label><input type="checkbox"> Antialérgicos</label>
-                <label><input type="checkbox"> Anti-inflamatórios</label>
-                <label><input type="checkbox"> Antibióticos</label>
-                <label><input type="checkbox"> Controlados</label>
-                <label><input type="checkbox"> Dentários</label>
+        <div class="categoria-header">
+            <h2>Categoria</h2>
+
+            <div class="setas-categoria">
+                <button class="scroll-btn" id="scroll-left">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+
+                <button class="scroll-btn" id="scroll-right">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
             </div>
-
-            <div class="filtro-box">
-                <h3>Laboratórios</h3>
-                <label><input type="checkbox"> EMS</label>
-                <label><input type="checkbox"> Eurofarma</label>
-                <label><input type="checkbox"> Ache</label>
-                <label><input type="checkbox"> Neo Química</label>
-                <label><input type="checkbox"> Medley</label>
-                <label><input type="checkbox"> Cimed</label>
-                <label><input type="checkbox"> União Química</label>
-            </div>
-
-            <div class="filtro-box">
-                <h3>Higiene Pessoal</h3>
-                <label><input type="checkbox"> Sabonetes</label>
-                <label><input type="checkbox"> Shampoos</label>
-                <label><input type="checkbox"> Condicionadores</label>
-                <label><input type="checkbox"> Creme dental</label>
-                <label><input type="checkbox"> Perfumes</label>
-                <label><input type="checkbox"> Escovas dentais</label>
-                <label><input type="checkbox"> Desodorantes</label>
-            </div>
-        </aside>
-
-        <section class="conteudo-principal">
-            <div class="produtos-grid">
-
-    {% for medicine in medicines %}
-    <div class="produto-card">
-
-        <span class="seta">›</span>
-
-        {% if medicine.image %}
-            <img src="{{ medicine.image }}" alt="{{ medicine.name }}">
-        {% else %}
-            <img src="{% static 'img/medicamento.png' %}" alt="Sem imagem">
-        {% endif %}
-
-        <h4>{{ medicine.name }}</h4>
-
-        <div class="rodape-card">
-            <div>
-                <p>Valor</p>
-                <strong>R$ {{ medicine.price }}</strong>
-            </div>
-            <button>🛒</button>
         </div>
 
-    </div>
-    {% empty %}
-        <p>Nenhum produto cadastrado.</p>
-    {% endfor %}
+        <div class="produtos-scroll" id="produtos-scroll">
 
-</div>
+            {% for medicine in medicines %}
+            <div class="produto-card">
+
+                <span class="seta">›</span>
+
+                {% if medicine.image %}
+                    <img src="{{ medicine.image }}" alt="{{ medicine.name }}">
+                {% else %}
+                    <img src="{% static 'img/medicamento.png' %}" alt="Sem imagem">
+                {% endif %}
+
+                <h4>{{ medicine.name }}</h4>
+
+                <div class="rodape-card">
+                    <div>
+                        <p>Valor</p>
+                        <strong>R$ {{ medicine.price }}</strong>
+                    </div>
+
+                    <button>🛒</button>
+                </div>
 
             </div>
-        </section>
+            {% empty %}
+                <p>Nenhum produto cadastrado.</p>
+            {% endfor %}
+
+        </div>
+
     </section>
+
 </main>
 
 <footer class="rodape-dashboard">
     <div class="logo-rodape">REMAZ <span>PHARM</span></div>
+
     <div class="links-rodape">
         <a href="#">Careers</a>
         <a href="#">Privacy Policy</a>
@@ -133,6 +162,7 @@
 </footer>
 
 <script>
+
     const perfilBtn = document.getElementById('perfil-btn');
     const menuDropdown = document.getElementById('menu-dropdown');
 
@@ -145,6 +175,25 @@
             menuDropdown.classList.remove('ativo');
         }
     });
+
+    // SCROLL DOS CARDS
+
+    const scrollContainer = document.getElementById('produtos-scroll');
+
+    document.getElementById('scroll-right').addEventListener('click', () => {
+        scrollContainer.scrollBy({
+            left: 350,
+            behavior: 'smooth'
+        });
+    });
+
+    document.getElementById('scroll-left').addEventListener('click', () => {
+        scrollContainer.scrollBy({
+            left: -350,
+            behavior: 'smooth'
+        });
+    });
+
 </script>
 
 </body>
