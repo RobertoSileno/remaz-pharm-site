@@ -224,15 +224,29 @@ img {
     margin-bottom: 70px;
 }
 
-.banner-principal {
+.banner-slider {
+    position: relative;
     width: 100%;
+    height: 340px;
+    overflow: hidden;
+    border-radius: 24px;
 }
 
-.banner-principal img {
-    width: 1380px;
-    height: 340px;
+.banner {
+    position: absolute;
+
+    width: 100%;
+    height: 100%;
+
     object-fit: cover;
-    border-radius: 24px;
+
+    opacity: 0;
+
+    transition: opacity 1s ease-in-out;
+}
+
+.banner.ativo {
+    opacity: 1;
 }
 
 /* PRODUTOS */

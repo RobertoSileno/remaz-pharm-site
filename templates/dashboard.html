@@ -94,9 +94,17 @@
 
     <!-- BANNER -->
     <section class="banner-area">
-        <div class="banner-principal">
-            <img src="{% static 'img/dashboard/banner1.png' %}" alt="Banner principal">
+
+        <div class="banner-slider">
+
+            <img src="{% static 'img/dashboard/banner1.png' %}" class="banner ativo">
+
+            <img src="{% static 'img/dashboard/banner2.png' %}" class="banner">
+
+            <img src="{% static 'img/dashboard/banner3.png' %}" class="banner">
+
         </div>
+
     </section>
 
     <!-- PRODUTOS -->
@@ -194,7 +202,31 @@
         });
     });
 
+     // BANNER AUTOMÁTICO
+
+    const banners = document.querySelectorAll('.banner');
+
+    let bannerIndex = 0;
+
+    function trocarBanner() {
+
+        banners[bannerIndex].classList.remove('ativo');
+
+        bannerIndex++;
+
+        if (bannerIndex >= banners.length) {
+            bannerIndex = 0;
+        }
+
+        banners[bannerIndex].classList.add('ativo');
+    }
+
+    setInterval(trocarBanner, 4000);
+
+</script>
+
 </script>
 
 </body>
+
 </html>
