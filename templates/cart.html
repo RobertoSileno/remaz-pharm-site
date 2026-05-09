@@ -1,0 +1,209 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remaz Pharm - Carrinho</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+<header class="topo-dashboard">
+    <div class="logo-topo">
+        <a href="{% url 'dashboard' %}">
+            <img src="{% static 'img/logo/logo.png' %}" alt="Logo">
+        </a>
+    </div>
+
+    <form class="busca-topo" method="get" action="{% url 'dashboard' %}">
+        <input type="text" name="q" placeholder="Pesquisa">
+        <button class="icone-busca" type="submit" aria-label="Pesquisar">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+    </form>
+
+    <div class="usuario-topo">
+        <a class="atalho-carrinho" href="{% url 'cart' %}" aria-label="Ver carrinho">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span>{{ cart_count|default:0 }}</span>
+        </a>
+
+        <div class="perfil-container">
+            <button class="perfil-icon" id="perfil-btn" type="button">
+                <div class="avatar"></div>
+            </button>
+            <div class="perfil-name">{{ display_name }}</div>
+
+            <div class="menu-dropdown" id="menu-dropdown">
+                <a href="#">Configuracoes</a>
+                <a href="{% url 'perfil' %}">Perfil</a>
+                <a href="{% url 'pagamento' %}">Pagamento</a>
+                <a href="{% url 'cart' %}">Carrinho</a>
+                <a href="{% url 'orders' %}">Pedidos</a>
+                <a href="{% url 'pharmacy_dashboard' %}">Área da farmácia</a>
+                <a href="{% url 'ajuda' %}">Ajuda</a>
+                <a href="{% url 'logout' %}">Sair</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="dashboard-wrapper">
+    <section class="carrinho-area">
+        <div class="carrinho-header">
+            <div>
+                <h1>Carrinho</h1>
+                <p>Revise seus produtos antes de finalizar a compra.</p>
+            </div>
+            <div class="carrinho-acoes-topo">
+                {% if items %}
+                    <form method="post" action="{% url 'clear_cart' %}">
+                        {% csrf_token %}
+                        <button class="btn-limpar" type="submit">
+                            <i class="fa-solid fa-trash"></i>
+                            Limpar carrinho
+                        </button>
+                    </form>
+                {% endif %}
+
+                <a class="btn-continuar" href="{% url 'dashboard' %}">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    Continuar comprando
+                </a>
+            </div>
+        </div>
+
+        {% if messages %}
+            <div class="checkout-mensagens">
+                {% for message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if items %}
+            <div class="carrinho-layout">
+                <div class="carrinho-lista">
+                    {% for item in items %}
+                        <article class="carrinho-item">
+                            {% if item.medicine.image %}
+                                <img src="{{ item.medicine.image }}" alt="{{ item.medicine.name }}">
+                            {% else %}
+                                <img src="{% static 'img/medicamento.png' %}" alt="Sem imagem">
+                            {% endif %}
+
+                            <div class="carrinho-info">
+                                <h2>{{ item.medicine.name }}</h2>
+                                <p>
+                                    {{ item.medicine.category.name }}
+                                    {% if item.pharmacy %} · {{ item.pharmacy.name }}{% endif %}
+                                </p>
+                                <strong>R$ {{ item.unit_price }}</strong>
+                                <small>Subtotal: R$ {{ item.subtotal }}</small>
+                                {% if item.stock_available is not None %}
+                                    <small>Estoque disponível: {{ item.stock_available }}</small>
+                                {% endif %}
+                            </div>
+
+                            <div class="carrinho-quantidade">
+                                <form method="post" action="{% url 'decrease_cart_item' item.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" aria-label="Diminuir quantidade">
+                                        <i class="fa-solid fa-minus"></i>
+                                    </button>
+                                </form>
+
+                                <span>{{ item.quantity }}</span>
+
+                                {% if item.inventory %}
+                                    <form method="post" action="{% url 'add_inventory_to_cart' item.inventory.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="next" value="{% url 'cart' %}">
+                                        <button type="submit" aria-label="Aumentar quantidade">
+                                            <i class="fa-solid fa-plus"></i>
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <form method="post" action="{% url 'add_to_cart' item.medicine.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="next" value="{% url 'cart' %}">
+                                        <button type="submit" aria-label="Aumentar quantidade">
+                                            <i class="fa-solid fa-plus"></i>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+
+                            <form method="post" action="{% url 'remove_cart_item' item.id %}">
+                                {% csrf_token %}
+                                <button class="btn-remover" type="submit" aria-label="Remover produto">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
+                        </article>
+                    {% endfor %}
+                </div>
+
+                <aside class="resumo-carrinho">
+                    <h2>Resumo</h2>
+                    {% if requires_prescription %}
+                        <div class="aviso-receita">
+                            <i class="fa-solid fa-file-signature"></i>
+                            <span>Este carrinho possui medicamento de tarja preta e exige receita assinada.</span>
+                        </div>
+                    {% endif %}
+                    <div class="resumo-linha">
+                        <span>Subtotal</span>
+                        <strong>R$ {{ total }}</strong>
+                    </div>
+                    <div class="resumo-linha">
+                        <span>Entrega</span>
+                        <strong>A calcular</strong>
+                    </div>
+                    {% if requires_prescription and not prescription_uploaded %}
+                        <a class="btn-finalizar" href="{% url 'prescription_upload' %}">Enviar receita</a>
+                    {% else %}
+                        <a class="btn-finalizar" href="{% url 'checkout' %}">Finalizar compra</a>
+                    {% endif %}
+                </aside>
+            </div>
+        {% else %}
+            <div class="carrinho-vazio">
+                <i class="fa-solid fa-cart-shopping"></i>
+                <h2>Seu carrinho esta vazio</h2>
+                <p>Adicione medicamentos pelo dashboard para continuar.</p>
+                <a href="{% url 'dashboard' %}">Ver medicamentos</a>
+            </div>
+        {% endif %}
+    </section>
+</main>
+
+<footer class="rodape-dashboard">
+    <div class="logo-rodape">REMAZ <span>PHARM</span></div>
+
+    <div class="links-rodape">
+        <a href="#">Careers</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms & Conditions</a>
+    </div>
+</footer>
+
+<script>
+    const perfilBtn = document.getElementById('perfil-btn');
+    const menuDropdown = document.getElementById('menu-dropdown');
+
+    perfilBtn.addEventListener('click', function() {
+        menuDropdown.classList.toggle('ativo');
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.perfil-container')) {
+            menuDropdown.classList.remove('ativo');
+        }
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,114 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remaz Pharm - Administracao da Farmacia</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+<header class="topo-dashboard">
+    <div class="logo-topo">
+        <a href="{% url 'dashboard' %}">
+            <img src="{% static 'img/logo/logo.png' %}" alt="Logo">
+        </a>
+    </div>
+
+    <form class="busca-topo" method="get" action="{% url 'dashboard' %}">
+        <input type="text" name="q" placeholder="Pesquisa">
+        <button class="icone-busca" type="submit" aria-label="Pesquisar">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+    </form>
+
+    <div class="usuario-topo">
+        <a class="atalho-carrinho" href="{% url 'cart' %}" aria-label="Ver carrinho">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span>{{ cart_count|default:0 }}</span>
+        </a>
+
+        <div class="perfil-container">
+            <button class="perfil-icon" id="perfil-btn" type="button">
+                <div class="avatar"></div>
+            </button>
+            <div class="perfil-name">{{ display_name }}</div>
+        </div>
+    </div>
+</header>
+
+<main class="dashboard-wrapper">
+    <section class="gestao-area">
+        <div class="carrinho-header">
+            <div>
+                <h1>{% if request.user.is_staff %}Painel administrativo{% else %}Area da farmacia{% endif %}</h1>
+                <p>Controle estoque, produtos, promocoes, pedidos e receitas em um so lugar.</p>
+            </div>
+            <a class="btn-continuar" href="{% url 'dashboard' %}">
+                <i class="fa-solid fa-arrow-left"></i>
+                Voltar
+            </a>
+        </div>
+
+        <div class="farmacia-grid">
+            {% for pharmacy in pharmacies %}
+                <article class="farmacia-card farmacia-admin-card">
+                    <div class="farmacia-card-top">
+                        <div class="farmacia-card-icone">
+                            <i class="fa-solid fa-shop"></i>
+                        </div>
+                        <span class="status-pedido">{{ pharmacy.pending_orders }} pedidos ativos</span>
+                    </div>
+
+                    <h2>{{ pharmacy.name }}</h2>
+                    <p>{{ pharmacy.city|default:"Cidade nao informada" }}{% if pharmacy.state %} - {{ pharmacy.state }}{% endif %}</p>
+
+                    <div class="farmacia-metricas">
+                        <div>
+                            <strong>{{ pharmacy.active_products }}</strong>
+                            <span>ativos</span>
+                        </div>
+                        <div>
+                            <strong>{{ pharmacy.blocked_products }}</strong>
+                            <span>bloqueados</span>
+                        </div>
+                        <div>
+                            <strong>{{ pharmacy.active_promotions }}</strong>
+                            <span>promocoes</span>
+                        </div>
+                        <div>
+                            <strong>{{ pharmacy.pending_prescriptions }}</strong>
+                            <span>receitas</span>
+                        </div>
+                    </div>
+
+                    <div class="farmacia-card-acoes">
+                        <a class="btn-finalizar" href="{% url 'pharmacy_inventory' pharmacy.id %}">
+                            <i class="fa-solid fa-boxes-stacked"></i>
+                            Estoque
+                        </a>
+                        <a class="btn-continuar" href="{% url 'pharmacy_orders' pharmacy.id %}">
+                            <i class="fa-solid fa-clipboard-list"></i>
+                            Pedidos
+                        </a>
+                        <a class="btn-continuar" href="{% url 'pharmacy_prescriptions' pharmacy.id %}">
+                            <i class="fa-solid fa-file-signature"></i>
+                            Receitas
+                        </a>
+                    </div>
+                </article>
+            {% empty %}
+                <div class="carrinho-vazio">
+                    <i class="fa-solid fa-shop-lock"></i>
+                    <h2>Nenhuma farmacia vinculada</h2>
+                    <p>Peca para um administrador vincular sua conta a uma farmacia pelo painel admin.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+</main>
+
+</body>
+</html>

@@ -1,0 +1,176 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remaz Pharm - Receita Digital</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+<header class="topo-dashboard">
+    <div class="logo-topo">
+        <a href="{% url 'dashboard' %}">
+            <img src="{% static 'img/logo/logo.png' %}" alt="Logo">
+        </a>
+    </div>
+
+    <form class="busca-topo" method="get" action="{% url 'dashboard' %}">
+        <input type="text" name="q" placeholder="Pesquisa">
+        <button class="icone-busca" type="submit" aria-label="Pesquisar">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+    </form>
+
+    <div class="usuario-topo">
+        <a class="atalho-carrinho" href="{% url 'cart' %}" aria-label="Ver carrinho">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span>{{ cart_count|default:0 }}</span>
+        </a>
+
+        <div class="perfil-container">
+            <button class="perfil-icon" id="perfil-btn" type="button">
+                <div class="avatar"></div>
+            </button>
+            <div class="perfil-name">{{ display_name }}</div>
+
+            <div class="menu-dropdown" id="menu-dropdown">
+                <a href="#">Configurações</a>
+                <a href="{% url 'perfil' %}">Perfil</a>
+                <a href="{% url 'pagamento' %}">Pagamento</a>
+                <a href="{% url 'cart' %}">Carrinho</a>
+                <a href="{% url 'orders' %}">Pedidos</a>
+                <a href="{% url 'pharmacy_dashboard' %}">Área da farmácia</a>
+                <a href="{% url 'ajuda' %}">Ajuda</a>
+                <a href="{% url 'logout' %}">Sair</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="dashboard-wrapper">
+    <section class="receita-area">
+        <div class="carrinho-header">
+            <div>
+                <h1>Receita digital</h1>
+                <p>Medicamentos de tarja preta exigem receita assinada antes da conclusão.</p>
+            </div>
+            <a class="btn-continuar" href="{% url 'cart' %}">
+                <i class="fa-solid fa-arrow-left"></i>
+                Voltar ao carrinho
+            </a>
+        </div>
+
+        {% if messages %}
+            <div class="checkout-mensagens">
+                {% for message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="receita-layout">
+            <div class="checkout-coluna">
+                <section class="checkout-bloco receita-alerta">
+                    <div class="checkout-titulo">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <h2>Receita obrigatória</h2>
+                    </div>
+                    <p>Seu carrinho possui medicamento controlado de tarja preta. Envie a receita digitalizada já assinada pelo gov.br para que a farmácia possa analisar e aprovar ou recusar o pedido.</p>
+                </section>
+
+                <section class="checkout-bloco">
+                    <div class="checkout-titulo">
+                        <i class="fa-solid fa-file-medical"></i>
+                        <h2>Produtos que exigem receita</h2>
+                    </div>
+
+                    <div class="receita-produtos">
+                        {% for item in black_label_items %}
+                            <div class="receita-produto">
+                                {% if item.medicine.image %}
+                                    <img src="{{ item.medicine.image }}" alt="{{ item.medicine.name }}">
+                                {% else %}
+                                    <img src="{% static 'img/medicamento.png' %}" alt="Sem imagem">
+                                {% endif %}
+                                <div>
+                                    <strong>{{ item.medicine.name }}</strong>
+                                    <span>{{ item.quantity }} un. · Tarja preta</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </section>
+
+                <section class="checkout-bloco">
+                    <div class="checkout-titulo">
+                        <i class="fa-solid fa-signature"></i>
+                        <h2>Assinatura gov.br</h2>
+                    </div>
+
+                    <p class="receita-texto">Caso sua receita ainda não esteja assinada, use o portal oficial do gov.br. Depois baixe o documento assinado e volte para enviar o arquivo nesta página.</p>
+
+                    <a class="btn-assinar" href="{{ govbr_signature_url }}" target="_blank" rel="noopener noreferrer">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        Assinar no gov.br
+                    </a>
+                </section>
+            </div>
+
+            <aside class="resumo-carrinho receita-envio">
+                <h2>Enviar receita</h2>
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <label class="receita-upload">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <span>Selecione o arquivo assinado</span>
+                        <small>Somente PDF até 10 MB</small>
+                        <input type="file" name="prescription_file" accept=".pdf,application/pdf" required>
+                    </label>
+
+                    {% if prescription_file %}
+                        <p class="receita-arquivo">Arquivo enviado: {{ prescription_file }}</p>
+                    {% endif %}
+
+                    <button class="btn-finalizar" type="submit">Enviar para análise</button>
+                </form>
+
+                <div class="resumo-linha">
+                    <span>Total do pedido</span>
+                    <strong>R$ {{ total }}</strong>
+                </div>
+            </aside>
+        </div>
+    </section>
+</main>
+
+<footer class="rodape-dashboard">
+    <div class="logo-rodape">REMAZ <span>PHARM</span></div>
+
+    <div class="links-rodape">
+        <a href="#">Careers</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms & Conditions</a>
+    </div>
+</footer>
+
+<script>
+    const perfilBtn = document.getElementById('perfil-btn');
+    const menuDropdown = document.getElementById('menu-dropdown');
+
+    perfilBtn.addEventListener('click', function() {
+        menuDropdown.classList.toggle('ativo');
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.perfil-container')) {
+            menuDropdown.classList.remove('ativo');
+        }
+    });
+</script>
+
+</body>
+</html>

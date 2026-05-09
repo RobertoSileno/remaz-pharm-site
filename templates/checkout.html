@@ -1,0 +1,311 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remaz Pharm - Concluir Pedido</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+<header class="topo-dashboard">
+    <div class="logo-topo">
+        <a href="{% url 'dashboard' %}">
+            <img src="{% static 'img/logo/logo.png' %}" alt="Logo">
+        </a>
+    </div>
+
+    <form class="busca-topo" method="get" action="{% url 'dashboard' %}">
+        <input type="text" name="q" placeholder="Pesquisa">
+        <button class="icone-busca" type="submit" aria-label="Pesquisar">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+    </form>
+
+    <div class="usuario-topo">
+        <a class="atalho-carrinho" href="{% url 'cart' %}" aria-label="Ver carrinho">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span>{{ cart_count|default:0 }}</span>
+        </a>
+
+        <div class="perfil-container">
+            <button class="perfil-icon" id="perfil-btn" type="button">
+                <div class="avatar"></div>
+            </button>
+            <div class="perfil-name">{{ display_name }}</div>
+
+            <div class="menu-dropdown" id="menu-dropdown">
+                <a href="#">Configurações</a>
+                <a href="{% url 'perfil' %}">Perfil</a>
+                <a href="{% url 'pagamento' %}">Pagamento</a>
+                <a href="{% url 'cart' %}">Carrinho</a>
+                <a href="{% url 'orders' %}">Pedidos</a>
+                <a href="{% url 'pharmacy_dashboard' %}">Área da farmácia</a>
+                <a href="{% url 'ajuda' %}">Ajuda</a>
+                <a href="{% url 'logout' %}">Sair</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="dashboard-wrapper">
+    <section class="checkout-area">
+        <div class="carrinho-header">
+            <div>
+                <h1>Concluir pedido</h1>
+                <p>Confirme endereço, entrega e forma de pagamento.</p>
+            </div>
+            <a class="btn-continuar" href="{% url 'cart' %}">
+                <i class="fa-solid fa-arrow-left"></i>
+                Voltar ao carrinho
+            </a>
+        </div>
+
+        {% if messages %}
+            <div class="checkout-mensagens">
+                {% for message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if items %}
+            <form class="checkout-layout" method="post">
+                {% csrf_token %}
+
+                <div class="checkout-coluna">
+                    {% if requires_prescription %}
+                        <section class="checkout-bloco receita-status">
+                            <div class="checkout-titulo">
+                                <i class="fa-solid fa-file-signature"></i>
+                                <h2>Receita enviada</h2>
+                            </div>
+                            <p>A receita assinada pelo gov.br foi anexada ao pedido e será avaliada pela farmácia.</p>
+                            {% if prescription_file %}
+                                <span>Arquivo: {{ prescription_file }}</span>
+                            {% endif %}
+                        </section>
+                    {% endif %}
+
+                    <section class="checkout-bloco">
+                        <div class="checkout-titulo">
+                            <i class="fa-solid fa-location-dot"></i>
+                            <h2>Endereço de entrega</h2>
+                        </div>
+
+                        <div class="checkout-grid">
+                            <div class="checkout-campo maior">
+                                <label>Nome de quem recebe</label>
+                                <input type="text" name="recipient_name" value="{{ request.user.username }}" required>
+                            </div>
+
+                            <div class="checkout-campo">
+                                <label>Telefone</label>
+                                <input type="tel" name="phone" placeholder="(00) 00000-0000" required>
+                            </div>
+
+                            <div class="checkout-campo">
+                                <label>CEP</label>
+                                <input type="text" name="zip_code" placeholder="00000-000" required>
+                            </div>
+
+                            <div class="checkout-campo">
+                                <label>Estado</label>
+                                <input type="text" name="state" placeholder="UF" required>
+                            </div>
+
+                            <div class="checkout-campo">
+                                <label>Cidade</label>
+                                <input type="text" name="city" placeholder="Digite" required>
+                            </div>
+
+                            <div class="checkout-campo">
+                                <label>Bairro</label>
+                                <input type="text" name="district" placeholder="Digite" required>
+                            </div>
+
+                            <div class="checkout-campo maior">
+                                <label>Rua</label>
+                                <input type="text" name="street" placeholder="Digite" required>
+                            </div>
+
+                            <div class="checkout-campo">
+                                <label>Número</label>
+                                <input type="text" name="number" placeholder="Digite" required>
+                            </div>
+
+                            <div class="checkout-campo maior">
+                                <label>Complemento</label>
+                                <input type="text" name="complement" placeholder="Apartamento, bloco, referência">
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="checkout-bloco">
+                        <div class="checkout-titulo">
+                            <i class="fa-solid fa-truck-fast"></i>
+                            <h2>Entrega</h2>
+                        </div>
+
+                        <div class="checkout-opcoes">
+                            <label class="checkout-opcao">
+                                <input type="radio" name="delivery_method" value="delivery" checked>
+                                <span>
+                                    <strong>Receber em casa</strong>
+                                    <small>Entrega enviada pela farmácia parceira.</small>
+                                </span>
+                            </label>
+
+                            <label class="checkout-opcao">
+                                <input type="radio" name="delivery_method" value="pickup">
+                                <span>
+                                    <strong>Retirar na farmácia</strong>
+                                    <small>Reserve o pedido e retire presencialmente.</small>
+                                </span>
+                            </label>
+                        </div>
+                    </section>
+
+                    <section class="checkout-bloco">
+                        <div class="checkout-titulo">
+                            <i class="fa-solid fa-credit-card"></i>
+                            <h2>Pagamento</h2>
+                        </div>
+
+                        <div class="checkout-opcoes">
+                            <label class="checkout-opcao">
+                                <input type="radio" name="payment_method" value="pix" checked>
+                                <span>
+                                    <strong>Pix</strong>
+                                    <small>Receba a chave/código após confirmar.</small>
+                                </span>
+                            </label>
+
+                            <label class="checkout-opcao">
+                                <input type="radio" name="payment_method" value="credit_card">
+                                <span>
+                                    <strong>Cartão de crédito</strong>
+                                    <small>Informe os dados com segurança no próximo passo.</small>
+                                </span>
+                            </label>
+
+                            <label class="checkout-opcao">
+                                <input type="radio" name="payment_method" value="debit_card">
+                                <span>
+                                    <strong>Cartão de débito</strong>
+                                    <small>Pagamento processado pela farmácia.</small>
+                                </span>
+                            </label>
+
+                            <label class="checkout-opcao">
+                                <input type="radio" name="payment_method" value="cash">
+                                <span>
+                                    <strong>Dinheiro na entrega</strong>
+                                    <small>Combine troco com a farmácia parceira.</small>
+                                </span>
+                            </label>
+                        </div>
+
+                        <div class="checkout-grid checkout-cartao">
+                            <div class="checkout-campo maior">
+                                <label>Nome no cartão</label>
+                                <input type="text" name="card_name" placeholder="Digite">
+                            </div>
+
+                            <div class="checkout-campo maior">
+                                <label>Número do cartão</label>
+                                <input type="text" name="card_number" placeholder="0000 0000 0000 0000">
+                            </div>
+
+                            <div class="checkout-campo">
+                                <label>Validade</label>
+                                <input type="text" name="card_expiration" placeholder="MM/AA">
+                            </div>
+
+                            <div class="checkout-campo">
+                                <label>CVV</label>
+                                <input type="text" name="card_cvv" placeholder="000">
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <aside class="resumo-carrinho checkout-resumo">
+                    <h2>Resumo</h2>
+
+                    <div class="checkout-itens">
+                        {% for item in items %}
+                            <div class="checkout-item">
+                                {% if item.medicine.image %}
+                                    <img src="{{ item.medicine.image }}" alt="{{ item.medicine.name }}">
+                                {% else %}
+                                    <img src="{% static 'img/medicamento.png' %}" alt="Sem imagem">
+                                {% endif %}
+
+                                <div>
+                                    <strong>{{ item.medicine.name }}</strong>
+                                    <span>
+                                        {{ item.quantity }} un. · R$ {{ item.unit_price }}
+                                        {% if item.pharmacy %} · {{ item.pharmacy.name }}{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="resumo-linha">
+                        <span>Subtotal</span>
+                        <strong>R$ {{ total }}</strong>
+                    </div>
+                    <div class="resumo-linha">
+                        <span>Entrega</span>
+                        <strong>A calcular</strong>
+                    </div>
+                    <div class="resumo-linha total">
+                        <span>Total</span>
+                        <strong>R$ {{ total }}</strong>
+                    </div>
+
+                    <button class="btn-finalizar" type="submit">Confirmar pedido</button>
+                </aside>
+            </form>
+        {% else %}
+            <div class="carrinho-vazio">
+                <i class="fa-solid fa-cart-shopping"></i>
+                <h2>Seu carrinho está vazio</h2>
+                <p>Adicione medicamentos antes de concluir o pedido.</p>
+                <a href="{% url 'dashboard' %}">Ver medicamentos</a>
+            </div>
+        {% endif %}
+    </section>
+</main>
+
+<footer class="rodape-dashboard">
+    <div class="logo-rodape">REMAZ <span>PHARM</span></div>
+
+    <div class="links-rodape">
+        <a href="#">Careers</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms & Conditions</a>
+    </div>
+</footer>
+
+<script>
+    const perfilBtn = document.getElementById('perfil-btn');
+    const menuDropdown = document.getElementById('menu-dropdown');
+
+    perfilBtn.addEventListener('click', function() {
+        menuDropdown.classList.toggle('ativo');
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.perfil-container')) {
+            menuDropdown.classList.remove('ativo');
+        }
+    });
+</script>
+
+</body>
+</html>

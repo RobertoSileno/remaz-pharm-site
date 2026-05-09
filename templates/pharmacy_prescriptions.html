@@ -1,0 +1,155 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remaz Pharm - Analise de Receitas</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+<header class="topo-dashboard">
+    <div class="logo-topo">
+        <a href="{% url 'dashboard' %}">
+            <img src="{% static 'img/logo/logo.png' %}" alt="Logo">
+        </a>
+    </div>
+
+    <form class="busca-topo" method="get" action="{% url 'dashboard' %}">
+        <input type="text" name="q" placeholder="Pesquisa">
+        <button class="icone-busca" type="submit" aria-label="Pesquisar">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+    </form>
+
+    <div class="usuario-topo">
+        <a class="atalho-carrinho" href="{% url 'cart' %}" aria-label="Ver carrinho">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span>{{ cart_count|default:0 }}</span>
+        </a>
+
+        <div class="perfil-container">
+            <button class="perfil-icon" id="perfil-btn" type="button">
+                <div class="avatar"></div>
+            </button>
+            <div class="perfil-name">{{ display_name }}</div>
+        </div>
+    </div>
+</header>
+
+<main class="dashboard-wrapper">
+    <section class="gestao-area">
+        <div class="carrinho-header">
+            <div>
+                <h1>Analise de receitas</h1>
+                <p>{{ pharmacy.name }} aprova ou recusa receitas anexadas aos pedidos.</p>
+            </div>
+            <div class="carrinho-acoes-topo">
+                <a class="btn-continuar" href="{% url 'pharmacy_orders' pharmacy.id %}">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                    Pedidos
+                </a>
+                <a class="btn-continuar" href="{% url 'pharmacy_dashboard' %}">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    Area da farmacia
+                </a>
+            </div>
+        </div>
+
+        {% if messages %}
+            <div class="checkout-mensagens">
+                {% for message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="gestao-lista">
+            {% for order in prescriptions %}
+                <article class="gestao-card receita-review-card">
+                    <div class="gestao-card-topo">
+                        <div>
+                            <h2>Pedido #{{ order.id }}</h2>
+                            <p>{{ order.user.username }} - {{ order.created_at|date:"d/m/Y H:i" }}</p>
+                        </div>
+                        <div class="status-grupo">
+                            <span class="status-pedido">{{ order.get_status_display }}</span>
+                            <span class="status-pedido {% if order.prescription_status == 'approved' %}status-ok{% elif order.prescription_status == 'rejected' %}status-bloqueado{% endif %}">
+                                {{ order.get_prescription_status_display }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="gestao-itens">
+                        {% for item in order.items.all %}
+                            <div class="gestao-item-linha">
+                                <span>{{ item.quantity }}x {{ item.medicine_name }}</span>
+                                <strong>R$ {{ item.subtotal }}</strong>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="receita-review-info">
+                        <div class="aviso-receita">
+                            <i class="fa-solid fa-file-pdf"></i>
+                            <span>Arquivo: {{ order.prescription_file }}</span>
+                        </div>
+                        <div class="gestao-endereco">
+                            <strong>Cliente</strong>
+                            <span>{{ order.customer_name }} - {{ order.customer_phone }}</span>
+                            <span>{{ order.customer_email|default:"Email nao informado" }}</span>
+                        </div>
+                    </div>
+
+                    {% if order.prescription_review_reason %}
+                        <p class="gestao-nota">Motivo/observacao: {{ order.prescription_review_reason }}</p>
+                    {% endif %}
+
+                    {% if order.prescription_reviewed_at %}
+                        <p class="gestao-nota">
+                            Revisado em {{ order.prescription_reviewed_at|date:"d/m/Y H:i" }}
+                            {% if order.prescription_reviewed_by %}por {{ order.prescription_reviewed_by.username }}{% endif %}
+                        </p>
+                    {% endif %}
+
+                    <form class="receita-review-form" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="order_id" value="{{ order.id }}">
+
+                        <div class="checkout-campo maior">
+                            <label>Motivo ou observacao</label>
+                            <input
+                                type="text"
+                                name="prescription_review_reason"
+                                value="{{ order.prescription_review_reason }}"
+                                placeholder="Obrigatorio para recusa. Ex: CRM divergente, receita vencida"
+                            >
+                        </div>
+
+                        <div class="receita-review-acoes">
+                            <button class="btn-finalizar" type="submit" name="action" value="approve">
+                                <i class="fa-solid fa-check"></i>
+                                Aprovar
+                            </button>
+                            <button class="btn-recusa" type="submit" name="action" value="reject">
+                                <i class="fa-solid fa-xmark"></i>
+                                Recusar
+                            </button>
+                        </div>
+                    </form>
+                </article>
+            {% empty %}
+                <div class="carrinho-vazio">
+                    <i class="fa-solid fa-file-circle-check"></i>
+                    <h2>Nenhuma receita para analisar</h2>
+                    <p>Pedidos com medicamentos controlados e receita anexada aparecerao aqui.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+</main>
+
+</body>
+</html>

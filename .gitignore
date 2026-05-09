@@ -169,6 +169,7 @@ db.sqlite3
 __pycache__/
 *.pyc
 media/
+CODEX_CONTEXT.md
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can

@@ -1,11 +1,90 @@
+import uuid
+from decimal import Decimal
+
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
+from django.db import transaction
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from .models import Medicine, Category, Cart, CartItem
-from django.db.models import Q
+from django.utils import timezone
+from .models import (
+    Medicine,
+    Category,
+    Cart,
+    CartItem,
+    Pharmacy,
+    PharmacyInventory,
+    Order,
+    OrderItem,
+)
+from django.db.models import Count, Q
 from django.views.decorators.http import require_POST
+from django.utils.http import url_has_allowed_host_and_scheme
+
+GOVBR_SIGNATURE_URL = 'https://assinador.iti.br'
+PRESCRIPTION_EXTENSIONS = {'pdf'}
+PRESCRIPTION_MAX_SIZE = 10 * 1024 * 1024
+
+def get_display_name(user):
+    username = user.username.strip()
+    parts = username.split()
+
+    if len(parts) >= 2:
+        return f"{parts[0]} {parts[-1]}"
+
+    return username
+
+def get_cart_count(user):
+    if not user.is_authenticated:
+        return 0
+
+    cart = Cart.objects.filter(user=user).first()
+    if not cart:
+        return 0
+
+    return sum(item.quantity for item in cart.cartitem_set.all())
+
+def get_cart_items_and_total(user):
+    cart, created = Cart.objects.get_or_create(user=user)
+    items = list(
+        cart.cartitem_set
+        .select_related('medicine', 'medicine__category', 'inventory', 'inventory__pharmacy')
+        .all()
+    )
+    total = 0
+
+    for item in items:
+        item.unit_price = item.inventory.effective_price if item.inventory else item.medicine.price
+        item.pharmacy = item.inventory.pharmacy if item.inventory else None
+        item.stock_available = item.inventory.stock if item.inventory else None
+        item.subtotal = item.unit_price * item.quantity
+        total += item.subtotal
+
+    return cart, items, total
+
+def get_accessible_pharmacies(user):
+    pharmacies = Pharmacy.objects.filter(is_active=True)
+
+    if user.is_staff or user.is_superuser:
+        return pharmacies
+
+    return pharmacies.filter(owner=user)
+
+def get_accessible_pharmacy_or_404(user, pharmacy_id):
+    return get_object_or_404(get_accessible_pharmacies(user), id=pharmacy_id)
+
+def cart_requires_prescription(items):
+    return any(item.medicine.tarja == 'preta' for item in items)
+
+def prescription_uploaded(request):
+    return bool(request.session.get('prescription_uploaded'))
+
+def clear_prescription_session(request):
+    request.session.pop('prescription_uploaded', None)
+    request.session.pop('prescription_file', None)
 
 def home(request):
     return render(request, 'home.html')
@@ -100,25 +179,37 @@ def dashboard_view(request):
     selected_categories = request.GET.getlist('category')
     selected_tarja = request.GET.getlist('tarja')
 
-    medicines = Medicine.objects.select_related('category').all()
+    inventory_items = PharmacyInventory.objects.select_related(
+        'medicine',
+        'medicine__category',
+        'pharmacy'
+    ).filter(
+        pharmacy__is_active=True,
+        is_available=True,
+        stock__gt=0,
+    )
 
     if search_query:
-        medicines = medicines.filter(
-            Q(name__icontains=search_query) |
-            Q(description__icontains=search_query)
+        inventory_items = inventory_items.filter(
+            Q(medicine__name__icontains=search_query) |
+            Q(medicine__description__icontains=search_query) |
+            Q(pharmacy__name__icontains=search_query)
         )
 
     if selected_categories:
-        medicines = medicines.filter(category_id__in=selected_categories)
+        inventory_items = inventory_items.filter(medicine__category_id__in=selected_categories)
 
     if selected_tarja:
-        medicines = medicines.filter(tarja__in=selected_tarja)
+        inventory_items = inventory_items.filter(medicine__tarja__in=selected_tarja)
+
+    inventory_items = inventory_items.order_by('medicine__name', 'price')
 
     categories = Category.objects.all()
 
     return render(request, 'dashboard.html', {
         'display_name': display_name,
-        'medicines': medicines,
+        'cart_count': get_cart_count(request.user),
+        'inventory_items': inventory_items,
         'categories': categories,
         'search_query': search_query,
         'selected_categories': selected_categories,
@@ -126,21 +217,65 @@ def dashboard_view(request):
     })
 @login_required(login_url='login')
 @require_POST
-def add_to_cart(request, medicine_id):
-    medicine = get_object_or_404(Medicine, id=medicine_id)
-
+def add_inventory_to_cart(request, inventory_id):
+    inventory = get_object_or_404(
+        PharmacyInventory,
+        id=inventory_id,
+        pharmacy__is_active=True,
+        is_available=True,
+    )
     cart, created = Cart.objects.get_or_create(user=request.user)
+    next_url = request.POST.get('next')
+
+    if inventory.stock <= 0:
+        messages.error(request, 'Produto sem estoque nesta farmácia.')
+        return redirect(next_url or 'dashboard')
 
     item, created = CartItem.objects.get_or_create(
         cart=cart,
-        medicine=medicine
+        inventory=inventory,
+        defaults={'medicine': inventory.medicine}
     )
 
     if not created:
+        if item.quantity >= inventory.stock:
+            messages.error(request, 'Quantidade máxima disponível no estoque desta farmácia.')
+            return redirect(next_url or 'cart')
+
         item.quantity += 1
         item.save()
 
-    return redirect('dashboard')
+    if inventory.medicine.tarja == 'preta':
+        clear_prescription_session(request)
+
+    messages.success(request, f'{inventory.medicine.name} foi adicionado ao carrinho.')
+
+    if next_url and url_has_allowed_host_and_scheme(
+        next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure()
+    ):
+        return redirect(next_url)
+
+    return redirect('cart')
+
+
+@login_required(login_url='login')
+@require_POST
+def add_to_cart(request, medicine_id):
+    medicine = get_object_or_404(Medicine, id=medicine_id)
+    inventory = PharmacyInventory.objects.filter(
+        medicine=medicine,
+        pharmacy__is_active=True,
+        is_available=True,
+        stock__gt=0,
+    ).order_by('price').first()
+
+    if not inventory:
+        messages.error(request, 'Produto sem estoque nas farmácias parceiras.')
+        return redirect('dashboard')
+
+    return add_inventory_to_cart(request, inventory.id)
 
 
 @login_required(login_url='login')
@@ -174,19 +309,375 @@ def remove_cart_item(request, item_id):
 
     return redirect('cart')
 
+@login_required(login_url='login')
+@require_POST
+def clear_cart(request):
+    cart = get_object_or_404(Cart, user=request.user)
+    cart.cartitem_set.all().delete()
+    clear_prescription_session(request)
+    messages.success(request, 'Carrinho limpo.')
+
+    return redirect('cart')
+
 
 @login_required(login_url='login')
 def cart_view(request):
-    cart, created = Cart.objects.get_or_create(user=request.user)
-
-    items = cart.cartitem_set.select_related('medicine').all()
-
-    total = sum(item.medicine.price * item.quantity for item in items)
+    cart, items, total = get_cart_items_and_total(request.user)
+    requires_prescription = cart_requires_prescription(items)
 
     return render(request, 'cart.html', {
         'cart': cart,
         'items': items,
         'total': total,
+        'display_name': get_display_name(request.user),
+        'cart_count': get_cart_count(request.user),
+        'requires_prescription': requires_prescription,
+        'prescription_uploaded': prescription_uploaded(request),
+    })
+
+@login_required(login_url='login')
+def checkout_view(request):
+    cart, items, total = get_cart_items_and_total(request.user)
+    requires_prescription = cart_requires_prescription(items)
+
+    if items and requires_prescription and not prescription_uploaded(request):
+        messages.error(request, 'Envie a receita assinada pelo gov.br antes de concluir este pedido.')
+        return redirect('prescription_upload')
+
+    if request.method == 'POST':
+        if not items:
+            messages.error(request, 'Seu carrinho está vazio.')
+        else:
+            for item in items:
+                if item.inventory and item.quantity > item.inventory.stock:
+                    messages.error(
+                        request,
+                        f'Estoque insuficiente para {item.medicine.name} em {item.inventory.pharmacy.name}.'
+                    )
+                    return redirect('cart')
+
+            recipient_name = request.POST.get('recipient_name') or request.user.username
+            phone = request.POST.get('phone') or ''
+            zip_code = request.POST.get('zip_code') or ''
+            state = request.POST.get('state') or ''
+            city = request.POST.get('city') or ''
+            district = request.POST.get('district') or ''
+            street = request.POST.get('street') or ''
+            number = request.POST.get('number') or ''
+            complement = request.POST.get('complement') or ''
+            delivery_method = request.POST.get('delivery_method') or 'delivery'
+            payment_method = request.POST.get('payment_method') or 'pix'
+
+            grouped_items = {}
+            for item in items:
+                grouped_items.setdefault(item.pharmacy, []).append(item)
+
+            with transaction.atomic():
+                for pharmacy, pharmacy_items in grouped_items.items():
+                    order_subtotal = sum(item.subtotal for item in pharmacy_items)
+                    has_prescription_item = cart_requires_prescription(pharmacy_items)
+                    status = 'waiting_prescription' if has_prescription_item else 'pending'
+
+                    order = Order.objects.create(
+                        user=request.user,
+                        pharmacy=pharmacy,
+                        status=status,
+                        customer_name=recipient_name,
+                        customer_email=request.user.email,
+                        customer_phone=phone,
+                        cep=zip_code,
+                        state=state,
+                        city=city,
+                        neighborhood=district,
+                        street=street,
+                        number=number,
+                        complement=complement,
+                        notes='',
+                        delivery_method=delivery_method,
+                        payment_method=payment_method,
+                        total=order_subtotal,
+                        requires_prescription=has_prescription_item,
+                        prescription_status='pending' if has_prescription_item else 'not_required',
+                        prescription_file=request.session.get('prescription_file') if has_prescription_item else None,
+                    )
+
+                    for item in pharmacy_items:
+                        OrderItem.objects.create(
+                            order=order,
+                            medicine=item.medicine,
+                            medicine_name=item.medicine.name,
+                            medicine_price=item.unit_price,
+                            quantity=item.quantity,
+                            tarja=item.medicine.tarja,
+                        )
+
+                        if item.inventory:
+                            locked_inventory = PharmacyInventory.objects.select_for_update().get(id=item.inventory.id)
+                            locked_inventory.stock -= item.quantity
+                            locked_inventory.save(update_fields=['stock', 'updated_at'])
+
+                cart.cartitem_set.all().delete()
+                clear_prescription_session(request)
+
+            messages.success(request, 'Pedido criado! A farmácia acompanhará a disponibilidade e a receita quando necessário.')
+            return redirect('orders')
+
+    return render(request, 'checkout.html', {
+        'items': items,
+        'total': total,
+        'display_name': get_display_name(request.user),
+        'cart_count': get_cart_count(request.user),
+        'requires_prescription': requires_prescription,
+        'prescription_file': request.session.get('prescription_file'),
+    })
+
+@login_required(login_url='login')
+def prescription_upload_view(request):
+    cart, items, total = get_cart_items_and_total(request.user)
+    black_label_items = [item for item in items if item.medicine.tarja == 'preta']
+
+    if not items:
+        messages.error(request, 'Seu carrinho está vazio.')
+        return redirect('cart')
+
+    if not black_label_items:
+        return redirect('checkout')
+
+    if request.method == 'POST':
+        prescription_file = request.FILES.get('prescription_file')
+
+        if not prescription_file:
+            messages.error(request, 'Selecione a receita digitalizada e assinada antes de continuar.')
+        else:
+            file_ext = prescription_file.name.rsplit('.', 1)[-1].lower()
+
+            if file_ext not in PRESCRIPTION_EXTENSIONS:
+                messages.error(request, 'Envie a receita em formato PDF.')
+            elif prescription_file.size > PRESCRIPTION_MAX_SIZE:
+                messages.error(request, 'A receita deve ter no máximo 10 MB.')
+            else:
+                storage = FileSystemStorage(location=str(settings.MEDIA_ROOT / 'prescriptions'))
+                file_name = f'user_{request.user.id}_{uuid.uuid4().hex}.{file_ext}'
+                saved_name = storage.save(file_name, prescription_file)
+
+                request.session['prescription_uploaded'] = True
+                request.session['prescription_file'] = saved_name
+                messages.success(request, 'Receita enviada. Ela será analisada pela farmácia antes da liberação.')
+
+                return redirect('checkout')
+
+    return render(request, 'prescription_upload.html', {
+        'items': items,
+        'black_label_items': black_label_items,
+        'total': total,
+        'display_name': get_display_name(request.user),
+        'cart_count': get_cart_count(request.user),
+        'govbr_signature_url': GOVBR_SIGNATURE_URL,
+        'prescription_file': request.session.get('prescription_file'),
+    })
+
+@login_required(login_url='login')
+def orders_view(request):
+    orders = request.user.orders.select_related('pharmacy').prefetch_related('items').all()
+
+    return render(request, 'orders.html', {
+        'orders': orders,
+        'display_name': get_display_name(request.user),
+        'cart_count': get_cart_count(request.user),
+    })
+
+@login_required(login_url='login')
+def pharmacy_dashboard_view(request):
+    pharmacies = get_accessible_pharmacies(request.user).annotate(
+        total_products=Count('inventory_items', distinct=True),
+        active_products=Count(
+            'inventory_items',
+            filter=Q(inventory_items__is_available=True, inventory_items__stock__gt=0),
+            distinct=True
+        ),
+        blocked_products=Count(
+            'inventory_items',
+            filter=Q(inventory_items__is_available=False) | Q(inventory_items__stock=0),
+            distinct=True
+        ),
+        active_promotions=Count(
+            'inventory_items',
+            filter=Q(
+                inventory_items__promotion_active=True,
+                inventory_items__promotional_price__isnull=False,
+                inventory_items__stock__gt=0,
+                inventory_items__is_available=True,
+            ),
+            distinct=True
+        ),
+        pending_orders=Count(
+            'orders',
+            filter=Q(orders__status__in=['pending', 'waiting_prescription', 'approved']),
+            distinct=True
+        ),
+        pending_prescriptions=Count(
+            'orders',
+            filter=Q(orders__requires_prescription=True, orders__prescription_status='pending'),
+            distinct=True
+        ),
+    )
+
+    return render(request, 'pharmacy_dashboard.html', {
+        'pharmacies': pharmacies,
+        'display_name': get_display_name(request.user),
+        'cart_count': get_cart_count(request.user),
+    })
+
+@login_required(login_url='login')
+def pharmacy_inventory_view(request, pharmacy_id):
+    pharmacy = get_accessible_pharmacy_or_404(request.user, pharmacy_id)
+
+    if request.method == 'POST':
+        medicine = get_object_or_404(Medicine, id=request.POST.get('medicine'))
+        price = request.POST.get('price') or medicine.price
+        stock = int(request.POST.get('stock') or 0)
+        is_available = request.POST.get('is_available') == 'on' and stock > 0
+        promotional_price = request.POST.get('promotional_price') or None
+        promotion_active = request.POST.get('promotion_active') == 'on' and bool(promotional_price)
+
+        inventory_item, created = PharmacyInventory.objects.update_or_create(
+            pharmacy=pharmacy,
+            medicine=medicine,
+            defaults={
+                'price': price,
+                'stock': stock,
+                'is_available': is_available,
+                'promotion_active': promotion_active,
+                'promotion_title': request.POST.get('promotion_title', '').strip(),
+                'promotion_description': request.POST.get('promotion_description', '').strip(),
+                'promotional_price': promotional_price,
+            }
+        )
+
+        if inventory_item.stock == 0:
+            messages.warning(request, 'Estoque salvo em zero. O produto foi bloqueado automaticamente para venda.')
+        else:
+            messages.success(request, 'Estoque cadastrado.' if created else 'Estoque atualizado.')
+
+        return redirect('pharmacy_inventory', pharmacy_id=pharmacy.id)
+
+    inventory_items = pharmacy.inventory_items.select_related('medicine', 'medicine__category').order_by('medicine__name')
+    medicines = Medicine.objects.order_by('name')
+
+    return render(request, 'pharmacy_inventory.html', {
+        'pharmacy': pharmacy,
+        'inventory_items': inventory_items,
+        'medicines': medicines,
+        'display_name': get_display_name(request.user),
+        'cart_count': get_cart_count(request.user),
+    })
+
+@login_required(login_url='login')
+@require_POST
+def pharmacy_inventory_update(request, inventory_id):
+    inventory_item = get_object_or_404(PharmacyInventory.objects.select_related('pharmacy'), id=inventory_id)
+    pharmacy = get_accessible_pharmacy_or_404(request.user, inventory_item.pharmacy.id)
+
+    inventory_item.price = request.POST.get('price') or inventory_item.price
+    inventory_item.stock = int(request.POST.get('stock') or 0)
+    inventory_item.is_available = request.POST.get('is_available') == 'on' and inventory_item.stock > 0
+    inventory_item.promotional_price = request.POST.get('promotional_price') or None
+    inventory_item.promotion_active = request.POST.get('promotion_active') == 'on' and bool(inventory_item.promotional_price)
+    inventory_item.promotion_title = request.POST.get('promotion_title', '').strip()
+    inventory_item.promotion_description = request.POST.get('promotion_description', '').strip()
+    inventory_item.save()
+
+    if inventory_item.stock == 0:
+        messages.warning(request, 'Estoque zerado. O produto foi bloqueado automaticamente para venda.')
+    else:
+        messages.success(request, 'Estoque atualizado.')
+
+    return redirect('pharmacy_inventory', pharmacy_id=pharmacy.id)
+
+@login_required(login_url='login')
+def pharmacy_orders_view(request, pharmacy_id):
+    pharmacy = get_accessible_pharmacy_or_404(request.user, pharmacy_id)
+
+    if request.method == 'POST':
+        order = get_object_or_404(Order, id=request.POST.get('order_id'), pharmacy=pharmacy)
+        status = request.POST.get('status')
+        pharmacy_notes = request.POST.get('pharmacy_notes', '').strip()
+
+        if status in dict(Order.STATUS_CHOICES):
+            order.status = status
+            order.pharmacy_notes = pharmacy_notes
+            order.save(update_fields=['status', 'pharmacy_notes', 'updated_at'])
+            messages.success(request, f'Pedido #{order.id} atualizado.')
+
+        return redirect('pharmacy_orders', pharmacy_id=pharmacy.id)
+
+    orders = pharmacy.orders.select_related('user').prefetch_related('items').all()
+
+    return render(request, 'pharmacy_orders.html', {
+        'pharmacy': pharmacy,
+        'orders': orders,
+        'status_choices': Order.STATUS_CHOICES,
+        'display_name': get_display_name(request.user),
+        'cart_count': get_cart_count(request.user),
+    })
+
+@login_required(login_url='login')
+def pharmacy_prescriptions_view(request, pharmacy_id):
+    pharmacy = get_accessible_pharmacy_or_404(request.user, pharmacy_id)
+
+    if request.method == 'POST':
+        order = get_object_or_404(
+            Order,
+            id=request.POST.get('order_id'),
+            pharmacy=pharmacy,
+            requires_prescription=True,
+        )
+        action = request.POST.get('action')
+        reason = request.POST.get('prescription_review_reason', '').strip()
+
+        if action == 'reject' and not reason:
+            messages.error(request, 'Informe o motivo da recusa da receita.')
+            return redirect('pharmacy_prescriptions', pharmacy_id=pharmacy.id)
+
+        if action == 'approve':
+            order.prescription_status = 'approved'
+            order.status = 'approved'
+            order.prescription_review_reason = reason or 'Receita aprovada pela farmacia.'
+            messages.success(request, f'Receita do pedido #{order.id} aprovada.')
+        elif action == 'reject':
+            order.prescription_status = 'rejected'
+            order.status = 'rejected'
+            order.prescription_review_reason = reason
+            order.pharmacy_notes = reason
+            messages.success(request, f'Receita do pedido #{order.id} recusada.')
+        else:
+            messages.error(request, 'Acao invalida para analise da receita.')
+            return redirect('pharmacy_prescriptions', pharmacy_id=pharmacy.id)
+
+        order.prescription_reviewed_at = timezone.now()
+        order.prescription_reviewed_by = request.user
+        order.save(update_fields=[
+            'prescription_status',
+            'status',
+            'prescription_review_reason',
+            'prescription_reviewed_at',
+            'prescription_reviewed_by',
+            'pharmacy_notes',
+            'updated_at',
+        ])
+
+        return redirect('pharmacy_prescriptions', pharmacy_id=pharmacy.id)
+
+    prescriptions = pharmacy.orders.filter(
+        requires_prescription=True,
+        prescription_file__isnull=False,
+    ).select_related('user', 'prescription_reviewed_by').prefetch_related('items')
+
+    return render(request, 'pharmacy_prescriptions.html', {
+        'pharmacy': pharmacy,
+        'prescriptions': prescriptions,
+        'display_name': get_display_name(request.user),
+        'cart_count': get_cart_count(request.user),
     })
 
 @login_required(login_url='login')

@@ -1,0 +1,130 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remaz Pharm - Pedidos</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+<header class="topo-dashboard">
+    <div class="logo-topo">
+        <a href="{% url 'dashboard' %}">
+            <img src="{% static 'img/logo/logo.png' %}" alt="Logo">
+        </a>
+    </div>
+
+    <form class="busca-topo" method="get" action="{% url 'dashboard' %}">
+        <input type="text" name="q" placeholder="Pesquisa">
+        <button class="icone-busca" type="submit" aria-label="Pesquisar">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+    </form>
+
+    <div class="usuario-topo">
+        <a class="atalho-carrinho" href="{% url 'cart' %}" aria-label="Ver carrinho">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span>{{ cart_count|default:0 }}</span>
+        </a>
+
+        <div class="perfil-container">
+            <button class="perfil-icon" id="perfil-btn" type="button">
+                <div class="avatar"></div>
+            </button>
+            <div class="perfil-name">{{ display_name }}</div>
+
+            <div class="menu-dropdown" id="menu-dropdown">
+                <a href="{% url 'perfil' %}">Perfil</a>
+                <a href="{% url 'pagamento' %}">Pagamento</a>
+                <a href="{% url 'cart' %}">Carrinho</a>
+                <a href="{% url 'orders' %}">Pedidos</a>
+                <a href="{% url 'pharmacy_dashboard' %}">Área da farmácia</a>
+                <a href="{% url 'ajuda' %}">Ajuda</a>
+                <a href="{% url 'logout' %}">Sair</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="dashboard-wrapper">
+    <section class="gestao-area">
+        <div class="carrinho-header">
+            <div>
+                <h1>Meus pedidos</h1>
+                <p>Acompanhe suas compras feitas na Remaz Pharm.</p>
+            </div>
+            <a class="btn-continuar" href="{% url 'dashboard' %}">
+                <i class="fa-solid fa-arrow-left"></i>
+                Comprar mais
+            </a>
+        </div>
+
+        {% if messages %}
+            <div class="checkout-mensagens">
+                {% for message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="gestao-lista">
+            {% for order in orders %}
+                <article class="gestao-card">
+                    <div class="gestao-card-topo">
+                        <div>
+                            <h2>Pedido #{{ order.id }}</h2>
+                            <p>{{ order.pharmacy.name|default:"Farmácia não informada" }} · {{ order.created_at|date:"d/m/Y H:i" }}</p>
+                        </div>
+                        <span class="status-pedido">{{ order.get_status_display }}</span>
+                    </div>
+
+                    <div class="gestao-itens">
+                        {% for item in order.items.all %}
+                            <div class="gestao-item-linha">
+                                <span>{{ item.quantity }}x {{ item.medicine_name }}</span>
+                                <strong>R$ {{ item.subtotal }}</strong>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="resumo-linha total">
+                        <span>Total</span>
+                        <strong>R$ {{ order.total }}</strong>
+                    </div>
+
+                    {% if order.pharmacy_notes %}
+                        <p class="gestao-nota">{{ order.pharmacy_notes }}</p>
+                    {% endif %}
+                </article>
+            {% empty %}
+                <div class="carrinho-vazio">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                    <h2>Nenhum pedido ainda</h2>
+                    <p>Quando você concluir uma compra, ela aparecerá aqui.</p>
+                    <a href="{% url 'dashboard' %}">Ver medicamentos</a>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+</main>
+
+<script>
+    const perfilBtn = document.getElementById('perfil-btn');
+    const menuDropdown = document.getElementById('menu-dropdown');
+
+    perfilBtn.addEventListener('click', function() {
+        menuDropdown.classList.toggle('ativo');
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.perfil-container')) {
+            menuDropdown.classList.remove('ativo');
+        }
+    });
+</script>
+
+</body>
+</html>

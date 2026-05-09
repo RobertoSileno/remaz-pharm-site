@@ -43,6 +43,80 @@ class Medicine(models.Model):
 
     def __str__(self):
         return self.name
+
+class Pharmacy(models.Model):
+    owner = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        related_name='pharmacies',
+        blank=True,
+        null=True
+    )
+    name = models.CharField(max_length=200)
+    cnpj = models.CharField(max_length=18, unique=True, blank=True, null=True)
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    state = models.CharField(max_length=2, blank=True, null=True)
+    city = models.CharField(max_length=100, blank=True, null=True)
+    district = models.CharField(max_length=100, blank=True, null=True)
+    street = models.CharField(max_length=150, blank=True, null=True)
+    number = models.CharField(max_length=20, blank=True, null=True)
+    complement = models.CharField(max_length=150, blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Farmacia'
+        verbose_name_plural = 'Farmacias'
+
+class PharmacyInventory(models.Model):
+    pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE, related_name='inventory_items')
+    medicine = models.ForeignKey(Medicine, on_delete=models.CASCADE, related_name='pharmacy_inventory')
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    stock = models.PositiveIntegerField(default=0)
+    is_available = models.BooleanField(default=True)
+    promotion_active = models.BooleanField(default=False)
+    promotion_title = models.CharField(max_length=120, blank=True, default='')
+    promotion_description = models.TextField(blank=True, default='')
+    promotional_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'{self.pharmacy} - {self.medicine}'
+
+    @property
+    def has_active_promotion(self):
+        return bool(self.promotion_active and self.promotional_price and self.stock > 0 and self.is_available)
+
+    @property
+    def effective_price(self):
+        if self.has_active_promotion:
+            return self.promotional_price
+
+        return self.price
+
+    def save(self, *args, **kwargs):
+        if self.stock <= 0:
+            self.stock = 0
+            self.is_available = False
+
+            update_fields = kwargs.get('update_fields')
+            if update_fields is not None and 'stock' in update_fields:
+                kwargs['update_fields'] = set(update_fields) | {'is_available'}
+
+        if not self.promotional_price:
+            self.promotion_active = False
+
+        super().save(*args, **kwargs)
+
+    class Meta:
+        unique_together = ('pharmacy', 'medicine')
+        verbose_name = 'Estoque da farmacia'
+        verbose_name_plural = 'Estoques das farmacias'
     
 class Cart(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -50,4 +124,106 @@ class Cart(models.Model):
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
     medicine = models.ForeignKey(Medicine, on_delete=models.CASCADE)
+    inventory = models.ForeignKey(
+        PharmacyInventory,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        related_name='cart_items'
+    )
     quantity = models.PositiveIntegerField(default=1)
+
+class Order(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Aguardando confirmacao'),
+        ('waiting_prescription', 'Aguardando analise da receita'),
+        ('approved', 'Aprovado'),
+        ('rejected', 'Recusado'),
+        ('completed', 'Concluido'),
+        ('cancelled', 'Cancelado'),
+    ]
+
+    DELIVERY_CHOICES = [
+        ('delivery', 'Receber em casa'),
+        ('pickup', 'Retirar na farmacia'),
+    ]
+
+    PRESCRIPTION_STATUS_CHOICES = [
+        ('not_required', 'Nao exige receita'),
+        ('pending', 'Aguardando analise'),
+        ('approved', 'Receita aprovada'),
+        ('rejected', 'Receita recusada'),
+    ]
+
+    PAYMENT_CHOICES = [
+        ('pix', 'Pix'),
+        ('credit_card', 'Cartao de credito'),
+        ('debit_card', 'Cartao de debito'),
+        ('cash', 'Dinheiro na entrega'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
+    pharmacy = models.ForeignKey(
+        Pharmacy,
+        on_delete=models.SET_NULL,
+        related_name='orders',
+        blank=True,
+        null=True
+    )
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='pending')
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_CHOICES)
+    total = models.DecimalField(max_digits=10, decimal_places=2)
+    requires_prescription = models.BooleanField(default=False)
+    customer_name = models.CharField(max_length=200)
+    customer_email = models.EmailField(blank=True, null=True)
+    customer_phone = models.CharField(max_length=20)
+    cep = models.CharField(max_length=12)
+    state = models.CharField(max_length=2)
+    city = models.CharField(max_length=100)
+    neighborhood = models.CharField(max_length=100)
+    street = models.CharField(max_length=150)
+    number = models.CharField(max_length=20)
+    complement = models.CharField(max_length=150, blank=True, null=True)
+    notes = models.TextField(blank=True, default='')
+    delivery_method = models.CharField(max_length=20, choices=DELIVERY_CHOICES, default='delivery')
+    prescription_file = models.CharField(max_length=255, blank=True, null=True)
+    prescription_status = models.CharField(
+        max_length=20,
+        choices=PRESCRIPTION_STATUS_CHOICES,
+        default='not_required'
+    )
+    prescription_review_reason = models.TextField(blank=True, default='')
+    prescription_reviewed_at = models.DateTimeField(blank=True, null=True)
+    prescription_reviewed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        related_name='reviewed_prescriptions',
+        blank=True,
+        null=True
+    )
+    pharmacy_notes = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'Pedido #{self.id} - {self.user}'
+
+    class Meta:
+        ordering = ('-created_at',)
+        verbose_name = 'Pedido'
+        verbose_name_plural = 'Pedidos'
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
+    medicine = models.ForeignKey(Medicine, on_delete=models.SET_NULL, blank=True, null=True)
+    medicine_name = models.CharField(max_length=200)
+    medicine_price = models.DecimalField(max_digits=10, decimal_places=2)
+    quantity = models.PositiveIntegerField()
+    tarja = models.CharField(max_length=10, blank=True, null=True)
+
+    @property
+    def subtotal(self):
+        return self.medicine_price * self.quantity
+
+    def __str__(self):
+        return f'{self.quantity}x {self.medicine_name}'

@@ -1,0 +1,192 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remaz Pharm - Estoque e Promocoes</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+<header class="topo-dashboard">
+    <div class="logo-topo">
+        <a href="{% url 'dashboard' %}">
+            <img src="{% static 'img/logo/logo.png' %}" alt="Logo">
+        </a>
+    </div>
+
+    <form class="busca-topo" method="get" action="{% url 'dashboard' %}">
+        <input type="text" name="q" placeholder="Pesquisa">
+        <button class="icone-busca" type="submit" aria-label="Pesquisar">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+    </form>
+
+    <div class="usuario-topo">
+        <a class="atalho-carrinho" href="{% url 'cart' %}" aria-label="Ver carrinho">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span>{{ cart_count|default:0 }}</span>
+        </a>
+
+        <div class="perfil-container">
+            <button class="perfil-icon" id="perfil-btn" type="button">
+                <div class="avatar"></div>
+            </button>
+            <div class="perfil-name">{{ display_name }}</div>
+        </div>
+    </div>
+</header>
+
+<main class="dashboard-wrapper">
+    <section class="gestao-area">
+        <div class="carrinho-header">
+            <div>
+                <h1>Estoque e promocoes</h1>
+                <p>{{ pharmacy.name }} controla disponibilidade, preco e campanhas dos produtos.</p>
+            </div>
+            <div class="carrinho-acoes-topo">
+                <a class="btn-continuar" href="{% url 'pharmacy_prescriptions' pharmacy.id %}">
+                    <i class="fa-solid fa-file-signature"></i>
+                    Receitas
+                </a>
+                <a class="btn-continuar" href="{% url 'pharmacy_dashboard' %}">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    Area da farmacia
+                </a>
+            </div>
+        </div>
+
+        {% if messages %}
+            <div class="checkout-mensagens">
+                {% for message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <section class="checkout-bloco gestao-form">
+            <div class="checkout-titulo">
+                <i class="fa-solid fa-boxes-stacked"></i>
+                <h2>Adicionar ou atualizar produto</h2>
+            </div>
+
+            <form class="estoque-form estoque-form-completo" method="post">
+                {% csrf_token %}
+                <div class="checkout-campo">
+                    <label>Medicamento</label>
+                    <select name="medicine" required>
+                        <option value="">Selecionar</option>
+                        {% for medicine in medicines %}
+                            <option value="{{ medicine.id }}">{{ medicine.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="checkout-campo">
+                    <label>Preco</label>
+                    <input type="number" name="price" min="0" step="0.01" required>
+                </div>
+
+                <div class="checkout-campo">
+                    <label>Estoque</label>
+                    <input type="number" name="stock" min="0" step="1" required>
+                </div>
+
+                <label class="gestao-check">
+                    <input type="checkbox" name="is_available" checked>
+                    Disponivel para venda
+                </label>
+
+                <div class="checkout-campo">
+                    <label>Preco promocional</label>
+                    <input type="number" name="promotional_price" min="0" step="0.01" placeholder="Opcional">
+                </div>
+
+                <div class="checkout-campo maior">
+                    <label>Nome da promocao</label>
+                    <input type="text" name="promotion_title" placeholder="Ex: Oferta da semana">
+                </div>
+
+                <div class="checkout-campo maior">
+                    <label>Descricao da promocao</label>
+                    <input type="text" name="promotion_description" placeholder="Ex: Valido enquanto durar o estoque">
+                </div>
+
+                <label class="gestao-check">
+                    <input type="checkbox" name="promotion_active">
+                    Promocao ativa
+                </label>
+
+                <button class="btn-finalizar" type="submit">Salvar estoque</button>
+            </form>
+        </section>
+
+        <div class="gestao-lista">
+            {% for item in inventory_items %}
+                <article class="gestao-card estoque-card">
+                    <div class="gestao-card-topo">
+                        <div>
+                            <h2>{{ item.medicine.name }}</h2>
+                            <p>{{ item.medicine.category.name }} - {{ item.medicine.get_tarja_display }}</p>
+                            {% if item.has_active_promotion %}
+                                <span class="produto-promocao">{{ item.promotion_title|default:"Promocao ativa" }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="status-grupo">
+                            <span class="status-pedido">Estoque: {{ item.stock }}</span>
+                            {% if item.is_available and item.stock > 0 %}
+                                <span class="status-pedido status-ok">Vendendo</span>
+                            {% else %}
+                                <span class="status-pedido status-bloqueado">Bloqueado</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <form class="estoque-form estoque-form-lista estoque-form-completo" method="post" action="{% url 'pharmacy_inventory_update' item.id %}">
+                        {% csrf_token %}
+                        <div class="checkout-campo">
+                            <label>Preco</label>
+                            <input type="number" name="price" min="0" step="0.01" value="{{ item.price }}" required>
+                        </div>
+                        <div class="checkout-campo">
+                            <label>Estoque</label>
+                            <input type="number" name="stock" min="0" step="1" value="{{ item.stock }}" required>
+                        </div>
+                        <label class="gestao-check">
+                            <input type="checkbox" name="is_available" {% if item.is_available %}checked{% endif %}>
+                            Disponivel
+                        </label>
+                        <div class="checkout-campo">
+                            <label>Preco promocional</label>
+                            <input type="number" name="promotional_price" min="0" step="0.01" value="{{ item.promotional_price|default:'' }}">
+                        </div>
+                        <div class="checkout-campo maior">
+                            <label>Nome da promocao</label>
+                            <input type="text" name="promotion_title" value="{{ item.promotion_title }}" placeholder="Ex: Oferta da semana">
+                        </div>
+                        <div class="checkout-campo maior">
+                            <label>Descricao</label>
+                            <input type="text" name="promotion_description" value="{{ item.promotion_description }}" placeholder="Ex: Valido enquanto durar o estoque">
+                        </div>
+                        <label class="gestao-check">
+                            <input type="checkbox" name="promotion_active" {% if item.promotion_active %}checked{% endif %}>
+                            Promocao ativa
+                        </label>
+                        <button class="btn-finalizar" type="submit">Atualizar</button>
+                    </form>
+                </article>
+            {% empty %}
+                <div class="carrinho-vazio">
+                    <i class="fa-solid fa-box-open"></i>
+                    <h2>Nenhum produto no estoque</h2>
+                    <p>Adicione medicamentos para que aparecam no dashboard dos clientes.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+</main>
+
+</body>
+</html>

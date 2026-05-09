@@ -2,7 +2,17 @@ from django.contrib import admin
 from django.utils.html import format_html
 from httpx import request
 
-from .models import UserProfile, Medicine, Category, Cart, CartItem
+from .models import (
+    UserProfile,
+    Medicine,
+    Category,
+    Cart,
+    CartItem,
+    Pharmacy,
+    PharmacyInventory,
+    Order,
+    OrderItem,
+)
 from .services.supabase_storage import upload_image
 from .forms import MedicineAdminForm
 
@@ -54,6 +64,41 @@ class MedicineAdmin(admin.ModelAdmin):
 
 
 # 🔹 CART ITEM
+class PharmacyInventoryInline(admin.TabularInline):
+    model = PharmacyInventory
+    extra = 1
+    autocomplete_fields = ('medicine',)
+
+
+class PharmacyAdmin(admin.ModelAdmin):
+    list_display = ('name', 'owner', 'city', 'state', 'is_active')
+    list_filter = ('is_active', 'state', 'city')
+    search_fields = ('name', 'cnpj', 'owner__username')
+    inlines = [PharmacyInventoryInline]
+
+
+class PharmacyInventoryAdmin(admin.ModelAdmin):
+    list_display = ('pharmacy', 'medicine', 'price', 'promotional_price', 'stock', 'is_available', 'promotion_active')
+    list_filter = ('pharmacy', 'is_available', 'promotion_active', 'medicine__tarja')
+    search_fields = ('pharmacy__name', 'medicine__name')
+    autocomplete_fields = ('pharmacy', 'medicine')
+
+
+class OrderItemInline(admin.TabularInline):
+    model = OrderItem
+    extra = 0
+    readonly_fields = ('medicine', 'medicine_name', 'quantity', 'medicine_price', 'tarja')
+    can_delete = False
+
+
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'pharmacy', 'status', 'prescription_status', 'total', 'created_at')
+    list_filter = ('status', 'prescription_status', 'pharmacy', 'payment_method', 'delivery_method')
+    search_fields = ('id', 'user__username', 'pharmacy__name', 'customer_name')
+    readonly_fields = ('created_at', 'updated_at', 'prescription_reviewed_at')
+    inlines = [OrderItemInline]
+
+
 class CartItemInline(admin.TabularInline):
     model = CartItem
     extra = 1
@@ -70,3 +115,6 @@ admin.site.register(UserProfile, UserProfileAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Medicine, MedicineAdmin)
 admin.site.register(Cart, CartAdmin)
+admin.site.register(Pharmacy, PharmacyAdmin)
+admin.site.register(PharmacyInventory, PharmacyInventoryAdmin)
+admin.site.register(Order, OrderAdmin)
