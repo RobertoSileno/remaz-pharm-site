@@ -25,8 +25,9 @@ from .models import (
     OrderStatusHistory,
     PaymentTransaction,
 )
-from .forms import AddressForm, PharmacyRegistrationForm
+from .forms import AddressForm, PharmacyMedicineCreateForm, PharmacyRegistrationForm
 from .services.mercado_pago import create_pix_payment
+from .services.supabase_storage import upload_image
 from django.db.models import Count, Q
 from django.views.decorators.http import require_POST
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -34,6 +35,8 @@ from django.utils.http import url_has_allowed_host_and_scheme
 GOVBR_SIGNATURE_URL = 'https://assinador.iti.br'
 PRESCRIPTION_EXTENSIONS = {'pdf'}
 PRESCRIPTION_MAX_SIZE = 10 * 1024 * 1024
+PRODUCT_IMAGE_CONTENT_TYPES = {'image/png', 'image/jpeg', 'image/webp'}
+PRODUCT_IMAGE_MAX_SIZE = 5 * 1024 * 1024
 
 def get_display_name(user):
     username = user.username.strip()
@@ -92,6 +95,15 @@ def prescription_uploaded(request):
 def clear_prescription_session(request):
     request.session.pop('prescription_uploaded', None)
     request.session.pop('prescription_file', None)
+
+def validate_product_image(image_file):
+    if image_file.content_type not in PRODUCT_IMAGE_CONTENT_TYPES:
+        return 'Envie uma imagem PNG, JPG, JPEG ou WebP.'
+
+    if image_file.size > PRODUCT_IMAGE_MAX_SIZE:
+        return 'A imagem deve ter no maximo 5 MB.'
+
+    return ''
 
 def create_order_status_history(order, to_status, changed_by=None, from_status='', note=''):
     OrderStatusHistory.objects.create(
@@ -672,35 +684,78 @@ def pharmacy_register_view(request):
 @login_required(login_url='login')
 def pharmacy_inventory_view(request, pharmacy_id):
     pharmacy = get_accessible_pharmacy_or_404(request.user, pharmacy_id)
+    new_medicine_form = PharmacyMedicineCreateForm()
 
     if request.method == 'POST':
-        medicine = get_object_or_404(Medicine, id=request.POST.get('medicine'))
-        price = request.POST.get('price') or medicine.price
-        stock = int(request.POST.get('stock') or 0)
-        is_available = request.POST.get('is_available') == 'on' and stock > 0
-        promotional_price = request.POST.get('promotional_price') or None
-        promotion_active = request.POST.get('promotion_active') == 'on' and bool(promotional_price)
+        form_action = request.POST.get('form_action')
 
-        inventory_item, created = PharmacyInventory.objects.update_or_create(
-            pharmacy=pharmacy,
-            medicine=medicine,
-            defaults={
-                'price': price,
-                'stock': stock,
-                'is_available': is_available,
-                'promotion_active': promotion_active,
-                'promotion_title': request.POST.get('promotion_title', '').strip(),
-                'promotion_description': request.POST.get('promotion_description', '').strip(),
-                'promotional_price': promotional_price,
-            }
-        )
+        if form_action == 'create_medicine':
+            new_medicine_form = PharmacyMedicineCreateForm(request.POST, request.FILES)
+            if new_medicine_form.is_valid():
+                image_file = new_medicine_form.cleaned_data.get('image_file')
+                image_url = ''
 
-        if inventory_item.stock == 0:
-            messages.warning(request, 'Estoque salvo em zero. O produto foi bloqueado automaticamente para venda.')
+                if image_file:
+                    try:
+                        image_url = upload_image(image_file)
+                    except Exception as exc:
+                        print('Erro ao enviar imagem para Supabase:', exc)
+                        messages.error(request, 'Nao foi possivel enviar a imagem para o Supabase. Tente novamente.')
+                        return redirect('pharmacy_inventory', pharmacy_id=pharmacy.id)
+
+                medicine, inventory_item = new_medicine_form.save_with_inventory(pharmacy, image_url=image_url)
+
+                if inventory_item.stock == 0:
+                    messages.warning(request, f'{medicine.name} foi cadastrado, mas o estoque zero bloqueou a venda.')
+                else:
+                    messages.success(request, f'{medicine.name} foi cadastrado e adicionado ao estoque.')
+
+                return redirect('pharmacy_inventory', pharmacy_id=pharmacy.id)
+
+            messages.error(request, 'Confira os dados do novo produto.')
         else:
-            messages.success(request, 'Estoque cadastrado.' if created else 'Estoque atualizado.')
+            medicine = get_object_or_404(Medicine, id=request.POST.get('medicine'))
+            image_file = request.FILES.get('image_file')
+            if image_file:
+                image_error = validate_product_image(image_file)
+                if image_error:
+                    messages.error(request, image_error)
+                    return redirect('pharmacy_inventory', pharmacy_id=pharmacy.id)
 
-        return redirect('pharmacy_inventory', pharmacy_id=pharmacy.id)
+                try:
+                    medicine.image = upload_image(image_file)
+                    medicine.save(update_fields=['image'])
+                except Exception as exc:
+                    print('Erro ao enviar imagem para Supabase:', exc)
+                    messages.error(request, 'Nao foi possivel enviar a imagem para o Supabase. Tente novamente.')
+                    return redirect('pharmacy_inventory', pharmacy_id=pharmacy.id)
+
+            price = request.POST.get('price') or medicine.price
+            stock = int(request.POST.get('stock') or 0)
+            is_available = request.POST.get('is_available') == 'on' and stock > 0
+            promotional_price = request.POST.get('promotional_price') or None
+            promotion_active = request.POST.get('promotion_active') == 'on' and bool(promotional_price)
+
+            inventory_item, created = PharmacyInventory.objects.update_or_create(
+                pharmacy=pharmacy,
+                medicine=medicine,
+                defaults={
+                    'price': price,
+                    'stock': stock,
+                    'is_available': is_available,
+                    'promotion_active': promotion_active,
+                    'promotion_title': request.POST.get('promotion_title', '').strip(),
+                    'promotion_description': request.POST.get('promotion_description', '').strip(),
+                    'promotional_price': promotional_price,
+                }
+            )
+
+            if inventory_item.stock == 0:
+                messages.warning(request, 'Estoque salvo em zero. O produto foi bloqueado automaticamente para venda.')
+            else:
+                messages.success(request, 'Estoque cadastrado.' if created else 'Estoque atualizado.')
+
+            return redirect('pharmacy_inventory', pharmacy_id=pharmacy.id)
 
     inventory_items = pharmacy.inventory_items.select_related('medicine', 'medicine__category').order_by('medicine__name')
     medicines = Medicine.objects.order_by('name')
@@ -709,6 +764,7 @@ def pharmacy_inventory_view(request, pharmacy_id):
         'pharmacy': pharmacy,
         'inventory_items': inventory_items,
         'medicines': medicines,
+        'new_medicine_form': new_medicine_form,
         'display_name': get_display_name(request.user),
         'cart_count': get_cart_count(request.user),
     })
@@ -718,6 +774,21 @@ def pharmacy_inventory_view(request, pharmacy_id):
 def pharmacy_inventory_update(request, inventory_id):
     inventory_item = get_object_or_404(PharmacyInventory.objects.select_related('pharmacy'), id=inventory_id)
     pharmacy = get_accessible_pharmacy_or_404(request.user, inventory_item.pharmacy.id)
+    image_file = request.FILES.get('image_file')
+
+    if image_file:
+        image_error = validate_product_image(image_file)
+        if image_error:
+            messages.error(request, image_error)
+            return redirect('pharmacy_inventory', pharmacy_id=pharmacy.id)
+
+        try:
+            inventory_item.medicine.image = upload_image(image_file)
+            inventory_item.medicine.save(update_fields=['image'])
+        except Exception as exc:
+            print('Erro ao enviar imagem para Supabase:', exc)
+            messages.error(request, 'Nao foi possivel enviar a imagem para o Supabase. Tente novamente.')
+            return redirect('pharmacy_inventory', pharmacy_id=pharmacy.id)
 
     inventory_item.price = request.POST.get('price') or inventory_item.price
     inventory_item.stock = int(request.POST.get('stock') or 0)

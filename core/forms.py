@@ -1,5 +1,5 @@
 from django import forms
-from .models import Address, Medicine, Pharmacy
+from .models import Address, Medicine, Pharmacy, PharmacyInventory
 
 class MedicineAdminForm(forms.ModelForm):
     image_file = forms.ImageField(required=False)  # 👈 nome diferente
@@ -70,3 +70,107 @@ class PharmacyRegistrationForm(forms.ModelForm):
             'number': forms.TextInput(attrs={'placeholder': 'Numero'}),
             'complement': forms.TextInput(attrs={'placeholder': 'Complemento'}),
         }
+
+
+class PharmacyMedicineCreateForm(forms.ModelForm):
+    image_file = forms.ImageField(
+        label='Imagem do produto',
+        required=False,
+        widget=forms.ClearableFileInput(attrs={'accept': 'image/png,image/jpeg,image/webp'})
+    )
+    inventory_price = forms.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        min_value=0,
+        label='Preco de venda',
+        widget=forms.NumberInput(attrs={'min': '0', 'step': '0.01', 'placeholder': '0.00'})
+    )
+    stock = forms.IntegerField(
+        min_value=0,
+        label='Estoque',
+        widget=forms.NumberInput(attrs={'min': '0', 'step': '1', 'placeholder': '0'})
+    )
+    is_available = forms.BooleanField(label='Disponivel para venda', required=False, initial=True)
+    promotion_active = forms.BooleanField(label='Promocao ativa', required=False)
+    promotion_title = forms.CharField(max_length=120, required=False, widget=forms.TextInput(attrs={
+        'placeholder': 'Ex: Oferta da semana',
+    }))
+    promotion_description = forms.CharField(required=False, widget=forms.TextInput(attrs={
+        'placeholder': 'Ex: Valido enquanto durar o estoque',
+    }))
+    promotional_price = forms.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        min_value=0,
+        required=False,
+        widget=forms.NumberInput(attrs={'min': '0', 'step': '0.01', 'placeholder': 'Opcional'})
+    )
+
+    class Meta:
+        model = Medicine
+        fields = (
+            'name',
+            'description',
+            'category',
+            'tarja',
+            'price',
+        )
+        widgets = {
+            'name': forms.TextInput(attrs={'placeholder': 'Nome do medicamento'}),
+            'description': forms.Textarea(attrs={'placeholder': 'Descricao do produto', 'rows': 3}),
+            'price': forms.NumberInput(attrs={'min': '0', 'step': '0.01', 'placeholder': 'Preco base'}),
+        }
+
+    def clean_name(self):
+        name = self.cleaned_data['name'].strip()
+        if Medicine.objects.filter(name__iexact=name).exists():
+            raise forms.ValidationError('Ja existe um medicamento com este nome. Use o formulario de estoque existente.')
+
+        return name
+
+    def clean(self):
+        cleaned_data = super().clean()
+        promotion_active = cleaned_data.get('promotion_active')
+        promotional_price = cleaned_data.get('promotional_price')
+
+        if promotion_active and not promotional_price:
+            self.add_error('promotional_price', 'Informe o preco promocional para ativar promocao.')
+
+        return cleaned_data
+
+    def clean_image_file(self):
+        image_file = self.cleaned_data.get('image_file')
+        if not image_file:
+            return image_file
+
+        allowed_content_types = {'image/png', 'image/jpeg', 'image/webp'}
+        if image_file.content_type not in allowed_content_types:
+            raise forms.ValidationError('Envie uma imagem PNG, JPG, JPEG ou WebP.')
+
+        max_size = 5 * 1024 * 1024
+        if image_file.size > max_size:
+            raise forms.ValidationError('A imagem deve ter no maximo 5 MB.')
+
+        return image_file
+
+    def save_with_inventory(self, pharmacy, image_url=''):
+        medicine = self.save(commit=False)
+        if image_url:
+            medicine.image = image_url
+        medicine.save()
+
+        stock = self.cleaned_data['stock']
+        promotional_price = self.cleaned_data.get('promotional_price')
+        inventory = PharmacyInventory.objects.create(
+            pharmacy=pharmacy,
+            medicine=medicine,
+            price=self.cleaned_data['inventory_price'],
+            stock=stock,
+            is_available=self.cleaned_data.get('is_available') and stock > 0,
+            promotion_active=self.cleaned_data.get('promotion_active') and bool(promotional_price),
+            promotion_title=self.cleaned_data.get('promotion_title', '').strip(),
+            promotion_description=self.cleaned_data.get('promotion_description', '').strip(),
+            promotional_price=promotional_price,
+        )
+
+        return medicine, inventory

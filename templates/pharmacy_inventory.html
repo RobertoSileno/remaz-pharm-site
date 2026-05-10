@@ -72,8 +72,9 @@
                 <h2>Adicionar ou atualizar produto</h2>
             </div>
 
-            <form class="estoque-form estoque-form-completo" method="post">
+            <form class="estoque-form estoque-form-completo" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
+                <input type="hidden" name="form_action" value="inventory_existing">
                 <div class="checkout-campo">
                     <label>Medicamento</label>
                     <select name="medicine" required>
@@ -92,6 +93,11 @@
                 <div class="checkout-campo">
                     <label>Estoque</label>
                     <input type="number" name="stock" min="0" step="1" required>
+                </div>
+
+                <div class="checkout-campo maior">
+                    <label>Imagem do produto</label>
+                    <input type="file" name="image_file" accept="image/png,image/jpeg,image/webp">
                 </div>
 
                 <label class="gestao-check">
@@ -123,6 +129,98 @@
             </form>
         </section>
 
+        <section class="checkout-bloco gestao-form">
+            <div class="checkout-titulo">
+                <i class="fa-solid fa-prescription-bottle-medical"></i>
+                <h2>Cadastrar novo produto</h2>
+            </div>
+
+            <form class="estoque-form estoque-form-completo" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="form_action" value="create_medicine">
+
+                <div class="checkout-campo maior">
+                    <label>Nome do produto</label>
+                    {{ new_medicine_form.name }}
+                    {{ new_medicine_form.name.errors }}
+                </div>
+
+                <div class="checkout-campo">
+                    <label>Categoria</label>
+                    {{ new_medicine_form.category }}
+                    {{ new_medicine_form.category.errors }}
+                </div>
+
+                <div class="checkout-campo">
+                    <label>Tarja</label>
+                    {{ new_medicine_form.tarja }}
+                    {{ new_medicine_form.tarja.errors }}
+                </div>
+
+                <div class="checkout-campo">
+                    <label>Preco base</label>
+                    {{ new_medicine_form.price }}
+                    {{ new_medicine_form.price.errors }}
+                </div>
+
+                <div class="checkout-campo">
+                    <label>Preco de venda</label>
+                    {{ new_medicine_form.inventory_price }}
+                    {{ new_medicine_form.inventory_price.errors }}
+                </div>
+
+                <div class="checkout-campo">
+                    <label>Estoque</label>
+                    {{ new_medicine_form.stock }}
+                    {{ new_medicine_form.stock.errors }}
+                </div>
+
+                <div class="checkout-campo maior">
+                    <label>Imagem do produto</label>
+                    {{ new_medicine_form.image_file }}
+                    {{ new_medicine_form.image_file.errors }}
+                </div>
+
+                <div class="checkout-campo maior">
+                    <label>Descricao</label>
+                    {{ new_medicine_form.description }}
+                    {{ new_medicine_form.description.errors }}
+                </div>
+
+                <label class="gestao-check">
+                    {{ new_medicine_form.is_available }}
+                    Disponivel para venda
+                </label>
+
+                <div class="checkout-campo">
+                    <label>Preco promocional</label>
+                    {{ new_medicine_form.promotional_price }}
+                    {{ new_medicine_form.promotional_price.errors }}
+                </div>
+
+                <div class="checkout-campo maior">
+                    <label>Nome da promocao</label>
+                    {{ new_medicine_form.promotion_title }}
+                    {{ new_medicine_form.promotion_title.errors }}
+                </div>
+
+                <div class="checkout-campo maior">
+                    <label>Descricao da promocao</label>
+                    {{ new_medicine_form.promotion_description }}
+                    {{ new_medicine_form.promotion_description.errors }}
+                </div>
+
+                <label class="gestao-check">
+                    {{ new_medicine_form.promotion_active }}
+                    Promocao ativa
+                </label>
+
+                {{ new_medicine_form.non_field_errors }}
+
+                <button class="btn-finalizar" type="submit">Cadastrar produto e estoque</button>
+            </form>
+        </section>
+
         <div class="gestao-lista">
             {% for item in inventory_items %}
                 <article class="gestao-card estoque-card">
@@ -144,7 +242,7 @@
                         </div>
                     </div>
 
-                    <form class="estoque-form estoque-form-lista estoque-form-completo" method="post" action="{% url 'pharmacy_inventory_update' item.id %}">
+                    <form class="estoque-form estoque-form-lista estoque-form-completo" method="post" enctype="multipart/form-data" action="{% url 'pharmacy_inventory_update' item.id %}">
                         {% csrf_token %}
                         <div class="checkout-campo">
                             <label>Preco</label>
@@ -169,6 +267,10 @@
                         <div class="checkout-campo maior">
                             <label>Descricao</label>
                             <input type="text" name="promotion_description" value="{{ item.promotion_description }}" placeholder="Ex: Valido enquanto durar o estoque">
+                        </div>
+                        <div class="checkout-campo maior">
+                            <label>Atualizar imagem do produto</label>
+                            <input type="file" name="image_file" accept="image/png,image/jpeg,image/webp">
                         </div>
                         <label class="gestao-check">
                             <input type="checkbox" name="promotion_active" {% if item.promotion_active %}checked{% endif %}>

@@ -8,6 +8,9 @@ supabase = create_client(
 )
 
 def upload_image(file):
+    if not settings.SUPABASE_URL or not settings.SUPABASE_KEY or not settings.SUPABASE_BUCKET:
+        raise RuntimeError("Supabase Storage nao esta configurado.")
+
     # extensão segura
     file_ext = file.name.split('.')[-1].lower()
 
@@ -32,7 +35,7 @@ def upload_image(file):
 
     # 🔍 opcional: debug
     if hasattr(response, "error") and response.error:
-        print("Erro upload:", response.error)
+        raise RuntimeError(f"Erro no upload Supabase: {response.error}")
 
     # URL pública (correta)
     public_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/{settings.SUPABASE_BUCKET}/{file_path}"

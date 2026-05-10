@@ -17,6 +17,7 @@ O fluxo atual cobre:
 - Download protegido de receitas por cliente ou farmacia responsavel.
 - Area da farmacia para gerenciar estoque, promocoes, pedidos e receitas.
 - Cadastro de farmacia por usuario logado com CNPJ, telefone e endereco.
+- Cadastro de novos medicamentos/produtos diretamente pela area de estoque da farmacia, com upload de imagem para Supabase.
 - Historico de status de pedidos.
 - Transacao Pix via Mercado Pago quando `MERCADO_PAGO_ACCESS_TOKEN` esta configurado.
 - Admin Django com upload de imagens de medicamentos para Supabase Storage.
@@ -56,6 +57,8 @@ O fluxo atual cobre:
 - `/farmacia/`: area da farmacia.
 - `/farmacia/cadastro/`: cadastro de farmacia.
 - `/farmacia/<id>/estoque/`: gestao de estoque.
+- Em `/farmacia/<id>/estoque/`, a farmacia pode adicionar produto existente ao estoque ou cadastrar um produto novo e ja criar seu estoque.
+- O cadastro/edicao de produto pela farmacia usa upload multipart com campo `image_file` e `upload_image()` para enviar PNG/JPEG/WebP ao bucket Supabase e salvar a URL em `Medicine.image`.
 - `/farmacia/<id>/pedidos/`: gestao de pedidos da farmacia.
 - `/farmacia/<id>/receitas/`: aprovacao/recusa de receitas.
 
@@ -73,30 +76,22 @@ O fluxo atual cobre:
 - `.venv\Scripts\python.exe manage.py makemigrations --check --dry-run`: sem mudancas pendentes.
 - `.venv\Scripts\python.exe manage.py test`: 0 testes encontrados.
 - `.venv\Scripts\python.exe manage.py migrate`: migracoes ate `0011` aplicadas no banco local.
-- Runserver local foi encerrado apos os testes.
+- Runserver local nao esta ativo na porta 8000.
 
 ## Estado git observado
 
 Ha alteracoes nao commitadas em:
 
 - `CODEX_CONTEXT.md`
-- `core/admin.py`
 - `core/forms.py`
-- `core/models.py`
-- `core/urls.py`
+- `core/services/supabase_storage.py`
 - `core/views.py`
-- `setup/settings.py`
-- `static/css/profile.css`
-- templates de checkout, pedidos, pagamento, farmacia, receitas e perfil
+- `static/css/dashboard.css`
+- `templates/pharmacy_inventory.html`
 
 Arquivos novos nao rastreados:
 
-- `core/migrations/0008_address_orderstatushistory_paymenttransaction.py`
-- `core/migrations/0009_pharmacy_cep.py`
-- `core/migrations/0010_alter_paymenttransaction_status.py`
-- `core/migrations/0011_deactivate_legacy_default_pharmacy.py`
-- `core/services/mercado_pago.py`
-- `templates/pharmacy_register.html`
+- Nenhum observado na ultima verificacao desta pausa.
 
 ## Pontos de atencao
 
