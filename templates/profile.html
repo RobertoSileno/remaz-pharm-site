@@ -43,6 +43,13 @@
 </header>
 
 <main class="dashboard-wrapper">
+    {% if messages %}
+        <div class="checkout-mensagens">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
 
     <section class="usuario-area">
         <h2>Informações</h2>
@@ -118,6 +125,102 @@
     </section>
 
     <section class="endereco-area">
+        <h2>Enderecos salvos</h2>
+
+        <div class="gestao-lista">
+            {% for address in addresses %}
+                <article class="gestao-card">
+                    <div class="gestao-card-topo">
+                        <div>
+                            <h2>{{ address.label }}</h2>
+                            <p>{{ address.recipient_name }} - {{ address.phone }}</p>
+                            <p>{{ address.summary }}</p>
+                        </div>
+                        {% if address.is_default %}
+                            <span class="status-pedido status-ok">Principal</span>
+                        {% endif %}
+                    </div>
+
+                    <form method="post" class="pedido-status-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="address_id" value="{{ address.id }}">
+                        <button class="btn-finalizar" type="submit" name="action" value="set_default_address">Tornar principal</button>
+                        <button class="btn-recusa" type="submit" name="action" value="delete_address">Remover</button>
+                    </form>
+                </article>
+            {% empty %}
+                <p>Nenhum endereco salvo ainda.</p>
+            {% endfor %}
+        </div>
+
+        <h2>Novo endereco</h2>
+        <form class="form-endereco" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_address">
+
+            <div class="form-linha">
+                <div class="form-grupo">
+                    <label>Nome</label>
+                    {{ address_form.label }}
+                </div>
+                <div class="form-grupo">
+                    <label>Quem recebe</label>
+                    {{ address_form.recipient_name }}
+                </div>
+                <div class="form-grupo">
+                    <label>Telefone</label>
+                    {{ address_form.phone }}
+                </div>
+            </div>
+
+            <div class="form-linha">
+                <div class="form-grupo">
+                    <label>CEP</label>
+                    {{ address_form.cep }}
+                </div>
+                <div class="form-grupo">
+                    <label>Estado</label>
+                    {{ address_form.state }}
+                </div>
+                <div class="form-grupo">
+                    <label>Cidade</label>
+                    {{ address_form.city }}
+                </div>
+            </div>
+
+            <div class="form-linha">
+                <div class="form-grupo">
+                    <label>Bairro</label>
+                    {{ address_form.neighborhood }}
+                </div>
+                <div class="form-grupo">
+                    <label>Rua</label>
+                    {{ address_form.street }}
+                </div>
+                <div class="form-grupo">
+                    <label>Numero</label>
+                    {{ address_form.number }}
+                </div>
+            </div>
+
+            <div class="form-linha">
+                <div class="form-grupo">
+                    <label>Complemento</label>
+                    {{ address_form.complement }}
+                </div>
+                <label class="gestao-check">
+                    {{ address_form.is_default }}
+                    Usar como endereco principal
+                </label>
+            </div>
+
+            <div class="form-acoes">
+                <button type="submit">Salvar endereco</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="endereco-area endereco-legado" hidden>
         <h2>Endereço</h2>
         <form class="form-endereco">
             <div class="form-linha">
@@ -192,6 +295,32 @@
             menuDropdown.classList.remove('ativo');
         }
     });
+
+    const cepField = document.querySelector('[data-cep-field]');
+    if (cepField) {
+        cepField.addEventListener('blur', async function() {
+            const cep = this.value.replace(/\D/g, '');
+            if (cep.length !== 8) return;
+
+            try {
+                const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                const data = await response.json();
+                if (data.erro) return;
+
+                const stateField = document.querySelector('[data-cep-state]');
+                const cityField = document.querySelector('[data-cep-city]');
+                const neighborhoodField = document.querySelector('[data-cep-neighborhood]');
+                const streetField = document.querySelector('[data-cep-street]');
+
+                if (stateField) stateField.value = data.uf || '';
+                if (cityField) cityField.value = data.localidade || '';
+                if (neighborhoodField) neighborhoodField.value = data.bairro || '';
+                if (streetField) streetField.value = data.logradouro || '';
+            } catch (error) {
+                console.warn('Nao foi possivel consultar o CEP.', error);
+            }
+        });
+    }
 </script>
 
 </body>

@@ -95,51 +95,85 @@
                             <h2>Endereço de entrega</h2>
                         </div>
 
-                        <div class="checkout-grid">
+                        {% if addresses %}
+                            <div class="checkout-opcoes">
+                                {% for address in addresses %}
+                                    <label class="checkout-opcao">
+                                        <input type="radio" name="address_id" value="{{ address.id }}" {% if address.is_default or forloop.first %}checked{% endif %}>
+                                        <span>
+                                            <strong>{{ address.label }}</strong>
+                                            <small>{{ address.recipient_name }} - {{ address.summary }}</small>
+                                        </span>
+                                    </label>
+                                {% endfor %}
+                                <label class="checkout-opcao">
+                                    <input type="radio" name="address_id" value="">
+                                    <span>
+                                        <strong>Novo endereco</strong>
+                                        <small>Informar outro local para este pedido.</small>
+                                    </span>
+                                </label>
+                            </div>
+                        {% endif %}
+
+                        <div class="checkout-grid" id="manual-address-fields">
+                            <div class="checkout-campo">
+                                <label>Nome do endereco</label>
+                                <input type="text" name="address_label" placeholder="Casa, trabalho...">
+                            </div>
                             <div class="checkout-campo maior">
                                 <label>Nome de quem recebe</label>
-                                <input type="text" name="recipient_name" value="{{ request.user.username }}" required>
+                                <input type="text" name="recipient_name" value="{{ request.user.username }}" data-manual-address required>
                             </div>
 
                             <div class="checkout-campo">
                                 <label>Telefone</label>
-                                <input type="tel" name="phone" placeholder="(00) 00000-0000" required>
+                                <input type="tel" name="phone" placeholder="(00) 00000-0000" data-manual-address required>
                             </div>
 
                             <div class="checkout-campo">
                                 <label>CEP</label>
-                                <input type="text" name="zip_code" placeholder="00000-000" required>
+                                <input type="text" name="zip_code" placeholder="00000-000" data-cep-field="true" data-manual-address required>
                             </div>
 
                             <div class="checkout-campo">
                                 <label>Estado</label>
-                                <input type="text" name="state" placeholder="UF" required>
+                                <input type="text" name="state" placeholder="UF" data-cep-state="true" data-manual-address required>
                             </div>
 
                             <div class="checkout-campo">
                                 <label>Cidade</label>
-                                <input type="text" name="city" placeholder="Digite" required>
+                                <input type="text" name="city" placeholder="Digite" data-cep-city="true" data-manual-address required>
                             </div>
 
                             <div class="checkout-campo">
                                 <label>Bairro</label>
-                                <input type="text" name="district" placeholder="Digite" required>
+                                <input type="text" name="district" placeholder="Digite" data-cep-neighborhood="true" data-manual-address required>
                             </div>
 
                             <div class="checkout-campo maior">
                                 <label>Rua</label>
-                                <input type="text" name="street" placeholder="Digite" required>
+                                <input type="text" name="street" placeholder="Digite" data-cep-street="true" data-manual-address required>
                             </div>
 
                             <div class="checkout-campo">
                                 <label>Número</label>
-                                <input type="text" name="number" placeholder="Digite" required>
+                                <input type="text" name="number" placeholder="Digite" data-manual-address required>
                             </div>
 
                             <div class="checkout-campo maior">
                                 <label>Complemento</label>
                                 <input type="text" name="complement" placeholder="Apartamento, bloco, referência">
                             </div>
+                            <label class="gestao-check">
+                                <input type="checkbox" name="save_address" checked>
+                                Salvar endereco para proximas compras
+                            </label>
+
+                            <label class="gestao-check">
+                                <input type="checkbox" name="address_default">
+                                Usar como endereco principal
+                            </label>
                         </div>
                     </section>
 
@@ -208,25 +242,25 @@
                             </label>
                         </div>
 
-                        <div class="checkout-grid checkout-cartao">
+                        <div class="checkout-grid checkout-cartao" hidden>
                             <div class="checkout-campo maior">
                                 <label>Nome no cartão</label>
-                                <input type="text" name="card_name" placeholder="Digite">
+                                <input type="text" name="card_name" placeholder="Digite" disabled>
                             </div>
 
                             <div class="checkout-campo maior">
                                 <label>Número do cartão</label>
-                                <input type="text" name="card_number" placeholder="0000 0000 0000 0000">
+                                <input type="text" name="card_number" placeholder="0000 0000 0000 0000" disabled>
                             </div>
 
                             <div class="checkout-campo">
                                 <label>Validade</label>
-                                <input type="text" name="card_expiration" placeholder="MM/AA">
+                                <input type="text" name="card_expiration" placeholder="MM/AA" disabled>
                             </div>
 
                             <div class="checkout-campo">
                                 <label>CVV</label>
-                                <input type="text" name="card_cvv" placeholder="000">
+                                <input type="text" name="card_cvv" placeholder="000" disabled>
                             </div>
                         </div>
                     </section>
@@ -305,6 +339,58 @@
             menuDropdown.classList.remove('ativo');
         }
     });
+
+    const addressRadios = document.querySelectorAll('input[name="address_id"]');
+    const manualAddressFields = document.getElementById('manual-address-fields');
+    const manualRequiredFields = document.querySelectorAll('[data-manual-address]');
+
+    function toggleManualAddress() {
+        const selectedAddress = document.querySelector('input[name="address_id"]:checked');
+        const useSavedAddress = selectedAddress && selectedAddress.value;
+
+        if (!manualAddressFields) {
+            return;
+        }
+
+        manualAddressFields.style.display = useSavedAddress ? 'none' : 'grid';
+        manualRequiredFields.forEach((field) => {
+            field.disabled = Boolean(useSavedAddress);
+            field.required = !useSavedAddress;
+        });
+    }
+
+    addressRadios.forEach((radio) => radio.addEventListener('change', toggleManualAddress));
+    toggleManualAddress();
+
+    const cepField = document.querySelector('[data-cep-field]');
+    if (cepField) {
+        cepField.addEventListener('blur', async function() {
+            const cep = this.value.replace(/\D/g, '');
+            if (cep.length !== 8) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                const data = await response.json();
+                if (data.erro) {
+                    return;
+                }
+
+                const stateField = document.querySelector('[data-cep-state]');
+                const cityField = document.querySelector('[data-cep-city]');
+                const neighborhoodField = document.querySelector('[data-cep-neighborhood]');
+                const streetField = document.querySelector('[data-cep-street]');
+
+                if (stateField) stateField.value = data.uf || '';
+                if (cityField) cityField.value = data.localidade || '';
+                if (neighborhoodField) neighborhoodField.value = data.bairro || '';
+                if (streetField) streetField.value = data.logradouro || '';
+            } catch (error) {
+                console.warn('Nao foi possivel consultar o CEP.', error);
+            }
+        });
+    }
 </script>
 
 </body>

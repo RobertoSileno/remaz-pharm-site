@@ -1,9 +1,11 @@
 import uuid
 from decimal import Decimal
+from pathlib import Path
 
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from django.db import transaction
+from django.http import FileResponse, Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
@@ -11,6 +13,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.utils import timezone
 from .models import (
+    Address,
     Medicine,
     Category,
     Cart,
@@ -19,7 +22,11 @@ from .models import (
     PharmacyInventory,
     Order,
     OrderItem,
+    OrderStatusHistory,
+    PaymentTransaction,
 )
+from .forms import AddressForm, PharmacyRegistrationForm
+from .services.mercado_pago import create_pix_payment
 from django.db.models import Count, Q
 from django.views.decorators.http import require_POST
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -85,6 +92,40 @@ def prescription_uploaded(request):
 def clear_prescription_session(request):
     request.session.pop('prescription_uploaded', None)
     request.session.pop('prescription_file', None)
+
+def create_order_status_history(order, to_status, changed_by=None, from_status='', note=''):
+    OrderStatusHistory.objects.create(
+        order=order,
+        from_status=from_status,
+        to_status=to_status,
+        changed_by=changed_by,
+        note=note,
+    )
+
+def create_order_payment(order):
+    if order.payment_method == 'pix':
+        pix_data = create_pix_payment(order)
+        return PaymentTransaction.objects.create(
+            order=order,
+            provider='mercado_pago',
+            status=pix_data.get('status', 'pending'),
+            payment_method=order.payment_method,
+            amount=order.total,
+            external_id=pix_data.get('external_id', ''),
+            qr_code=pix_data.get('qr_code', ''),
+            qr_code_base64=pix_data.get('qr_code_base64', ''),
+            payment_url=pix_data.get('payment_url', ''),
+            error_message=pix_data.get('error_message', ''),
+            raw_response=pix_data.get('raw_response'),
+        )
+
+    return PaymentTransaction.objects.create(
+        order=order,
+        provider='manual',
+        status='manual',
+        payment_method=order.payment_method,
+        amount=order.total,
+    )
 
 def home(request):
     return render(request, 'home.html')
@@ -185,6 +226,7 @@ def dashboard_view(request):
         'pharmacy'
     ).filter(
         pharmacy__is_active=True,
+        pharmacy__owner__isnull=False,
         is_available=True,
         stock__gt=0,
     )
@@ -222,6 +264,7 @@ def add_inventory_to_cart(request, inventory_id):
         PharmacyInventory,
         id=inventory_id,
         pharmacy__is_active=True,
+        pharmacy__owner__isnull=False,
         is_available=True,
     )
     cart, created = Cart.objects.get_or_create(user=request.user)
@@ -267,6 +310,7 @@ def add_to_cart(request, medicine_id):
     inventory = PharmacyInventory.objects.filter(
         medicine=medicine,
         pharmacy__is_active=True,
+        pharmacy__owner__isnull=False,
         is_available=True,
         stock__gt=0,
     ).order_by('price').first()
@@ -339,6 +383,8 @@ def cart_view(request):
 def checkout_view(request):
     cart, items, total = get_cart_items_and_total(request.user)
     requires_prescription = cart_requires_prescription(items)
+    addresses = request.user.addresses.all()
+    default_address = addresses.filter(is_default=True).first()
 
     if items and requires_prescription and not prescription_uploaded(request):
         messages.error(request, 'Envie a receita assinada pelo gov.br antes de concluir este pedido.')
@@ -356,23 +402,57 @@ def checkout_view(request):
                     )
                     return redirect('cart')
 
-            recipient_name = request.POST.get('recipient_name') or request.user.username
-            phone = request.POST.get('phone') or ''
-            zip_code = request.POST.get('zip_code') or ''
-            state = request.POST.get('state') or ''
-            city = request.POST.get('city') or ''
-            district = request.POST.get('district') or ''
-            street = request.POST.get('street') or ''
-            number = request.POST.get('number') or ''
-            complement = request.POST.get('complement') or ''
+            selected_address = None
+            address_id = request.POST.get('address_id')
+
+            if address_id:
+                selected_address = Address.objects.filter(user=request.user, id=address_id).first()
+
+            if selected_address:
+                recipient_name = selected_address.recipient_name
+                phone = selected_address.phone
+                zip_code = selected_address.cep
+                state = selected_address.state
+                city = selected_address.city
+                district = selected_address.neighborhood
+                street = selected_address.street
+                number = selected_address.number
+                complement = selected_address.complement or ''
+            else:
+                recipient_name = request.POST.get('recipient_name') or request.user.username
+                phone = request.POST.get('phone') or ''
+                zip_code = request.POST.get('zip_code') or ''
+                state = request.POST.get('state') or ''
+                city = request.POST.get('city') or ''
+                district = request.POST.get('district') or ''
+                street = request.POST.get('street') or ''
+                number = request.POST.get('number') or ''
+                complement = request.POST.get('complement') or ''
             delivery_method = request.POST.get('delivery_method') or 'delivery'
             payment_method = request.POST.get('payment_method') or 'pix'
+            created_orders = []
 
             grouped_items = {}
             for item in items:
                 grouped_items.setdefault(item.pharmacy, []).append(item)
 
             with transaction.atomic():
+                if request.POST.get('save_address') == 'on' and not selected_address:
+                    Address.objects.create(
+                        user=request.user,
+                        label=request.POST.get('address_label') or 'Principal',
+                        recipient_name=recipient_name,
+                        phone=phone,
+                        cep=zip_code,
+                        state=state,
+                        city=city,
+                        neighborhood=district,
+                        street=street,
+                        number=number,
+                        complement=complement,
+                        is_default=request.POST.get('address_default') == 'on',
+                    )
+
                 for pharmacy, pharmacy_items in grouped_items.items():
                     order_subtotal = sum(item.subtotal for item in pharmacy_items)
                     has_prescription_item = cart_requires_prescription(pharmacy_items)
@@ -400,6 +480,13 @@ def checkout_view(request):
                         prescription_status='pending' if has_prescription_item else 'not_required',
                         prescription_file=request.session.get('prescription_file') if has_prescription_item else None,
                     )
+                    created_orders.append(order)
+                    create_order_status_history(
+                        order,
+                        status,
+                        changed_by=request.user,
+                        note='Pedido criado no checkout.',
+                    )
 
                     for item in pharmacy_items:
                         OrderItem.objects.create(
@@ -420,6 +507,13 @@ def checkout_view(request):
                 clear_prescription_session(request)
 
             messages.success(request, 'Pedido criado! A farmácia acompanhará a disponibilidade e a receita quando necessário.')
+            for order in created_orders:
+                payment = create_order_payment(order)
+                if payment.payment_method == 'pix' and payment.payment_url:
+                    messages.success(request, f'Pedido #{order.id} criado. Use o link Pix exibido em pedidos para pagar.')
+                elif payment.status == 'gateway_not_configured':
+                    messages.warning(request, f'Pedido #{order.id} criado, mas o gateway Pix ainda nao esta configurado.')
+
             return redirect('orders')
 
     return render(request, 'checkout.html', {
@@ -429,6 +523,8 @@ def checkout_view(request):
         'cart_count': get_cart_count(request.user),
         'requires_prescription': requires_prescription,
         'prescription_file': request.session.get('prescription_file'),
+        'addresses': addresses,
+        'default_address': default_address,
     })
 
 @login_required(login_url='login')
@@ -456,7 +552,7 @@ def prescription_upload_view(request):
             elif prescription_file.size > PRESCRIPTION_MAX_SIZE:
                 messages.error(request, 'A receita deve ter no máximo 10 MB.')
             else:
-                storage = FileSystemStorage(location=str(settings.MEDIA_ROOT / 'prescriptions'))
+                storage = FileSystemStorage(location=str(settings.PRIVATE_MEDIA_ROOT / 'prescriptions'))
                 file_name = f'user_{request.user.id}_{uuid.uuid4().hex}.{file_ext}'
                 saved_name = storage.save(file_name, prescription_file)
 
@@ -477,8 +573,31 @@ def prescription_upload_view(request):
     })
 
 @login_required(login_url='login')
+def prescription_document_view(request, order_id):
+    order = get_object_or_404(Order.objects.select_related('pharmacy'), id=order_id, requires_prescription=True)
+    user_can_access = order.user_id == request.user.id
+
+    if not user_can_access and order.pharmacy_id:
+        user_can_access = get_accessible_pharmacies(request.user).filter(id=order.pharmacy_id).exists()
+
+    if not user_can_access:
+        raise Http404
+
+    if not order.prescription_file:
+        raise Http404
+
+    file_name = Path(order.prescription_file).name
+    file_path = (settings.PRIVATE_MEDIA_ROOT / 'prescriptions' / file_name).resolve()
+    prescriptions_root = (settings.PRIVATE_MEDIA_ROOT / 'prescriptions').resolve()
+
+    if not str(file_path).startswith(str(prescriptions_root)) or not file_path.exists():
+        raise Http404
+
+    return FileResponse(open(file_path, 'rb'), content_type='application/pdf')
+
+@login_required(login_url='login')
 def orders_view(request):
-    orders = request.user.orders.select_related('pharmacy').prefetch_related('items').all()
+    orders = request.user.orders.select_related('pharmacy', 'payment_transaction').prefetch_related('items', 'status_history').all()
 
     return render(request, 'orders.html', {
         'orders': orders,
@@ -524,6 +643,28 @@ def pharmacy_dashboard_view(request):
 
     return render(request, 'pharmacy_dashboard.html', {
         'pharmacies': pharmacies,
+        'display_name': get_display_name(request.user),
+        'cart_count': get_cart_count(request.user),
+    })
+
+@login_required(login_url='login')
+def pharmacy_register_view(request):
+    if request.method == 'POST':
+        form = PharmacyRegistrationForm(request.POST)
+        if form.is_valid():
+            pharmacy = form.save(commit=False)
+            pharmacy.owner = request.user
+            pharmacy.is_active = True
+            pharmacy.save()
+            messages.success(request, 'Farmacia cadastrada. Agora voce pode configurar o estoque.')
+            return redirect('pharmacy_inventory', pharmacy_id=pharmacy.id)
+
+        messages.error(request, 'Confira os dados da farmacia.')
+    else:
+        form = PharmacyRegistrationForm()
+
+    return render(request, 'pharmacy_register.html', {
+        'form': form,
         'display_name': get_display_name(request.user),
         'cart_count': get_cart_count(request.user),
     })
@@ -604,9 +745,18 @@ def pharmacy_orders_view(request, pharmacy_id):
         pharmacy_notes = request.POST.get('pharmacy_notes', '').strip()
 
         if status in dict(Order.STATUS_CHOICES):
+            previous_status = order.status
             order.status = status
             order.pharmacy_notes = pharmacy_notes
             order.save(update_fields=['status', 'pharmacy_notes', 'updated_at'])
+            if previous_status != status:
+                create_order_status_history(
+                    order,
+                    status,
+                    changed_by=request.user,
+                    from_status=previous_status,
+                    note=pharmacy_notes,
+                )
             messages.success(request, f'Pedido #{order.id} atualizado.')
 
         return redirect('pharmacy_orders', pharmacy_id=pharmacy.id)
@@ -639,6 +789,8 @@ def pharmacy_prescriptions_view(request, pharmacy_id):
             messages.error(request, 'Informe o motivo da recusa da receita.')
             return redirect('pharmacy_prescriptions', pharmacy_id=pharmacy.id)
 
+        previous_status = order.status
+
         if action == 'approve':
             order.prescription_status = 'approved'
             order.status = 'approved'
@@ -665,6 +817,14 @@ def pharmacy_prescriptions_view(request, pharmacy_id):
             'pharmacy_notes',
             'updated_at',
         ])
+        if previous_status != order.status:
+            create_order_status_history(
+                order,
+                order.status,
+                changed_by=request.user,
+                from_status=previous_status,
+                note=order.prescription_review_reason,
+            )
 
         return redirect('pharmacy_prescriptions', pharmacy_id=pharmacy.id)
 
@@ -690,8 +850,41 @@ def profile_view(request):
     else:
         display_name = username
 
+    form = AddressForm(initial={
+        'recipient_name': request.user.username,
+    })
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'add_address':
+            form = AddressForm(request.POST)
+            if form.is_valid():
+                address = form.save(commit=False)
+                address.user = request.user
+                address.save()
+                messages.success(request, 'Endereco salvo.')
+                return redirect('perfil')
+
+            messages.error(request, 'Confira os dados do endereco.')
+
+        elif action == 'set_default_address':
+            address = get_object_or_404(Address, id=request.POST.get('address_id'), user=request.user)
+            address.is_default = True
+            address.save(update_fields=['is_default', 'updated_at'])
+            messages.success(request, 'Endereco principal atualizado.')
+            return redirect('perfil')
+
+        elif action == 'delete_address':
+            address = get_object_or_404(Address, id=request.POST.get('address_id'), user=request.user)
+            address.delete()
+            messages.success(request, 'Endereco removido.')
+            return redirect('perfil')
     return render(request, 'profile.html', {
-        'display_name': display_name
+        'display_name': display_name,
+        'address_form': form,
+        'addresses': request.user.addresses.all(),
+        'cart_count': get_cart_count(request.user),
     })
 
 @login_required(login_url='login')

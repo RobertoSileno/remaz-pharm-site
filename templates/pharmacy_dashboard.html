@@ -46,10 +46,16 @@
                 <h1>{% if request.user.is_staff %}Painel administrativo{% else %}Area da farmacia{% endif %}</h1>
                 <p>Controle estoque, produtos, promocoes, pedidos e receitas em um so lugar.</p>
             </div>
-            <a class="btn-continuar" href="{% url 'dashboard' %}">
-                <i class="fa-solid fa-arrow-left"></i>
-                Voltar
-            </a>
+            <div class="carrinho-acoes-topo">
+                <a class="btn-finalizar" href="{% url 'pharmacy_register' %}">
+                    <i class="fa-solid fa-plus"></i>
+                    Cadastrar farmacia
+                </a>
+                <a class="btn-continuar" href="{% url 'dashboard' %}">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    Voltar
+                </a>
+            </div>
         </div>
 
         <div class="farmacia-grid">
@@ -103,7 +109,8 @@
                 <div class="carrinho-vazio">
                     <i class="fa-solid fa-shop-lock"></i>
                     <h2>Nenhuma farmacia vinculada</h2>
-                    <p>Peca para um administrador vincular sua conta a uma farmacia pelo painel admin.</p>
+                    <p>Cadastre uma farmacia para comecar a controlar estoque, pedidos e receitas.</p>
+                    <a href="{% url 'pharmacy_register' %}">Cadastrar farmacia</a>
                 </div>
             {% endfor %}
         </div>

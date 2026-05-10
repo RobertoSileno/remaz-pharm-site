@@ -4,6 +4,7 @@ from httpx import request
 
 from .models import (
     UserProfile,
+    Address,
     Medicine,
     Category,
     Cart,
@@ -12,6 +13,8 @@ from .models import (
     PharmacyInventory,
     Order,
     OrderItem,
+    OrderStatusHistory,
+    PaymentTransaction,
 )
 from .services.supabase_storage import upload_image
 from .forms import MedicineAdminForm
@@ -21,6 +24,13 @@ from .forms import MedicineAdminForm
 class UserProfileAdmin(admin.ModelAdmin):
     list_display = ('user', 'cpf', 'nickname', 'created_at')
     search_fields = ('user__username', 'cpf', 'nickname')
+    readonly_fields = ('created_at', 'updated_at')
+
+
+class AddressAdmin(admin.ModelAdmin):
+    list_display = ('label', 'user', 'city', 'state', 'is_default', 'updated_at')
+    list_filter = ('state', 'city', 'is_default')
+    search_fields = ('label', 'user__username', 'cep', 'street', 'city')
     readonly_fields = ('created_at', 'updated_at')
 
 
@@ -73,7 +83,7 @@ class PharmacyInventoryInline(admin.TabularInline):
 class PharmacyAdmin(admin.ModelAdmin):
     list_display = ('name', 'owner', 'city', 'state', 'is_active')
     list_filter = ('is_active', 'state', 'city')
-    search_fields = ('name', 'cnpj', 'owner__username')
+    search_fields = ('name', 'cnpj', 'cep', 'owner__username')
     inlines = [PharmacyInventoryInline]
 
 
@@ -99,6 +109,20 @@ class OrderAdmin(admin.ModelAdmin):
     inlines = [OrderItemInline]
 
 
+class OrderStatusHistoryAdmin(admin.ModelAdmin):
+    list_display = ('order', 'from_status', 'to_status', 'changed_by', 'created_at')
+    list_filter = ('to_status', 'created_at')
+    search_fields = ('order__id', 'changed_by__username', 'note')
+    readonly_fields = ('created_at',)
+
+
+class PaymentTransactionAdmin(admin.ModelAdmin):
+    list_display = ('order', 'provider', 'payment_method', 'status', 'amount', 'external_id', 'updated_at')
+    list_filter = ('provider', 'payment_method', 'status')
+    search_fields = ('order__id', 'external_id', 'error_message')
+    readonly_fields = ('created_at', 'updated_at')
+
+
 class CartItemInline(admin.TabularInline):
     model = CartItem
     extra = 1
@@ -112,9 +136,12 @@ class CartAdmin(admin.ModelAdmin):
 
 # 🔹 REGISTROS
 admin.site.register(UserProfile, UserProfileAdmin)
+admin.site.register(Address, AddressAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Medicine, MedicineAdmin)
 admin.site.register(Cart, CartAdmin)
 admin.site.register(Pharmacy, PharmacyAdmin)
 admin.site.register(PharmacyInventory, PharmacyInventoryAdmin)
 admin.site.register(Order, OrderAdmin)
+admin.site.register(OrderStatusHistory, OrderStatusHistoryAdmin)
+admin.site.register(PaymentTransaction, PaymentTransactionAdmin)

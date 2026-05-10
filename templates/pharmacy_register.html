@@ -1,0 +1,162 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remaz Pharm - Cadastrar farmacia</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+<header class="topo-dashboard">
+    <div class="logo-topo">
+        <a href="{% url 'dashboard' %}">
+            <img src="{% static 'img/logo/logo.png' %}" alt="Logo">
+        </a>
+    </div>
+
+    <form class="busca-topo" method="get" action="{% url 'dashboard' %}">
+        <input type="text" name="q" placeholder="Pesquisa">
+        <button class="icone-busca" type="submit" aria-label="Pesquisar">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+    </form>
+
+    <div class="usuario-topo">
+        <a class="atalho-carrinho" href="{% url 'cart' %}" aria-label="Ver carrinho">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span>{{ cart_count|default:0 }}</span>
+        </a>
+        <div class="perfil-name">{{ display_name }}</div>
+    </div>
+</header>
+
+<main class="dashboard-wrapper">
+    <section class="checkout-area">
+        <div class="carrinho-header">
+            <div>
+                <h1>Cadastrar farmacia</h1>
+                <p>Informe os dados cadastrais e o endereco da unidade parceira.</p>
+            </div>
+            <a class="btn-continuar" href="{% url 'pharmacy_dashboard' %}">
+                <i class="fa-solid fa-arrow-left"></i>
+                Area da farmacia
+            </a>
+        </div>
+
+        {% if messages %}
+            <div class="checkout-mensagens">
+                {% for message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form class="checkout-layout" method="post">
+            {% csrf_token %}
+            <div class="checkout-coluna">
+                <section class="checkout-bloco">
+                    <div class="checkout-titulo">
+                        <i class="fa-solid fa-shop"></i>
+                        <h2>Dados da farmacia</h2>
+                    </div>
+
+                    <div class="checkout-grid">
+                        <div class="checkout-campo maior">
+                            <label>Nome fantasia</label>
+                            {{ form.name }}
+                            {{ form.name.errors }}
+                        </div>
+                        <div class="checkout-campo">
+                            <label>CNPJ</label>
+                            {{ form.cnpj }}
+                            {{ form.cnpj.errors }}
+                        </div>
+                        <div class="checkout-campo">
+                            <label>Telefone</label>
+                            {{ form.phone }}
+                            {{ form.phone.errors }}
+                        </div>
+                    </div>
+                </section>
+
+                <section class="checkout-bloco">
+                    <div class="checkout-titulo">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <h2>Endereco</h2>
+                    </div>
+
+                    <div class="checkout-grid">
+                        <div class="checkout-campo">
+                            <label>CEP</label>
+                            {{ form.cep }}
+                        </div>
+                        <div class="checkout-campo">
+                            <label>Estado</label>
+                            {{ form.state }}
+                        </div>
+                        <div class="checkout-campo">
+                            <label>Cidade</label>
+                            {{ form.city }}
+                        </div>
+                        <div class="checkout-campo">
+                            <label>Bairro</label>
+                            {{ form.district }}
+                        </div>
+                        <div class="checkout-campo maior">
+                            <label>Rua</label>
+                            {{ form.street }}
+                        </div>
+                        <div class="checkout-campo">
+                            <label>Numero</label>
+                            {{ form.number }}
+                        </div>
+                        <div class="checkout-campo maior">
+                            <label>Complemento</label>
+                            {{ form.complement }}
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <aside class="resumo-carrinho checkout-resumo">
+                <h2>Proximo passo</h2>
+                <p>Depois do cadastro, voce podera cadastrar estoque, precos e promocoes desta farmacia.</p>
+                <button class="btn-finalizar" type="submit">Cadastrar farmacia</button>
+            </aside>
+        </form>
+    </section>
+</main>
+
+<script>
+    const cepField = document.querySelector('[data-cep-field]');
+    if (cepField) {
+        cepField.addEventListener('blur', async function() {
+            const cep = this.value.replace(/\D/g, '');
+            if (cep.length !== 8) return;
+
+            try {
+                const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                const data = await response.json();
+                if (data.erro) return;
+
+                const stateField = document.querySelector('[data-cep-state]');
+                const cityField = document.querySelector('[data-cep-city]');
+                const neighborhoodField = document.querySelector('[data-cep-neighborhood]');
+                const streetField = document.querySelector('[data-cep-street]');
+
+                if (stateField) stateField.value = data.uf || '';
+                if (cityField) cityField.value = data.localidade || '';
+                if (neighborhoodField) neighborhoodField.value = data.bairro || '';
+                if (streetField) streetField.value = data.logradouro || '';
+            } catch (error) {
+                console.warn('Nao foi possivel consultar o CEP.', error);
+            }
+        });
+    }
+</script>
+
+</body>
+</html>

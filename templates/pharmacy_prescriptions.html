@@ -94,7 +94,7 @@
                     <div class="receita-review-info">
                         <div class="aviso-receita">
                             <i class="fa-solid fa-file-pdf"></i>
-                            <span>Arquivo: {{ order.prescription_file }}</span>
+                            <a href="{% url 'prescription_document' order.id %}" target="_blank" rel="noopener">Abrir receita protegida</a>
                         </div>
                         <div class="gestao-endereco">
                             <strong>Cliente</strong>

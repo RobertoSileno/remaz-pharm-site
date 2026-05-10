@@ -16,6 +16,44 @@ class UserProfile(models.Model):
         verbose_name = 'Perfil de Usuário'
         verbose_name_plural = 'Perfis de Usuários'
 
+class Address(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='addresses')
+    label = models.CharField(max_length=60, default='Principal')
+    recipient_name = models.CharField(max_length=200)
+    phone = models.CharField(max_length=20)
+    cep = models.CharField(max_length=12)
+    state = models.CharField(max_length=2)
+    city = models.CharField(max_length=100)
+    neighborhood = models.CharField(max_length=100)
+    street = models.CharField(max_length=150)
+    number = models.CharField(max_length=20)
+    complement = models.CharField(max_length=150, blank=True, null=True)
+    is_default = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    @property
+    def summary(self):
+        complement = f' - {self.complement}' if self.complement else ''
+        return f'{self.street}, {self.number}{complement} - {self.neighborhood}, {self.city}/{self.state}'
+
+    def save(self, *args, **kwargs):
+        if self.is_default:
+            Address.objects.filter(user=self.user, is_default=True).exclude(pk=self.pk).update(is_default=False)
+        elif not self.pk and not Address.objects.filter(user=self.user).exists():
+            self.is_default = True
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.label} - {self.user}'
+
+    class Meta:
+        ordering = ('-is_default', '-updated_at')
+        verbose_name = 'Endereco'
+        verbose_name_plural = 'Enderecos'
+
+
 class Category(models.Model):
     name = models.CharField(max_length=100)
 
@@ -55,6 +93,7 @@ class Pharmacy(models.Model):
     name = models.CharField(max_length=200)
     cnpj = models.CharField(max_length=18, unique=True, blank=True, null=True)
     phone = models.CharField(max_length=20, blank=True, null=True)
+    cep = models.CharField(max_length=12, blank=True, null=True)
     state = models.CharField(max_length=2, blank=True, null=True)
     city = models.CharField(max_length=100, blank=True, null=True)
     district = models.CharField(max_length=100, blank=True, null=True)
@@ -212,6 +251,69 @@ class Order(models.Model):
         ordering = ('-created_at',)
         verbose_name = 'Pedido'
         verbose_name_plural = 'Pedidos'
+
+class OrderStatusHistory(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='status_history')
+    from_status = models.CharField(max_length=30, blank=True, default='')
+    to_status = models.CharField(max_length=30)
+    note = models.TextField(blank=True, default='')
+    changed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        related_name='order_status_changes',
+        blank=True,
+        null=True
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Pedido #{self.order_id}: {self.from_status or "-"} -> {self.to_status}'
+
+    class Meta:
+        ordering = ('-created_at',)
+        verbose_name = 'Historico de status'
+        verbose_name_plural = 'Historicos de status'
+
+
+class PaymentTransaction(models.Model):
+    PROVIDER_CHOICES = [
+        ('mercado_pago', 'Mercado Pago'),
+        ('manual', 'Manual'),
+    ]
+
+    STATUS_CHOICES = [
+        ('pending', 'Pendente'),
+        ('in_process', 'Em processamento'),
+        ('approved', 'Aprovado'),
+        ('rejected', 'Recusado'),
+        ('cancelled', 'Cancelado'),
+        ('manual', 'Manual'),
+        ('gateway_not_configured', 'Gateway nao configurado'),
+        ('error', 'Erro'),
+    ]
+
+    order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='payment_transaction')
+    provider = models.CharField(max_length=30, choices=PROVIDER_CHOICES, default='manual')
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='pending')
+    payment_method = models.CharField(max_length=20, choices=Order.PAYMENT_CHOICES)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    external_id = models.CharField(max_length=120, blank=True, default='')
+    qr_code = models.TextField(blank=True, default='')
+    qr_code_base64 = models.TextField(blank=True, default='')
+    payment_url = models.URLField(blank=True, default='')
+    error_message = models.TextField(blank=True, default='')
+    raw_response = models.JSONField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'Pagamento pedido #{self.order_id} - {self.get_status_display()}'
+
+    class Meta:
+        ordering = ('-created_at',)
+        verbose_name = 'Transacao de pagamento'
+        verbose_name_plural = 'Transacoes de pagamento'
+
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
