@@ -1052,7 +1052,8 @@ def payment_view(request):
         display_name = username
 
     return render(request, 'payment.html', {
-        'display_name': display_name
+        'display_name': display_name,
+        'cart_count': get_cart_count(request.user),
     })
 
 @login_required(login_url='login')
@@ -1066,5 +1067,6 @@ def help_view(request):
         display_name = username
 
     return render(request, 'help.html', {
-        'display_name': display_name
+        'display_name': display_name,
+        'cart_count': get_cart_count(request.user),
     })
