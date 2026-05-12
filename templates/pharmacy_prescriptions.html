@@ -35,6 +35,15 @@
                 <div class="avatar"></div>
             </button>
             <div class="perfil-name">{{ display_name }}</div>
+            <div class="menu-dropdown" id="menu-dropdown">
+                <a href="#">Configurações</a>
+                <a href="{% url 'perfil' %}">Perfil</a>
+                <a href="{% url 'pagamento' %}">Pagamento</a>
+                <a href="{% url 'pharmacy_dashboard' %}">Área da farmácia</a>
+                <a href="#">Pedidos</a>
+                <a href="{% url 'ajuda' %}">Ajuda</a>
+                <a href="{% url 'logout' %}">Sair</a>
+            </div>
         </div>
     </div>
 </header>
@@ -150,6 +159,23 @@
         </div>
     </section>
 </main>
+
+<script>
+    const perfilBtn = document.getElementById('perfil-btn');
+    const menuDropdown = document.getElementById('menu-dropdown');
+
+    if (perfilBtn && menuDropdown) {
+        perfilBtn.addEventListener('click', function() {
+            menuDropdown.classList.toggle('ativo');
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.perfil-container')) {
+                menuDropdown.classList.remove('ativo');
+            }
+        });
+    }
+</script>
 
 </body>
 </html>
