@@ -1,3 +1,4 @@
+import re
 import uuid
 from decimal import Decimal
 from pathlib import Path
@@ -37,6 +38,10 @@ PRESCRIPTION_EXTENSIONS = {'pdf'}
 PRESCRIPTION_MAX_SIZE = 10 * 1024 * 1024
 PRODUCT_IMAGE_CONTENT_TYPES = {'image/png', 'image/jpeg', 'image/webp'}
 PRODUCT_IMAGE_MAX_SIZE = 5 * 1024 * 1024
+
+def normalize_digits(value):
+    return re.sub(r'\D', '', (value or '').strip())
+
 
 def get_display_name(user):
     username = user.username.strip()
@@ -151,13 +156,10 @@ def login_view(request):
         
         # Verifica se é email (contém @)
         if '@' in email_or_cpf:
-            try:
-                user = User.objects.get(email=email_or_cpf)
-            except User.DoesNotExist:
-                pass
+            user = User.objects.filter(email=email_or_cpf).first()
         else:
             # Trata como CPF (remove pontos e hífen)
-            cpf_limpo = email_or_cpf.replace('.', '').replace('-', '')
+            cpf_limpo = normalize_digits(email_or_cpf)
             try:
                 from core.models import UserProfile
                 profile = UserProfile.objects.get(cpf=cpf_limpo)
@@ -168,6 +170,8 @@ def login_view(request):
         # Verifica se o usuário foi encontrado
         if user is None:
             messages.error(request, 'Email/CPF não encontrado')
+        elif user.pharmacies.exists():
+            messages.error(request, 'Esta conta é de farmácia. Use o login da farmácia.')
         else:
             # Tenta autenticar com a senha
             user_auth = authenticate(request, username=user.username, password=password)
@@ -178,6 +182,81 @@ def login_view(request):
                 return redirect('dashboard')
     
     return render(request, 'login.html')
+
+
+def pharmacy_auth_view(request):
+    active_tab = request.GET.get('tab', 'login')
+    form = PharmacyRegistrationForm()
+
+    if request.method == 'POST':
+        form_type = request.POST.get('form_type', 'login')
+
+        if form_type == 'login':
+            email_or_cnpj = request.POST.get('username', '').strip()
+            password = request.POST.get('password', '')
+            user = None
+
+            if '@' in email_or_cnpj:
+                user = User.objects.filter(email=email_or_cnpj).first()
+            else:
+                cnpj_limpo = normalize_digits(email_or_cnpj)
+                pharmacy = Pharmacy.objects.filter(cnpj=cnpj_limpo).select_related('owner').first()
+                if pharmacy and pharmacy.owner:
+                    user = pharmacy.owner
+
+            if user is None:
+                messages.error(request, 'Email/CNPJ não encontrado para farmácia')
+            elif not user.pharmacies.exists():
+                messages.error(request, 'Esta conta não é de farmácia. Use o login de usuário normal.')
+            else:
+                user_auth = authenticate(request, username=user.username, password=password)
+                if user_auth is None:
+                    messages.error(request, 'Senha incorreta')
+                else:
+                    login(request, user_auth)
+                    return redirect('pharmacy_dashboard')
+
+        elif form_type == 'register':
+            active_tab = 'register'
+            username = request.POST.get('username', '').strip()
+            email = request.POST.get('email', '').strip()
+            password = request.POST.get('password', '')
+            password_confirm = request.POST.get('password_confirm', '')
+            cnpj = request.POST.get('cnpj', '').strip()
+            cnpj_clean = normalize_digits(cnpj)
+
+            post_data = request.POST.copy()
+            post_data['name'] = username
+            post_data['cnpj'] = cnpj
+            form = PharmacyRegistrationForm(post_data)
+
+            if password != password_confirm:
+                messages.error(request, 'Senhas não coincidem')
+            elif User.objects.filter(username=username).exists():
+                messages.error(request, 'Nome de usuário já existe')
+            elif User.objects.filter(email=email).exists():
+                messages.error(request, 'Este email já está cadastrado. Não pode ser usado para farmácia.')
+            elif cnpj_clean and Pharmacy.objects.filter(cnpj=cnpj_clean).exists():
+                messages.error(request, 'Este CNPJ já está cadastrado')
+            elif form.is_valid():
+                user = User.objects.create_user(username=username, email=email, password=password)
+                user.save()
+                pharmacy = form.save(commit=False)
+                pharmacy.owner = user
+                pharmacy.is_active = True
+                pharmacy.save()
+                from core.models import UserProfile
+                UserProfile.objects.create(user=user)
+                messages.success(request, 'Cadastro de farmácia realizado com sucesso! Faça login com seu email ou CNPJ.')
+                return redirect('pharmacy_auth')
+            else:
+                messages.error(request, 'Confira os dados da farmácia.')
+
+    return render(request, 'pharmacy_auth.html', {
+        'active_tab': active_tab,
+        'form': form,
+    })
+
 
 def register_view(request):
     if request.method == 'POST':
@@ -193,6 +272,10 @@ def register_view(request):
         
         if User.objects.filter(username=username).exists():
             messages.error(request, 'Usuário já existe')
+            return render(request, 'register.html')
+        
+        if User.objects.filter(email=email).exists():
+            messages.error(request, 'Email já cadastrado')
             return render(request, 'register.html')
         
         if cpf and User.objects.filter(profile__cpf=cpf).exists():

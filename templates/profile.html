@@ -286,15 +286,17 @@
     const perfilBtn = document.getElementById('perfil-btn');
     const menuDropdown = document.getElementById('menu-dropdown');
 
-    perfilBtn.addEventListener('click', function() {
-        menuDropdown.classList.toggle('ativo');
-    });
+    if (perfilBtn && menuDropdown) {
+        perfilBtn.addEventListener('click', function() {
+            menuDropdown.classList.toggle('ativo');
+        });
 
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.perfil-container')) {
-            menuDropdown.classList.remove('ativo');
-        }
-    });
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.perfil-container')) {
+                menuDropdown.classList.remove('ativo');
+            }
+        });
+    }
 
     const cepField = document.querySelector('[data-cep-field]');
     if (cepField) {

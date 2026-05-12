@@ -74,11 +74,6 @@
                             {{ form.cnpj }}
                             {{ form.cnpj.errors }}
                         </div>
-                        <div class="checkout-campo">
-                            <label>Telefone</label>
-                            {{ form.phone }}
-                            {{ form.phone.errors }}
-                        </div>
                     </div>
                 </section>
 
@@ -90,32 +85,12 @@
 
                     <div class="checkout-grid">
                         <div class="checkout-campo">
-                            <label>CEP</label>
-                            {{ form.cep }}
-                        </div>
-                        <div class="checkout-campo">
-                            <label>Estado</label>
-                            {{ form.state }}
-                        </div>
-                        <div class="checkout-campo">
                             <label>Cidade</label>
                             {{ form.city }}
                         </div>
                         <div class="checkout-campo">
                             <label>Bairro</label>
                             {{ form.district }}
-                        </div>
-                        <div class="checkout-campo maior">
-                            <label>Rua</label>
-                            {{ form.street }}
-                        </div>
-                        <div class="checkout-campo">
-                            <label>Numero</label>
-                            {{ form.number }}
-                        </div>
-                        <div class="checkout-campo maior">
-                            <label>Complemento</label>
-                            {{ form.complement }}
                         </div>
                     </div>
                 </section>
@@ -129,34 +104,6 @@
         </form>
     </section>
 </main>
-
-<script>
-    const cepField = document.querySelector('[data-cep-field]');
-    if (cepField) {
-        cepField.addEventListener('blur', async function() {
-            const cep = this.value.replace(/\D/g, '');
-            if (cep.length !== 8) return;
-
-            try {
-                const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-                const data = await response.json();
-                if (data.erro) return;
-
-                const stateField = document.querySelector('[data-cep-state]');
-                const cityField = document.querySelector('[data-cep-city]');
-                const neighborhoodField = document.querySelector('[data-cep-neighborhood]');
-                const streetField = document.querySelector('[data-cep-street]');
-
-                if (stateField) stateField.value = data.uf || '';
-                if (cityField) cityField.value = data.localidade || '';
-                if (neighborhoodField) neighborhoodField.value = data.bairro || '';
-                if (streetField) streetField.value = data.logradouro || '';
-            } catch (error) {
-                console.warn('Nao foi possivel consultar o CEP.', error);
-            }
-        });
-    }
-</script>
 
 </body>
 </html>
