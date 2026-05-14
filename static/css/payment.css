@@ -7,6 +7,7 @@
 body {
     font-family: Arial, sans-serif;
     background: #f0f0f0;
+    color: #22597a;
 
     /* CORREÇÃO DO RODAPÉ */
     min-height: 100vh;
@@ -49,9 +50,14 @@ body {
 
 /* PERFIL */
 .usuario-topo {
+<<<<<<< HEAD
     display: flex !important;
+=======
+    display: flex;
+>>>>>>> 17b9229 (ajuste do topo)
     align-items: center;
     color: white;
+    font-size: 13px;
 }
 
 /* CARRINHO */
@@ -88,7 +94,24 @@ body {
 
 .perfil-container {
     position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.perfil-name {
     text-align: center;
+    margin-top: 6px;
+    font-weight: bold;
+    color: white;
+    line-height: 1;
+}
+
+.perfil-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
 }
 
 .avatar {
@@ -96,6 +119,30 @@ body {
     height: 34px;
     border-radius: 50%;
     background: white;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.avatar::after {
+    content: "";
+    width: 12px;
+    height: 12px;
+    background: #7f97a4;
+    border-radius: 50%;
+    position: absolute;
+    left: 11px;
+    top: 6px;
+}
+
+.avatar::before {
+    content: "";
+    width: 16px;
+    height: 8px;
+    background: #7f97a4;
+    border-radius: 10px 10px 0 0;
+    position: absolute;
+    left: 9px;
+    bottom: 6px;
 }
 
 .menu-dropdown {
@@ -117,16 +164,57 @@ body {
 }
 
 .menu-dropdown a {
-    padding: 10px;
+    padding: 10px 15px;
     text-decoration: none;
     color: #333;
+    border-bottom: 1px solid #eee;
+    font-size: 13px;
+}
+
+.menu-dropdown a:last-child {
+    border-bottom: none;
+}
+
+.menu-dropdown a:hover {
+    background-color: #f5f5f5;
+}
+
+.atalho-carrinho {
+    position: relative;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: white;
+    color: #2b7695;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    margin-right: 22px;
+}
+
+.atalho-carrinho span {
+    position: absolute;
+    right: -7px;
+    top: -7px;
+    min-width: 19px;
+    height: 19px;
+    border-radius: 50%;
+    background: #d6472d;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 0 5px;
 }
 
 /* PAGAMENTO */
 .pagamento-wrapper {
-    max-width: 500px;
+    max-width: 600px;
     margin: 50px auto;
-    text-align: center;
+    padding: 20px;
 
     /* FAZ O CONTEÚDO EMPURRAR O RODAPÉ */
     flex: 1;
@@ -134,11 +222,32 @@ body {
 
 .titulo {
     margin-bottom: 30px;
+    color: #1f4e69;
+    font-size: 28px;
+    font-weight: 600;
+}
+
+.titulo i {
+    margin-right: 10px;
+}
+
+.gestao-nota {
+    background: #e8f4f8;
+    border: 1px solid #b3dce8;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 30px;
+    color: #2b7695;
+    font-size: 14px;
 }
 
 /* CARD */
 .card-section {
+    background: #f3f3f3;
+    border: 1px solid #9bb9c8;
+    border-radius: 14px;
     margin-bottom: 20px;
+    overflow: hidden;
 }
 
 .card-header {
@@ -146,6 +255,13 @@ body {
     justify-content: space-between;
     cursor: pointer;
     padding: 10px;
+    font-weight: 500;
+    color: #2e6585;
+}
+
+.card-header i {
+    margin-right: 10px;
+    color: #2b7695;
 }
 
 .seta {
@@ -154,6 +270,11 @@ body {
 
 .seta.girar {
     transform: rotate(180deg);
+}
+
+.info-icon {
+    color: #17a2b8;
+    font-size: 18px;
 }
 
 .card-body {
@@ -168,6 +289,74 @@ body {
 .card-body.ativo {
     max-height: 500px;
     margin-top: 10px;
+    padding: 20px;
+}
+
+.pix-info {
+    max-height: auto !important;
+    padding: 20px !important;
+}
+
+.pix-info p {
+    margin: 0;
+    color: #6c757d;
+    font-size: 14px;
+}
+
+/* SEGURANÇA */
+.security-section {
+    background: #f3f3f3;
+    border: 1px solid #9bb9c8;
+    border-radius: 14px;
+    padding: 20px;
+    margin-top: 30px;
+    text-align: center;
+}
+
+.security-section h3 {
+    color: #1f4e69;
+    margin-bottom: 20px;
+    font-size: 20px;
+}
+
+.security-section h3 i {
+    margin-right: 10px;
+}
+
+.security-badges {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    min-width: 100px;
+}
+
+.badge i {
+    font-size: 24px;
+    color: #2b7695;
+    margin-bottom: 8px;
+}
+
+.badge span {
+    font-size: 12px;
+    color: #495057;
+    font-weight: 500;
+}
+
+.security-note {
+    font-size: 14px;
+    color: #6c757d;
+    margin: 0;
 }
 
 .card-body label {

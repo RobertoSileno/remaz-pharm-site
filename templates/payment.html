@@ -43,7 +43,7 @@
                 {% if user.pharmacies.exists %}
                 <a href="{% url 'pharmacy_dashboard' %}">Área da farmácia</a>
                 {% endif %}
-                <a href="#">Pedidos</a>
+                <a href="{% url 'orders' %}">Pedidos</a>
                 <a href="{% url 'ajuda' %}">Ajuda</a>
                 <a href="{% url 'logout' %}">Sair</a>
             </div>
@@ -53,13 +53,13 @@
 
 <main class="pagamento-wrapper">
 
-    <h2 class="titulo">Formas de pagamento</h2>
-    <p class="gestao-nota">Pagamentos Pix sao gerados ao concluir o pedido. Cartao e dinheiro ficam como pagamento manual combinado com a farmacia.</p>
+    <h2 class="titulo"><i class="fas fa-credit-card"></i> Formas de pagamento</h2>
+    <p class="gestao-nota">Pagamentos Pix são gerados ao concluir o pedido. Cartão e dinheiro ficam como pagamento manual combinado com a farmácia.</p>
 
     <!-- DÉBITO -->
     <div class="card-section">
         <div class="card-header" onclick="toggleCard(this)">
-            <span>Adicionar um Cartão de Débito</span>
+            <span><i class="fas fa-credit-card"></i> Adicionar um Cartão de Débito</span>
             <span class="seta">▼</span>
         </div>
 
@@ -88,7 +88,7 @@
     <!-- CRÉDITO -->
     <div class="card-section">
         <div class="card-header" onclick="toggleCard(this)">
-            <span>Adicionar um Cartão de Crédito</span>
+            <span><i class="fas fa-credit-card"></i> Adicionar um Cartão de Crédito</span>
             <span class="seta">▼</span>
         </div>
 
@@ -112,6 +112,48 @@
 
             <button class="btn-salvar">Salvar</button>
         </div>
+    </div>
+
+    <!-- PIX -->
+    <div class="card-section">
+        <div class="card-header">
+            <span><i class="fas fa-qrcode"></i> Pagamento via Pix</span>
+            <span class="info-icon">ℹ️</span>
+        </div>
+        <div class="card-body pix-info">
+            <p>O código Pix será gerado automaticamente ao finalizar o pedido. Aceitamos pagamentos instantâneos via Pix.</p>
+        </div>
+    </div>
+
+    <!-- DINHEIRO -->
+    <div class="card-section">
+        <div class="card-header">
+            <span><i class="fas fa-money-bill-wave"></i> Pagamento em Dinheiro</span>
+            <span class="info-icon">ℹ️</span>
+        </div>
+        <div class="card-body pix-info">
+            <p>Pagamento em dinheiro deve ser combinado diretamente com a farmácia no momento da retirada.</p>
+        </div>
+    </div>
+
+    <!-- SEGURANÇA -->
+    <div class="security-section">
+        <h3><i class="fas fa-shield-alt"></i> Segurança e Privacidade</h3>
+        <div class="security-badges">
+            <div class="badge">
+                <i class="fas fa-lock"></i>
+                <span>Dados criptografados</span>
+            </div>
+            <div class="badge">
+                <i class="fas fa-check-circle"></i>
+                <span>Pagamentos verificados</span>
+            </div>
+            <div class="badge">
+                <i class="fas fa-user-shield"></i>
+                <span>Proteção de dados</span>
+            </div>
+        </div>
+        <p class="security-note">Seus dados de pagamento são processados de forma segura e não são armazenados em nossos servidores.</p>
     </div>
 
 </main>

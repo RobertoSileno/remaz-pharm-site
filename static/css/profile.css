@@ -182,6 +182,37 @@ img {
     background: #f5f5f5;
 }
 
+.atalho-carrinho {
+    position: relative;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: white;
+    color: #2b7695;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    margin-right: 22px;
+}
+
+.atalho-carrinho span {
+    position: absolute;
+    right: -7px;
+    top: -7px;
+    min-width: 19px;
+    height: 19px;
+    border-radius: 50%;
+    background: #d6472d;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 0 5px;
+}
+
 /* CONTEÚDO */
 .dashboard-wrapper {
     padding: 40px;

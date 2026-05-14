@@ -23,16 +23,17 @@
         <span class="icone-busca">⌕</span>
     </div>
 
-    <div class="usuario-topo">
+     <div class="usuario-topo">
         <a class="atalho-carrinho" href="{% url 'cart' %}" aria-label="Ver carrinho">
             <i class="fa-solid fa-cart-shopping"></i>
             <span>{{ cart_count|default:0 }}</span>
         </a>
 
         <div class="perfil-container">
-            <button class="perfil-icon" id="perfil-btn">
+            <button class="perfil-icon" id="perfil-btn" type="button">
                 <div class="avatar"></div>
             </button>
+
             <div class="perfil-name">{{ display_name }}</div>
 
             <div class="menu-dropdown" id="menu-dropdown">
@@ -40,10 +41,13 @@
                 <a href="{% url 'perfil' %}">Perfil</a>
                 <a href="{% url 'pagamento' %}">Pagamento</a>
                 <a href="{% url 'cart' %}">Carrinho</a>
+<<<<<<< HEAD
+=======
+                <a href="{% url 'orders' %}">Pedidos</a>
+>>>>>>> 17b9229 (ajuste do topo)
                 {% if user.pharmacies.exists %}
                 <a href="{% url 'pharmacy_dashboard' %}">Área da farmácia</a>
                 {% endif %}
-                <a href="#">Pedidos</a>
                 <a href="{% url 'ajuda' %}">Ajuda</a>
                 <a href="{% url 'logout' %}">Sair</a>
             </div>

@@ -544,8 +544,13 @@ img {
 }
 
 .sem-produtos {
-    color: #2e6585;
-    padding: 20px 0;
+    color: #718096;
+    padding: 40px 20px;
+    text-align: center;
+    font-size: 18px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 2px dashed #e2e8f0;
 }
 
 .carrinho-header {
@@ -604,8 +609,8 @@ img {
 }
 
 .carrinho-item img {
-    width: 90px;
-    height: 90px;
+    width: 80px;
+    height: 80px;
     object-fit: contain;
 }
 
