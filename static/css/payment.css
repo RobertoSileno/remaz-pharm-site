@@ -8,14 +8,15 @@ body {
     font-family: Arial, sans-serif;
     background: #f0f0f0;
     color: #22597a;
+}
 
-    /* CORREÇÃO DO RODAPÉ */
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+img {
+    max-width: 100%;
+    display: block;
 }
 
 /* HEADER */
+
 .topo-dashboard {
     background: #2b7695;
     height: 110px;
@@ -25,8 +26,19 @@ body {
     padding: 0 60px;
 }
 
+.logo-topo {
+    display: flex;
+    align-items: center;
+}
+
 .logo-topo img {
     height: 80px;
+    width: auto;
+    transition: 0.3s;
+}
+
+.logo-topo img:hover {
+    transform: scale(1.05);
 }
 
 .busca-topo {
@@ -39,57 +51,26 @@ body {
     height: 38px;
     border-radius: 20px;
     border: none;
+    outline: none;
     padding: 0 35px 0 14px;
+    font-size: 14px;
 }
 
 .icone-busca {
     position: absolute;
     right: 10px;
     top: 8px;
+    font-size: 14px;
+    color: #777;
 }
 
 /* PERFIL */
+
 .usuario-topo {
-<<<<<<< HEAD
     display: flex !important;
-=======
-    display: flex;
->>>>>>> 17b9229 (ajuste do topo)
     align-items: center;
     color: white;
     font-size: 13px;
-}
-
-/* CARRINHO */
-.atalho-carrinho {
-    position: relative;
-    width: 38px;
-    height: 38px;
-    border-radius: 8px;
-    background: white;
-    color: #2b7695;
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    margin-right: 22px;
-}
-
-.atalho-carrinho span {
-    position: absolute;
-    right: -7px;
-    top: -7px;
-    min-width: 19px;
-    height: 19px;
-    border-radius: 50%;
-    background: #d6472d;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: bold;
-    padding: 0 5px;
 }
 
 .perfil-container {
