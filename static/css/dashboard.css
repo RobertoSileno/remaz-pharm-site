@@ -67,7 +67,7 @@ img {
 /* PERFIL */
 
 .usuario-topo {
-    display: flex;
+    display: flex !important;
     align-items: center;
     color: white;
     font-size: 13px;
@@ -436,7 +436,7 @@ img {
     border-radius: 8px;
     background: white;
     color: #2b7695;
-    display: flex;
+    display: flex !important;
     align-items: center;
     justify-content: center;
     text-decoration: none;

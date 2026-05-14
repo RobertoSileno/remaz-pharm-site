@@ -40,6 +40,7 @@
                 <a href="#">Configurações</a>
                 <a href="{% url 'perfil' %}">Perfil</a>
                 <a href="{% url 'pagamento' %}">Pagamento</a>
+                <a href="{% url 'cart' %}">Carrinho</a>
                 {% if user.pharmacies.exists %}
                 <a href="{% url 'pharmacy_dashboard' %}">Área da farmácia</a>
                 {% endif %}
