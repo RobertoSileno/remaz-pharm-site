@@ -41,10 +41,7 @@
                 <a href="{% url 'perfil' %}">Perfil</a>
                 <a href="{% url 'pagamento' %}">Pagamento</a>
                 <a href="{% url 'cart' %}">Carrinho</a>
-<<<<<<< HEAD
-=======
                 <a href="{% url 'orders' %}">Pedidos</a>
->>>>>>> 17b9229 (ajuste do topo)
                 {% if user.pharmacies.exists %}
                 <a href="{% url 'pharmacy_dashboard' %}">Área da farmácia</a>
                 {% endif %}
@@ -69,30 +66,38 @@
             <span>Devolução de produtos</span>
             <span class="seta">▶</span>
         </div>
-        <div class="conteudo-ajuda"></div>
+        <div class="conteudo-ajuda">
+            <p><strong>Devolução de produtos</strong></p>
+            <p>Você pode devolver itens em até 7 dias após o recebimento, desde que estejam lacrados e em perfeito estado. Acesse o pedido em sua conta, selecione o item e siga o passo a passo para solicitar a devolução.</p>
+        </div>
 
         <div class="item-ajuda" onclick="toggleItem(this)">
             <span>Prazo de recebimento das compras</span>
             <span class="seta">▶</span>
         </div>
-        <div class="conteudo-ajuda"></div>
+        <div class="conteudo-ajuda">
+            <p><strong>Prazo de recebimento das compras</strong></p>
+            <p>O prazo de entrega varia de acordo com a sua localização e o tipo de frete escolhido. Após a confirmação do pedido, você receberá o código de rastreamento para acompanhar a entrega.</p>
+        </div>
 
         <div class="item-ajuda" onclick="toggleItem(this)">
             <span>Perguntas frequentes</span>
             <span class="seta">▶</span>
         </div>
-        <div class="conteudo-ajuda"></div>
+        <div class="conteudo-ajuda">
+            <p><strong>Perguntas frequentes</strong></p>
+            <p>Encontre respostas rápidas sobre cadastro, pagamento, envio e troca de produtos. Clique na opção desejada para ver as informações mais comuns.</p>
+        </div>
 
         <div class="item-ajuda" onclick="toggleItem(this)">
             <span>Cupons</span>
             <span class="seta">▶</span>
         </div>
-        <div class="conteudo-ajuda"></div>
-
+        <div class="conteudo-ajuda">
+            <p><strong>Cupons</strong></p>
+            <p>Insira seu cupom no campo de desconto durante o checkout. Verifique regras de validade e promoções específicas; alguns cupons podem não ser cumulativos com outras ofertas.</p>
+        </div>
     </div>
-
-    <button class="btn-contato">Fale conosco</button>
-
 </main>
 
 <footer class="rodape-dashboard">
