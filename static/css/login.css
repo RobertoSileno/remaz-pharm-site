@@ -197,3 +197,35 @@ body {
         padding: 30px 20px 50px;
     }
 }
+
+.rodape-dashboard {
+    width: 100%;
+    background: #2b7695;
+    padding: 28px 20px 24px;
+    text-align: center;
+    color: white;
+    margin-top: 20px;
+}
+
+.logo-rodape {
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 12px;
+}
+
+.logo-rodape span {
+    color: #ff4a3d;
+}
+
+.links-rodape {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    flex-wrap: wrap;
+}
+
+.links-rodape a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    font-size: 13px;
+}

@@ -676,6 +676,14 @@ body.page-carrinho footer.rodape-dashboard {
     margin-bottom: 25px;
 }
 
+.gestao-area .carrinho-header,
+.checkout-area .carrinho-header {
+    background: white;
+    padding: 22px 24px;
+    border-radius: 22px;
+    box-shadow: 0 18px 40px rgba(15, 54, 80, 0.05);
+}
+
 .carrinho-header h1 {
     font-size: 30px;
     color: #1f4e69;
@@ -1173,79 +1181,86 @@ body.page-carrinho footer.rodape-dashboard {
 
 .produto-promocao {
     min-height: 24px;
-    border-radius: 8px;
-    padding: 5px 8px;
+    border-radius: 999px;
+    padding: 6px 12px;
     display: inline-flex;
     align-items: center;
-    background: #fff0ea;
+    background: #fff4f1;
     color: #d6472d;
-    border: 1px solid #f1b8a8;
+    border: 1px solid #f7c5b8;
     font-size: 12px;
     font-weight: bold;
 }
 
 .farmacia-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 18px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 22px;
 }
 
 .farmacia-card,
 .gestao-card {
-    background: #f3f3f3;
-    border: 1px solid #9bb9c8;
-    border-radius: 14px;
-    padding: 18px;
+    background: white;
+    border: 1px solid rgba(43, 118, 149, 0.12);
+    border-radius: 24px;
+    padding: 24px;
+    box-shadow: 0 18px 40px rgba(15, 54, 80, 0.06);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.farmacia-card:hover,
+.gestao-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 24px 52px rgba(15, 54, 80, 0.1);
 }
 
 .farmacia-admin-card {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
 }
 
 .farmacia-card-top {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 12px;
+    gap: 16px;
 }
 
 .farmacia-card-icone {
-    width: 54px;
-    height: 54px;
-    border-radius: 16px;
-    background: white;
-    border: 1px solid #d8d8d8;
-    color: #d63031;
+    width: 56px;
+    height: 56px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #2b7695 0%, #1f4e69 100%);
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 24px;
-    margin-bottom: 12px;
+    box-shadow: 0 12px 24px rgba(43, 118, 149, 0.18);
 }
 
 .farmacia-card h2,
 .gestao-card h2 {
-    color: #1f4e69;
+    color: #122f45;
     font-size: 22px;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
 }
 
 .farmacia-card p,
 .farmacia-card span,
 .gestao-card p,
 .gestao-nota {
-    color: #6a737a;
+    color: #5a7185;
     font-size: 14px;
-    line-height: 1.4;
+    line-height: 1.6;
 }
 
 .farmacia-card-acoes {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 16px;
+    gap: 12px;
+    margin-top: 18px;
 }
 
 .farmacia-card-acoes .btn-finalizar,
@@ -1254,60 +1269,122 @@ body.page-carrinho footer.rodape-dashboard {
 .receita-review-acoes .btn-recusa {
     width: auto;
     margin-top: 0;
-    gap: 8px;
+    gap: 10px;
+    min-width: 130px;
+}
+
+.gestao-area .btn-finalizar,
+.gestao-area .btn-continuar,
+.checkout-area .btn-finalizar,
+.checkout-area .btn-continuar,
+.farmacia-card-acoes .btn-finalizar,
+.farmacia-card-acoes .btn-continuar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 20px;
+    border-radius: 999px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
+    text-decoration: none;
+}
+
+.gestao-area .btn-finalizar,
+.farmacia-card-acoes .btn-finalizar,
+.checkout-area .btn-finalizar {
+    background: linear-gradient(135deg, #2b7695 0%, #1f4e69 100%);
+    color: white;
+    box-shadow: 0 16px 30px rgba(43, 118, 149, 0.18);
+    border: 1px solid transparent;
+}
+
+.gestao-area .btn-continuar,
+.farmacia-card-acoes .btn-continuar,
+.checkout-area .btn-continuar {
+    background: rgba(43, 118, 149, 0.08);
+    color: #1f4e69;
+    border: 1px solid rgba(43, 118, 149, 0.18);
+}
+
+.gestao-area .btn-finalizar:hover,
+.farmacia-card-acoes .btn-finalizar:hover,
+.checkout-area .btn-finalizar:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 20px 32px rgba(43, 118, 149, 0.24);
+}
+
+.gestao-area .btn-continuar:hover,
+.farmacia-card-acoes .btn-continuar:hover,
+.checkout-area .btn-continuar:hover {
+    transform: translateY(-1px);
+    background: rgba(43, 118, 149, 0.14);
+}
+
+.gestao-area .btn-finalizar:active,
+.farmacia-card-acoes .btn-finalizar:active,
+.checkout-area .btn-finalizar:active,
+.gestao-area .btn-continuar:active,
+.farmacia-card-acoes .btn-continuar:active,
+.checkout-area .btn-continuar:active {
+    transform: translateY(0);
 }
 
 .farmacia-metricas {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 8px;
-    margin-top: 4px;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+    margin-top: 18px;
 }
 
 .farmacia-metricas div {
-    border: 1px solid #adc2cf;
-    border-radius: 8px;
-    background: white;
-    padding: 10px;
+    border: none;
+    background: #f4fbff;
+    padding: 14px 16px;
+    border-radius: 18px;
+    box-shadow: inset 0 0 0 1px rgba(43, 118, 149, 0.08);
 }
 
 .farmacia-metricas strong {
     display: block;
-    color: #d6472d;
+    color: #2b7695;
     font-size: 20px;
     line-height: 1;
 }
 
 .farmacia-metricas span {
-    color: #2e6585;
-    font-size: 11px;
-    font-weight: bold;
+    color: #4f6f8c;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
 
 .gestao-lista {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 18px;
 }
 
 .gestao-card-topo {
     display: flex;
     justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 14px;
+    gap: 18px;
+    margin-bottom: 16px;
 }
 
 .status-pedido {
-    height: 30px;
-    border-radius: 8px;
-    padding: 0 10px;
+    min-height: 32px;
+    border-radius: 999px;
+    padding: 0 14px;
     display: inline-flex;
     align-items: center;
-    background: white;
+    background: #f0f6fb;
     color: #2b7695;
-    border: 1px solid #9bb9c8;
+    border: 1px solid rgba(43, 118, 149, 0.16);
     font-size: 12px;
-    font-weight: bold;
+    font-weight: 700;
     white-space: nowrap;
 }
 
