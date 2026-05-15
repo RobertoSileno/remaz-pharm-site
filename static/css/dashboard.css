@@ -168,6 +168,24 @@ img {
     padding: 24px;
 }
 
+body.page-carrinho {
+  min-height: 100vh;
+  position: relative;
+}
+
+body.page-carrinho main.dashboard-wrapper {
+  margin: 0 auto;
+  padding-bottom: 140px;
+}
+
+body.page-carrinho footer.rodape-dashboard {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  margin-top: 0;
+}
+
 /* ICONES */
 
 .categorias-home {
