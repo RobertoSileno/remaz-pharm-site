@@ -8,6 +8,13 @@ body {
     font-family: Arial, sans-serif;
     background: #f0f0f0;
     color: #22597a;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main.dashboard-wrapper {
+    flex: 1;
 }
 
 img {
@@ -409,9 +416,9 @@ body.page-carrinho footer.rodape-dashboard {
 
 .rodape-dashboard {
     background: #2b7695;
-    margin-top: 60px;
     padding: 38px 20px 24px;
     text-align: center;
+    margin-top: auto;
 }
 
 .logo-rodape {
