@@ -468,71 +468,161 @@ img {
     display: flex;
     flex-wrap: wrap;
     align-items: flex-end;
-    gap: 16px 24px;
+    gap: 16px;
     margin: -44px 0 26px;
-    padding: 16px;
-    background: #f7f7f7;
-    border: 1px solid #9bb9c8;
-    border-radius: 14px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafb 100%);
+    border: 1px solid #e8f1f6;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(43, 118, 149, 0.06);
+}
+
+.filtro-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+    border: none;
+}
+
+.filtro-grupo:hover {
+    box-shadow: none;
+    border-color: transparent;
+}
+
+.filtro-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.filtro-header i {
+    font-size: 16px;
+    color: #2b7695;
 }
 
 .filtro-grupo h3 {
-    font-size: 15px;
+    font-size: 14px;
+    font-weight: 600;
     color: #1f4e69;
-    margin-bottom: 8px;
+    margin: 0;
+    letter-spacing: 0.3px;
 }
 
 .filtro-opcoes {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px 14px;
+    gap: 10px;
+    align-items: center;
 }
 
-.filtro-opcoes label,
-.filtro-opcoes span {
+.filtro-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     font-size: 13px;
     color: #2e6585;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 6px 10px;
+    border-radius: 6px;
+    user-select: none;
+    white-space: nowrap;
 }
 
-.filtro-opcoes input {
-    margin-right: 5px;
+.filtro-label:hover {
+    background-color: #f0f7fb;
+    color: #1f4e69;
+}
+
+.filtro-checkbox {
+    display: none;
+}
+
+.checkmark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #9bb9c8;
+    border-radius: 4px;
+    background-color: white;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.filtro-checkbox:checked + .checkmark {
+    background-color: #2b7695;
+    border-color: #2b7695;
+}
+
+.filtro-checkbox:checked + .checkmark::after {
+    content: "✓";
+    color: white;
+    font-size: 11px;
+    font-weight: bold;
 }
 
 .filtro-acoes {
     display: flex;
     gap: 10px;
+    margin-left: auto;
+    align-items: center;
 }
 
-.filtro-acoes button,
-.filtro-acoes a,
-.btn-continuar,
-.btn-limpar,
-.btn-finalizar,
-.carrinho-vazio a {
+.filtro-btn {
     height: 38px;
     border-radius: 8px;
     padding: 0 16px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 6px;
     text-decoration: none;
-    font-size: 14px;
-}
-
-.filtro-acoes button,
-.btn-finalizar,
-.carrinho-vazio a {
+    font-size: 13px;
+    font-weight: 600;
     border: none;
-    background: #2b7695;
-    color: white;
     cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
 }
 
-.filtro-acoes a,
-.btn-continuar {
-    border: 1px solid #9bb9c8;
+.filtro-btn-primary {
+    background: linear-gradient(135deg, #2b7695 0%, #1f4e69 100%);
+    color: white;
+    box-shadow: 0 2px 6px rgba(43, 118, 149, 0.2);
+}
+
+.filtro-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(43, 118, 149, 0.3);
+}
+
+.filtro-btn-primary:active {
+    transform: translateY(0);
+}
+
+.filtro-btn-secondary {
     background: white;
     color: #2b7695;
+    border: 1.5px solid #2b7695;
+}
+
+.filtro-btn-secondary:hover {
+    background-color: #f0f7fb;
+    transform: translateY(-2px);
+}
+
+.filtro-btn-secondary:active {
+    transform: translateY(0);
+}
+
+.filtro-btn i {
+    font-size: 14px;
 }
 
 .btn-limpar {
@@ -1361,7 +1451,13 @@ img {
     .receita-envio {
         position: static;
     }
+
+    .filtro-acoes {
+        margin-left: 0;
+    }
+
 }
+
 
 @media (max-width: 768px) {
 
@@ -1389,7 +1485,36 @@ img {
     }
 
     .filtros-produtos {
+        flex-direction: column;
+        align-items: stretch;
         margin-top: -44px;
+    }
+
+    .filtro-grupo {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .filtro-header {
+        margin-bottom: 0;
+        min-width: 80px;
+    }
+
+    .filtro-opcoes {
+        flex: 1;
+    }
+
+    .filtro-acoes {
+        width: 100%;
+        margin-left: 0;
+        margin-top: 8px;
+    }
+
+    .filtro-btn {
+        flex: 1;
     }
 
     .carrinho-header {
@@ -1454,5 +1579,39 @@ img {
 
     .logo-topo img {
         height: 60px;
+    }
+
+    .filtros-produtos {
+        flex-direction: column;
+        padding: 12px 14px;
+    }
+
+    .filtro-grupo {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filtro-header {
+        min-width: auto;
+    }
+
+    .filtro-opcoes {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .filtro-label {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+
+    .filtro-acoes {
+        width: 100%;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .filtro-btn {
+        width: 100%;
     }
 }

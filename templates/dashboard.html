@@ -134,16 +134,21 @@
             <input type="hidden" name="q" value="{{ search_query }}">
 
             <div class="filtro-grupo">
-                <h3>Categorias</h3>
+                <div class="filtro-header">
+                    <i class="fa-solid fa-list"></i>
+                    <h3>Categorias</h3>
+                </div>
                 <div class="filtro-opcoes">
                     {% for category in categories %}
-                        <label>
+                        <label class="filtro-label">
                             <input
                                 type="checkbox"
+                                class="filtro-checkbox"
                                 name="category"
                                 value="{{ category.id }}"
                                 {% if category.id|stringformat:"s" in selected_categories %}checked{% endif %}
                             >
+                            <span class="checkmark"></span>
                             {{ category.name }}
                         </label>
                     {% empty %}
@@ -153,26 +158,38 @@
             </div>
 
             <div class="filtro-grupo">
-                <h3>Tarja</h3>
+                <div class="filtro-header">
+                    <i class="fa-solid fa-flask-vial"></i>
+                    <h3>Tarja</h3>
+                </div>
                 <div class="filtro-opcoes">
-                    <label>
-                        <input type="checkbox" name="tarja" value="sem" {% if 'sem' in selected_tarja %}checked{% endif %}>
+                    <label class="filtro-label">
+                        <input type="checkbox" class="filtro-checkbox" name="tarja" value="sem" {% if 'sem' in selected_tarja %}checked{% endif %}>
+                        <span class="checkmark"></span>
                         Sem tarja
                     </label>
-                    <label>
-                        <input type="checkbox" name="tarja" value="vermelha" {% if 'vermelha' in selected_tarja %}checked{% endif %}>
+                    <label class="filtro-label">
+                        <input type="checkbox" class="filtro-checkbox" name="tarja" value="vermelha" {% if 'vermelha' in selected_tarja %}checked{% endif %}>
+                        <span class="checkmark"></span>
                         Tarja vermelha
                     </label>
-                    <label>
-                        <input type="checkbox" name="tarja" value="preta" {% if 'preta' in selected_tarja %}checked{% endif %}>
+                    <label class="filtro-label">
+                        <input type="checkbox" class="filtro-checkbox" name="tarja" value="preta" {% if 'preta' in selected_tarja %}checked{% endif %}>
+                        <span class="checkmark"></span>
                         Tarja preta
                     </label>
                 </div>
             </div>
 
             <div class="filtro-acoes">
-                <button type="submit">Filtrar</button>
-                <a href="{% url 'dashboard' %}">Limpar</a>
+                <button type="submit" class="filtro-btn filtro-btn-primary">
+                    <i class="fa-solid fa-filter"></i>
+                    Filtrar
+                </button>
+                <a href="{% url 'dashboard' %}" class="filtro-btn filtro-btn-secondary">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    Limpar
+                </a>
             </div>
         </form>
 
