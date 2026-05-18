@@ -88,15 +88,16 @@
                             {{ form.cnpj }}
                             {{ form.cnpj.errors }}
                         </div>
-                    </div>
-
-                    <div class="checkout-grid">
-                        <div class="checkout-campo maior">
+                        <div class="checkout-campo">
                             <label>Logo da farmácia</label>
-                            {{ form.image_file }}
+                            <label class="btn-continuar" style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; width: fit-content;">
+                                <i class="fa-solid fa-upload"></i> Selecionar logo
+                                {{ form.image_file }}
+                            </label>
                             {{ form.image_file.errors }}
                         </div>
                     </div>
+                
                 </section>
 
                 <section class="checkout-bloco">

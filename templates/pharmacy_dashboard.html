@@ -118,15 +118,7 @@
                         </a>
                     </div>
 
-                    <form method="post" enctype="multipart/form-data" class="logo-upload-form">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="update_logo">
-                        <input type="hidden" name="pharmacy_id" value="{{ pharmacy.id }}">
-                        <label class="btn-continuar upload-logo-button">
-                            <input type="file" name="image_file" accept="image/png,image/jpeg,image/webp" hidden onchange="this.form.submit()">
-                            <i class="fa-solid fa-upload"></i> Adicionar logo
-                        </label>
-                    </form>
+
                 </article>
             {% empty %}
                 <div class="carrinho-vazio">

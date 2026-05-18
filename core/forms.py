@@ -80,7 +80,7 @@ class PharmacyRegistrationForm(forms.ModelForm):
     image_file = forms.ImageField(
         required=False,
         label='Logo da farmácia',
-        widget=forms.ClearableFileInput(attrs={'accept': 'image/png,image/jpeg,image/webp'})
+        widget=forms.ClearableFileInput(attrs={'accept': 'image/png,image/jpeg,image/webp', 'style': 'display: none;'})
     )
     cep = forms.CharField(max_length=12, required=False, widget=forms.TextInput(attrs={
         'placeholder': '00000-000',
