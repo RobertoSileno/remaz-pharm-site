@@ -44,7 +44,6 @@
                 {% if user.pharmacies.exists %}
                 <a href="{% url 'pharmacy_dashboard' %}">Área da farmácia</a>
                 {% endif %}
-                <a href="{% url 'cart' %}">Carrinho</a>
                 <a href="{% url 'orders' %}">Pedidos</a>
                 <a href="{% url 'ajuda' %}">Ajuda</a>
                 <a href="{% url 'logout' %}">Sair</a>
@@ -69,24 +68,24 @@
             <div class="form-linha">
                 <div class="form-grupo">
                     <label>Nome completo</label>
-                    <input type="text" placeholder="Digite">
+                    <input type="text" placeholder="Digite" value="{{ user_username }}">
                 </div>
 
                 <div class="form-grupo">
                     <label>Email de recuperação de senha</label>
-                    <input type="email" placeholder="Digite">
+                    <input type="email" placeholder="Digite" value="{{ user_email }}">
                 </div>
             </div>
 
             <div class="form-linha">
                 <div class="form-grupo">
                     <label>Usuário</label>
-                    <input type="text" placeholder="Digite">
+                    <input type="text" placeholder="Digite" value="{{ user_username }}">
                 </div>
 
                 <div class="form-grupo">
                     <label>Confirmar e-mail</label>
-                    <input type="email" placeholder="Digite">
+                    <input type="email" placeholder="Digite" value="{{ user_email }}">
                 </div>
 
                 <div class="form-grupo">
@@ -98,7 +97,7 @@
             <div class="form-linha">
                 <div class="form-grupo">
                     <label>CPF</label>
-                    <input type="text" placeholder="Digite">
+                    <input type="text" placeholder="Digite" value="{{ user_cpf }}">
                 </div>
 
                 <div class="form-grupo">

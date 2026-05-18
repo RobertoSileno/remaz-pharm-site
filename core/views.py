@@ -1039,6 +1039,10 @@ def profile_view(request):
         'address_form': form,
         'addresses': request.user.addresses.all(),
         'cart_count': get_cart_count(request.user),
+        'user_email': request.user.email,
+        'user_cpf': request.user.profile.cpf if hasattr(request.user, 'profile') else '',
+        'user_nickname': request.user.profile.nickname if hasattr(request.user, 'profile') and request.user.profile.nickname else '',
+        'user_username': request.user.username,
     })
 
 @login_required(login_url='login')

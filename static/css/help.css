@@ -304,6 +304,221 @@ main.help-wrapper {
     padding: 10px 15px;
 }
 
+/* RESPONSIVO */
+@media (max-width: 1024px) {
+    .topo-dashboard {
+        padding: 0 30px;
+    }
+
+    .dashboard-wrapper {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .topo-dashboard {
+        flex-direction: column;
+        height: auto;
+        gap: 12px;
+        padding: 12px;
+    }
+
+    .logo-topo img {
+        height: 50px;
+    }
+
+    .busca-topo {
+        width: 100%;
+        max-width: 300px;
+    }
+
+    .busca-topo input {
+        height: 36px;
+        font-size: 13px;
+    }
+
+    .usuario-topo {
+        width: 100%;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .atalho-carrinho {
+        width: 36px;
+        height: 36px;
+        margin-right: 8px;
+    }
+
+    .perfil-container {
+        align-items: center;
+        gap: 6px;
+    }
+
+    .perfil-name {
+        font-size: 12px;
+        max-width: 80px;
+    }
+
+    .dashboard-wrapper {
+        padding: 15px 10px;
+    }
+
+    .ajuda-header h1 {
+        font-size: 22px;
+        margin-bottom: 20px;
+    }
+
+    .ajuda-lista {
+        max-width: 100%;
+    }
+
+    .ajuda-card {
+        border-radius: 10px;
+        margin-bottom: 10px;
+    }
+
+    .titulo-ajuda {
+        padding: 12px;
+        font-size: 14px;
+    }
+
+    .conteudo-ajuda {
+        padding: 0 12px;
+    }
+
+    .conteudo-ajuda.ativo {
+        max-height: 200px;
+        padding: 10px 12px;
+    }
+
+    .rodape-dashboard {
+        padding: 20px 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .topo-dashboard {
+        padding: 10px;
+        gap: 8px;
+    }
+
+    .logo-topo img {
+        height: 40px;
+    }
+
+    .busca-topo {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .busca-topo input {
+        height: 33px;
+        font-size: 12px;
+    }
+
+    .usuario-topo {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-around;
+    }
+
+    .atalho-carrinho {
+        width: 34px;
+        height: 34px;
+        margin-right: 0;
+    }
+
+    .atalho-carrinho span {
+        width: 16px;
+        height: 16px;
+        font-size: 9px;
+    }
+
+    .avatar {
+        width: 26px;
+        height: 26px;
+    }
+
+    .perfil-name {
+        font-size: 9px;
+        max-width: 60px;
+    }
+
+    .menu-dropdown {
+        min-width: 140px;
+        top: 35px;
+        font-size: 11px;
+    }
+
+    .menu-dropdown a {
+        padding: 8px 10px;
+        font-size: 11px;
+    }
+
+    .dashboard-wrapper {
+        padding: 10px 8px;
+    }
+
+    .ajuda-header h1 {
+        font-size: 18px;
+        margin-bottom: 15px;
+    }
+
+    .ajuda-header p {
+        font-size: 12px;
+    }
+
+    .ajuda-lista {
+        max-width: 100%;
+    }
+
+    .ajuda-card {
+        border-radius: 8px;
+        margin-bottom: 8px;
+        border: none;
+        background: white;
+    }
+
+    .titulo-ajuda {
+        padding: 10px 12px;
+        font-size: 12px;
+        gap: 8px;
+    }
+
+    .titulo-ajuda i {
+        font-size: 16px;
+    }
+
+    .seta {
+        font-size: 14px;
+    }
+
+    .conteudo-ajuda {
+        padding: 0 10px;
+    }
+
+    .conteudo-ajuda.ativo {
+        max-height: 180px;
+        padding: 8px 10px;
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    .rodape-dashboard {
+        padding: 12px 10px;
+    }
+
+    .logo-rodape {
+        font-size: 16px;
+    }
+
+    .links-rodape a {
+        font-size: 9px;
+        margin: 0 4px;
+    }
+}
+}
+
 /* BOTÃO */
 .btn-contato {
     margin-top: 40px;
