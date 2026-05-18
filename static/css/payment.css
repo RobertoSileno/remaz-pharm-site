@@ -7,14 +7,16 @@
 body {
     font-family: Arial, sans-serif;
     background: #f0f0f0;
+    color: #22597a;
+}
 
-    /* CORREÇÃO DO RODAPÉ */
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+img {
+    max-width: 100%;
+    display: block;
 }
 
 /* HEADER */
+
 .topo-dashboard {
     background: #2b7695;
     height: 110px;
@@ -24,8 +26,19 @@ body {
     padding: 0 60px;
 }
 
+.logo-topo {
+    display: flex;
+    align-items: center;
+}
+
 .logo-topo img {
     height: 80px;
+    width: auto;
+    transition: 0.3s;
+}
+
+.logo-topo img:hover {
+    transform: scale(1.05);
 }
 
 .busca-topo {
@@ -38,23 +51,48 @@ body {
     height: 38px;
     border-radius: 20px;
     border: none;
+    outline: none;
     padding: 0 35px 0 14px;
+    font-size: 14px;
 }
 
 .icone-busca {
     position: absolute;
     right: 10px;
     top: 8px;
+    font-size: 14px;
+    color: #777;
 }
 
 /* PERFIL */
+
 .usuario-topo {
+    display: flex !important;
+    align-items: center;
     color: white;
+    font-size: 13px;
 }
 
 .perfil-container {
     position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.perfil-name {
     text-align: center;
+    margin-top: 6px;
+    font-weight: bold;
+    color: white;
+    line-height: 1;
+}
+
+.perfil-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
 }
 
 .avatar {
@@ -62,6 +100,30 @@ body {
     height: 34px;
     border-radius: 50%;
     background: white;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.avatar::after {
+    content: "";
+    width: 12px;
+    height: 12px;
+    background: #7f97a4;
+    border-radius: 50%;
+    position: absolute;
+    left: 11px;
+    top: 6px;
+}
+
+.avatar::before {
+    content: "";
+    width: 16px;
+    height: 8px;
+    background: #7f97a4;
+    border-radius: 10px 10px 0 0;
+    position: absolute;
+    left: 9px;
+    bottom: 6px;
 }
 
 .menu-dropdown {
@@ -83,16 +145,57 @@ body {
 }
 
 .menu-dropdown a {
-    padding: 10px;
+    padding: 10px 15px;
     text-decoration: none;
     color: #333;
+    border-bottom: 1px solid #eee;
+    font-size: 13px;
+}
+
+.menu-dropdown a:last-child {
+    border-bottom: none;
+}
+
+.menu-dropdown a:hover {
+    background-color: #f5f5f5;
+}
+
+.atalho-carrinho {
+    position: relative;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: white;
+    color: #2b7695;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    margin-right: 22px;
+}
+
+.atalho-carrinho span {
+    position: absolute;
+    right: -7px;
+    top: -7px;
+    min-width: 19px;
+    height: 19px;
+    border-radius: 50%;
+    background: #d6472d;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 0 5px;
 }
 
 /* PAGAMENTO */
 .pagamento-wrapper {
-    max-width: 500px;
+    max-width: 600px;
     margin: 50px auto;
-    text-align: center;
+    padding: 20px;
 
     /* FAZ O CONTEÚDO EMPURRAR O RODAPÉ */
     flex: 1;
@@ -100,11 +203,32 @@ body {
 
 .titulo {
     margin-bottom: 30px;
+    color: #1f4e69;
+    font-size: 28px;
+    font-weight: 600;
+}
+
+.titulo i {
+    margin-right: 10px;
+}
+
+.gestao-nota {
+    background: #e8f4f8;
+    border: 1px solid #b3dce8;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 30px;
+    color: #2b7695;
+    font-size: 14px;
 }
 
 /* CARD */
 .card-section {
+    background: #f3f3f3;
+    border: 1px solid #9bb9c8;
+    border-radius: 14px;
     margin-bottom: 20px;
+    overflow: hidden;
 }
 
 .card-header {
@@ -112,6 +236,13 @@ body {
     justify-content: space-between;
     cursor: pointer;
     padding: 10px;
+    font-weight: 500;
+    color: #2e6585;
+}
+
+.card-header i {
+    margin-right: 10px;
+    color: #2b7695;
 }
 
 .seta {
@@ -120,6 +251,11 @@ body {
 
 .seta.girar {
     transform: rotate(180deg);
+}
+
+.info-icon {
+    color: #17a2b8;
+    font-size: 18px;
 }
 
 .card-body {
@@ -134,6 +270,74 @@ body {
 .card-body.ativo {
     max-height: 500px;
     margin-top: 10px;
+    padding: 20px;
+}
+
+.pix-info {
+    max-height: auto !important;
+    padding: 20px !important;
+}
+
+.pix-info p {
+    margin: 0;
+    color: #6c757d;
+    font-size: 14px;
+}
+
+/* SEGURANÇA */
+.security-section {
+    background: #f3f3f3;
+    border: 1px solid #9bb9c8;
+    border-radius: 14px;
+    padding: 20px;
+    margin-top: 30px;
+    text-align: center;
+}
+
+.security-section h3 {
+    color: #1f4e69;
+    margin-bottom: 20px;
+    font-size: 20px;
+}
+
+.security-section h3 i {
+    margin-right: 10px;
+}
+
+.security-badges {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    min-width: 100px;
+}
+
+.badge i {
+    font-size: 24px;
+    color: #2b7695;
+    margin-bottom: 8px;
+}
+
+.badge span {
+    font-size: 12px;
+    color: #495057;
+    font-weight: 500;
+}
+
+.security-note {
+    font-size: 14px;
+    color: #6c757d;
+    margin: 0;
 }
 
 .card-body label {
@@ -145,7 +349,316 @@ body {
     height: 40px;
     border-radius: 20px;
     border: 1px solid #73a8c3;
-    padding: 0 10px;
+}
+
+/* RESPONSIVO */
+@media (max-width: 1024px) {
+    .topo-dashboard {
+        padding: 0 30px;
+    }
+
+    .pagamento-wrapper {
+        margin: 30px auto;
+        padding: 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    .topo-dashboard {
+        flex-direction: column;
+        height: auto;
+        gap: 12px;
+        padding: 12px;
+    }
+
+    .logo-topo img {
+        height: 50px;
+    }
+
+    .busca-topo {
+        width: 100%;
+        max-width: 300px;
+    }
+
+    .busca-topo input {
+        height: 36px;
+        font-size: 13px;
+    }
+
+    .usuario-topo {
+        width: 100%;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .atalho-carrinho {
+        width: 36px;
+        height: 36px;
+        margin-right: 8px;
+    }
+
+    .perfil-container {
+        align-items: center;
+        gap: 6px;
+    }
+
+    .perfil-name {
+        font-size: 12px;
+        max-width: 80px;
+    }
+
+    .pagamento-wrapper {
+        max-width: 100%;
+        margin: 20px auto;
+        padding: 12px;
+    }
+
+    .pagamento-header h1 {
+        font-size: 22px;
+        margin-bottom: 20px;
+    }
+
+    .card {
+        margin-bottom: 15px;
+        border-radius: 12px;
+    }
+
+    .card-header {
+        padding: 12px 15px;
+        font-size: 14px;
+    }
+
+    .card-body {
+        padding: 15px;
+    }
+
+    .form-group {
+        margin-bottom: 12px;
+    }
+
+    .form-group label {
+        font-size: 11px;
+    }
+
+    .form-group input,
+    .form-group select {
+        height: 36px;
+        font-size: 12px;
+        border-radius: 16px;
+    }
+
+    .security-section {
+        padding: 15px;
+        margin-top: 15px;
+    }
+
+    .security-section h3 {
+        font-size: 16px;
+    }
+
+    .security-badges {
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+
+    .badge {
+        padding: 10px;
+        min-width: 90px;
+        border-radius: 6px;
+    }
+
+    .badge i {
+        font-size: 18px;
+    }
+
+    .badge span {
+        font-size: 11px;
+    }
+
+    .security-note {
+        font-size: 12px;
+    }
+
+    .rodape-dashboard {
+        padding: 20px 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .topo-dashboard {
+        padding: 10px;
+        gap: 8px;
+    }
+
+    .logo-topo img {
+        height: 40px;
+    }
+
+    .busca-topo {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .busca-topo input {
+        height: 33px;
+        font-size: 12px;
+    }
+
+    .usuario-topo {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-around;
+    }
+
+    .atalho-carrinho {
+        width: 34px;
+        height: 34px;
+        margin-right: 0;
+    }
+
+    .atalho-carrinho span {
+        width: 16px;
+        height: 16px;
+        font-size: 9px;
+    }
+
+    .avatar {
+        width: 26px;
+        height: 26px;
+    }
+
+    .perfil-name {
+        font-size: 9px;
+        max-width: 60px;
+    }
+
+    .menu-dropdown {
+        min-width: 140px;
+        top: 35px;
+        font-size: 11px;
+    }
+
+    .menu-dropdown a {
+        padding: 8px 10px;
+        font-size: 11px;
+    }
+
+    .pagamento-wrapper {
+        max-width: 100%;
+        margin: 15px auto;
+        padding: 10px;
+    }
+
+    .pagamento-header h1 {
+        font-size: 18px;
+        margin-bottom: 15px;
+    }
+
+    .pagamento-header p {
+        font-size: 12px;
+    }
+
+    .card {
+        margin-bottom: 12px;
+        border-radius: 10px;
+        border: none;
+        background: white;
+    }
+
+    .card-header {
+        padding: 10px 12px;
+        font-size: 13px;
+        background: #f8f9fa;
+        border-radius: 8px 8px 0 0;
+    }
+
+    .card-body {
+        padding: 12px;
+    }
+
+    .form-group {
+        margin-bottom: 10px;
+    }
+
+    .form-group label {
+        font-size: 10px;
+        margin-bottom: 5px;
+    }
+
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        height: 34px;
+        font-size: 11px;
+        border-radius: 14px;
+        padding: 0 10px;
+    }
+
+    .row {
+        margin-left: -5px;
+        margin-right: -5px;
+    }
+
+    .col-md-6 {
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+
+    .security-section {
+        padding: 12px;
+        margin-top: 12px;
+        border-radius: 8px;
+    }
+
+    .security-section h3 {
+        font-size: 14px;
+    }
+
+    .security-section h3 i {
+        margin-right: 6px;
+    }
+
+    .security-badges {
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .badge {
+        padding: 8px;
+        min-width: 80px;
+        border-radius: 6px;
+        background: white;
+        border: 1px solid #ddd;
+    }
+
+    .badge i {
+        font-size: 16px;
+    }
+
+    .badge span {
+        font-size: 9px;
+    }
+
+    .security-note {
+        font-size: 11px;
+    }
+
+    .card-body label {
+        font-size: 10px;
+    }
+
+    .rodape-dashboard {
+        padding: 12px 10px;
+    }
+
+    .logo-rodape {
+        font-size: 16px;
+    }
+
+    .links-rodape a {
+        font-size: 9px;
+        margin: 0 4px;
+    }
 }
 
 /* LINHA */
@@ -183,6 +696,74 @@ body {
 
     /* GARANTE QUE FIQUE NO FINAL */
     margin-top: auto;
+}
+
+@media (max-width: 780px) {
+    .topo-dashboard {
+        flex-wrap: wrap;
+        height: auto;
+        padding: 15px;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .logo-topo,
+    .busca-topo,
+    .usuario-topo,
+    .dashboard-wrapper {
+        width: 100%;
+    }
+
+    .dashboard-wrapper {
+        padding: 16px;
+    }
+
+    .row,
+    .linha {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .form-group {
+        width: 100%;
+    }
+
+    .pagamento-wrapper {
+        padding: 15px;
+    }
+
+    .card,
+    .checkout-opcoes,
+    .checkout-grid {
+        width: 100%;
+    }
+}
+
+@media (max-width: 520px) {
+    .topo-dashboard {
+        padding: 10px;
+    }
+
+    .busca-topo input {
+        height: 34px;
+        font-size: 12px;
+    }
+
+    .logo-topo img {
+        height: 60px;
+    }
+
+    .perfil-name {
+        font-size: 11px;
+    }
+
+    .btn-salvar {
+        width: 100%;
+    }
+
+    .links-rodape a {
+        font-size: 9px;
+    }
 }
 
 .logo-rodape {

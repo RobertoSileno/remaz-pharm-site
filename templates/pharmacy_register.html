@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Remaz Pharm - Cadastrar farmacia</title>
+    <title>Remaz Pharm - Cadastrar farmácia</title>
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
@@ -29,7 +29,21 @@
             <i class="fa-solid fa-cart-shopping"></i>
             <span>{{ cart_count|default:0 }}</span>
         </a>
-        <div class="perfil-name">{{ display_name }}</div>
+        <div class="perfil-container">
+            <button class="perfil-icon" id="perfil-btn" type="button">
+                <div class="avatar"></div>
+            </button>
+            <div class="perfil-name">{{ display_name }}</div>
+            <div class="menu-dropdown" id="menu-dropdown">
+                <a href="#">Configurações</a>
+                <a href="{% url 'perfil' %}">Perfil</a>
+                <a href="{% url 'pagamento' %}">Pagamento</a>
+                <a href="{% url 'pharmacy_dashboard' %}">Área da farmácia</a>
+                <a href="#">Pedidos</a>
+                <a href="{% url 'ajuda' %}">Ajuda</a>
+                <a href="{% url 'logout' %}">Sair</a>
+            </div>
+        </div>
     </div>
 </header>
 
@@ -37,12 +51,12 @@
     <section class="checkout-area">
         <div class="carrinho-header">
             <div>
-                <h1>Cadastrar farmacia</h1>
-                <p>Informe os dados cadastrais e o endereco da unidade parceira.</p>
+                <h1>Cadastrar farmácia</h1>
+                <p>Informe os dados cadastrais e o endereço da unidade parceira.</p>
             </div>
             <a class="btn-continuar" href="{% url 'pharmacy_dashboard' %}">
                 <i class="fa-solid fa-arrow-left"></i>
-                Area da farmacia
+                Área da farmácia
             </a>
         </div>
 
@@ -54,13 +68,13 @@
             </div>
         {% endif %}
 
-        <form class="checkout-layout" method="post">
+        <form class="checkout-layout" method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="checkout-coluna">
                 <section class="checkout-bloco">
                     <div class="checkout-titulo">
                         <i class="fa-solid fa-shop"></i>
-                        <h2>Dados da farmacia</h2>
+                        <h2>Dados da farmácia</h2>
                     </div>
 
                     <div class="checkout-grid">
@@ -75,12 +89,20 @@
                             {{ form.cnpj.errors }}
                         </div>
                     </div>
+
+                    <div class="checkout-grid">
+                        <div class="checkout-campo maior">
+                            <label>Logo da farmácia</label>
+                            {{ form.image_file }}
+                            {{ form.image_file.errors }}
+                        </div>
+                    </div>
                 </section>
 
                 <section class="checkout-bloco">
                     <div class="checkout-titulo">
                         <i class="fa-solid fa-location-dot"></i>
-                        <h2>Endereco</h2>
+                        <h2>Endereço</h2>
                     </div>
 
                     <div class="checkout-grid">
@@ -97,13 +119,36 @@
             </div>
 
             <aside class="resumo-carrinho checkout-resumo">
-                <h2>Proximo passo</h2>
-                <p>Depois do cadastro, voce podera cadastrar estoque, precos e promocoes desta farmacia.</p>
-                <button class="btn-finalizar" type="submit">Cadastrar farmacia</button>
+                <h2>Próximo passo</h2>
+                <p>Depois do cadastro, você poderá cadastrar estoque, preços e promoções desta farmácia.</p>
+                <button class="btn-finalizar" type="submit">Cadastrar farmácia</button>
             </aside>
         </form>
     </section>
 </main>
 
-</body>
+<script>
+    const perfilBtn = document.getElementById('perfil-btn');
+    const menuDropdown = document.getElementById('menu-dropdown');
+
+    if (perfilBtn && menuDropdown) {
+        perfilBtn.addEventListener('click', function() {
+            menuDropdown.classList.toggle('ativo');
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.perfil-container')) {
+                menuDropdown.classList.remove('ativo');
+            }
+        });
+    }
+</script>
+<footer class="rodape-dashboard">
+    <div class="logo-rodape">REMAZ <span>PHARM</span></div>
+    <div class="links-rodape">
+        <a href="#">Careers</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms & Conditions</a>
+    </div>
+</footer></body>
 </html>

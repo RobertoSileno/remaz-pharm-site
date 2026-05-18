@@ -125,6 +125,163 @@ body {
     outline: none;
 }
 
+/* RESPONSIVO */
+@media (max-width: 1024px) {
+    .lado-esquerdo {
+        width: 50%;
+    }
+
+    .lado-direito {
+        width: 50%;
+        padding: 30px 40px;
+    }
+
+    .form-box {
+        max-width: 350px;
+    }
+}
+
+@media (max-width: 768px) {
+    .login-page {
+        flex-direction: column;
+    }
+
+    .lado-esquerdo,
+    .lado-direito {
+        width: 100%;
+    }
+
+    .lado-esquerdo {
+        min-height: 200px;
+        background: #006b8d;
+        border-radius: 0 0 40% 40%;
+        padding: 20px;
+    }
+
+    .logo {
+        font-size: 60px;
+    }
+
+    .logo span {
+        font-size: 35px;
+        margin-top: 5px;
+    }
+
+    .lado-direito {
+        padding: 25px 15px 35px;
+    }
+
+    .form-box {
+        max-width: 100%;
+    }
+
+    .boas-vindas {
+        font-size: 14px;
+        margin-bottom: 18px;
+    }
+
+    .tabs {
+        max-width: 260px;
+        margin: 0 auto 30px;
+    }
+
+    .campo {
+        margin-bottom: 14px;
+        margin-left: 0;
+    }
+
+    .campo label {
+        font-size: 12px;
+        margin-bottom: 6px;
+    }
+
+    .campo input {
+        height: 42px;
+        border-radius: 22px;
+        padding: 0 40px 0 14px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-page {
+        flex-direction: column;
+        min-height: auto;
+    }
+
+    .lado-esquerdo {
+        width: 100%;
+        min-height: 140px;
+        border-radius: 0 0 35% 35%;
+        padding: 15px;
+    }
+
+    .logo {
+        font-size: 45px;
+    }
+
+    .logo span {
+        font-size: 25px;
+    }
+
+    .lado-direito {
+        width: 100%;
+        padding: 20px 12px 30px;
+    }
+
+    .form-box {
+        max-width: 100%;
+    }
+
+    .boas-vindas {
+        font-size: 13px;
+        margin-bottom: 15px;
+    }
+
+    .tabs {
+        max-width: 100%;
+        margin: 0 auto 20px;
+        border-radius: 30px;
+    }
+
+    .tab {
+        padding: 9px 0;
+        font-size: 12px;
+    }
+
+    .subtitulo-centralizado {
+        font-size: 12px;
+        margin-bottom: 15px;
+    }
+
+    .campo {
+        margin-bottom: 12px;
+        margin-left: 0;
+    }
+
+    .campo label {
+        font-size: 11px;
+        margin-bottom: 5px;
+    }
+
+    .input-container {
+        position: relative;
+    }
+
+    .campo input {
+        width: 100%;
+        height: 38px;
+        border: 1px solid #5ca8cf;
+        border-radius: 20px;
+        padding: 0 35px 0 12px;
+        font-size: 12px;
+    }
+
+    .campo input::placeholder {
+        font-size: 11px;
+    }
+}
+
 .toggle-icon {
     position: absolute;
     right: 15px; /* Fixa o olho na direita */

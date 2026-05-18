@@ -5,17 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Remaz Pharm - Principal</title>
-
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-
     <link rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
 </head>
-
 <body>
 
 <header class="topo-dashboard">
-
     <div class="logo-topo">
         <a href="{% url 'dashboard' %}">
             <img src="{% static 'img/logo/logo.png' %}" alt="Logo">
@@ -23,13 +19,7 @@
     </div>
 
     <form class="busca-topo" method="get" action="{% url 'dashboard' %}">
-
-        <input
-            type="text"
-            name="q"
-            value="{{ search_query }}"
-            placeholder="Pesquisar medicamentos..."
-        >
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Pesquisa">
 
         {% for category_id in selected_categories %}
             <input type="hidden" name="category" value="{{ category_id }}">
@@ -42,81 +32,40 @@
         <button class="icone-busca" type="submit" aria-label="Pesquisar">
             <i class="fa-solid fa-magnifying-glass"></i>
         </button>
-
     </form>
 
     <div class="usuario-topo">
-
-        <a class="atalho-carrinho"
-           href="{% url 'cart' %}"
-           aria-label="Ver carrinho">
-
+        <a class="atalho-carrinho" href="{% url 'cart' %}" aria-label="Ver carrinho">
             <i class="fa-solid fa-cart-shopping"></i>
-
             <span>{{ cart_count|default:0 }}</span>
-
         </a>
 
         <div class="perfil-container">
-
-            <button class="perfil-icon"
-                    id="perfil-btn"
-                    type="button">
-
+            <button class="perfil-icon" id="perfil-btn" type="button">
                 <div class="avatar"></div>
-
             </button>
 
-            <div class="perfil-name">
-                {{ display_name }}
-            </div>
+            <div class="perfil-name">{{ display_name }}</div>
 
             <div class="menu-dropdown" id="menu-dropdown">
-
                 <a href="#">Configurações</a>
-
-                <a href="{% url 'perfil' %}">
-                    Perfil
-                </a>
-
-                <a href="{% url 'pagamento' %}">
-                    Pagamento
-                </a>
-
-                <a href="{% url 'cart' %}">
-                    Carrinho
-                </a>
-
-                <a href="{% url 'orders' %}">
-                    Pedidos
-                </a>
-
+                <a href="{% url 'perfil' %}">Perfil</a>
+                <a href="{% url 'pagamento' %}">Pagamento</a>
+                <a href="{% url 'cart' %}">Carrinho</a>
+                <a href="{% url 'orders' %}">Pedidos</a>
                 {% if user.pharmacies.exists %}
-                <a href="{% url 'pharmacy_dashboard' %}">
-                    Área da farmácia
-                </a>
+                <a href="{% url 'pharmacy_dashboard' %}">Área da farmácia</a>
                 {% endif %}
-
-                <a href="{% url 'ajuda' %}">
-                    Ajuda
-                </a>
-
-                <a href="{% url 'logout' %}">
-                    Sair
-                </a>
-
+                <a href="{% url 'ajuda' %}">Ajuda</a>
+                <a href="{% url 'logout' %}">Sair</a>
             </div>
-
         </div>
-
     </div>
-
 </header>
 
 <main class="dashboard-wrapper">
 
-    <!-- CATEGORIAS -->
-
+    <!-- ÍCONES -->
     <section class="categorias-home">
 
         <div class="categoria-item">
@@ -164,251 +113,141 @@
     </section>
 
     <!-- BANNER -->
-
     <section class="banner-area">
 
         <div class="banner-slider">
 
-            <img src="{% static 'img/dashboard/banner1.png' %}"
-                 class="banner ativo">
+            <img src="{% static 'img/dashboard/banner1.png' %}" class="banner ativo">
 
-            <img src="{% static 'img/dashboard/banner2.png' %}"
-                 class="banner">
+            <img src="{% static 'img/dashboard/banner2.png' %}" class="banner">
 
-            <img src="{% static 'img/dashboard/banner3.png' %}"
-                 class="banner">
+            <img src="{% static 'img/dashboard/banner3.png' %}" class="banner">
 
         </div>
 
     </section>
 
-    <!-- CONTEÚDO -->
-
+    <!-- PRODUTOS -->
     <section class="conteudo-principal">
 
-        <!-- FILTROS -->
-
-        <form class="filtros-produtos"
-              method="get"
-              action="{% url 'dashboard' %}">
-
-            <input type="hidden"
-                   name="q"
-                   value="{{ search_query }}">
-
-            <!-- CATEGORIAS -->
+        <form class="filtros-produtos" method="get" action="{% url 'dashboard' %}">
+            <input type="hidden" name="q" value="{{ search_query }}">
 
             <div class="filtro-grupo">
-
-                <h3>Categorias</h3>
-
+                <div class="filtro-header">
+                    <i class="fa-solid fa-list"></i>
+                    <h3>Categorias</h3>
+                </div>
                 <div class="filtro-opcoes">
-
                     {% for category in categories %}
-
-                    <label class="opcao-filtro">
-
-                        <input
-                            type="checkbox"
-                            name="category"
-                            value="{{ category.id }}"
-                            {% if category.id|stringformat:"s" in selected_categories %}checked{% endif %}
-                        >
-
-                        <span>{{ category.name }}</span>
-
-                    </label>
-
+                        <label class="filtro-label">
+                            <input
+                                type="checkbox"
+                                class="filtro-checkbox"
+                                name="category"
+                                value="{{ category.id }}"
+                                {% if category.id|stringformat:"s" in selected_categories %}checked{% endif %}
+                            >
+                            <span class="checkmark"></span>
+                            {{ category.name }}
+                        </label>
                     {% empty %}
-
-                    <span>Nenhuma categoria cadastrada.</span>
-
+                        <span>Nenhuma categoria cadastrada.</span>
                     {% endfor %}
-
                 </div>
-
             </div>
-
-            <!-- TARJA -->
 
             <div class="filtro-grupo">
-
-                <h3>Tarja</h3>
-
-                <div class="filtro-opcoes">
-
-                    <label class="opcao-filtro">
-
-                        <input
-                            type="checkbox"
-                            name="tarja"
-                            value="sem"
-                            {% if 'sem' in selected_tarja %}checked{% endif %}
-                        >
-
-                        <span>Sem tarja</span>
-
-                    </label>
-
-                    <label class="opcao-filtro">
-
-                        <input
-                            type="checkbox"
-                            name="tarja"
-                            value="vermelha"
-                            {% if 'vermelha' in selected_tarja %}checked{% endif %}
-                        >
-
-                        <span>Tarja vermelha</span>
-
-                    </label>
-
-                    <label class="opcao-filtro">
-
-                        <input
-                            type="checkbox"
-                            name="tarja"
-                            value="preta"
-                            {% if 'preta' in selected_tarja %}checked{% endif %}
-                        >
-
-                        <span>Tarja preta</span>
-
-                    </label>
-
+                <div class="filtro-header">
+                    <i class="fa-solid fa-flask-vial"></i>
+                    <h3>Tarja</h3>
                 </div>
-
+                <div class="filtro-opcoes">
+                    <label class="filtro-label">
+                        <input type="checkbox" class="filtro-checkbox" name="tarja" value="sem" {% if 'sem' in selected_tarja %}checked{% endif %}>
+                        <span class="checkmark"></span>
+                        Sem tarja
+                    </label>
+                    <label class="filtro-label">
+                        <input type="checkbox" class="filtro-checkbox" name="tarja" value="vermelha" {% if 'vermelha' in selected_tarja %}checked{% endif %}>
+                        <span class="checkmark"></span>
+                        Tarja vermelha
+                    </label>
+                    <label class="filtro-label">
+                        <input type="checkbox" class="filtro-checkbox" name="tarja" value="preta" {% if 'preta' in selected_tarja %}checked{% endif %}>
+                        <span class="checkmark"></span>
+                        Tarja preta
+                    </label>
+                </div>
             </div>
-
-            <!-- BOTÕES -->
 
             <div class="filtro-acoes">
-
-                <button type="submit">
+                <button type="submit" class="filtro-btn filtro-btn-primary">
+                    <i class="fa-solid fa-filter"></i>
                     Filtrar
                 </button>
-
-                <a href="{% url 'dashboard' %}">
+                <a href="{% url 'dashboard' %}" class="filtro-btn filtro-btn-secondary">
+                    <i class="fa-solid fa-rotate-left"></i>
                     Limpar
                 </a>
-
             </div>
-
         </form>
 
-        <!-- HEADER PRODUTOS -->
-
         <div class="categoria-header">
-
-            <h2>Produtos</h2>
+            <h2>Categoria</h2>
 
             <div class="setas-categoria">
-
-                <button class="scroll-btn"
-                        id="scroll-left"
-                        type="button">
-
+                <button class="scroll-btn" id="scroll-left" type="button">
                     <i class="fa-solid fa-chevron-left"></i>
-
                 </button>
 
-                <button class="scroll-btn"
-                        id="scroll-right"
-                        type="button">
-
+                <button class="scroll-btn" id="scroll-right" type="button">
                     <i class="fa-solid fa-chevron-right"></i>
-
                 </button>
-
             </div>
-
         </div>
 
-        <!-- PRODUTOS -->
-
-        <div class="produtos-scroll"
-             id="produtos-scroll">
+        <div class="produtos-scroll" id="produtos-scroll">
 
             {% for inventory in inventory_items %}
-
             <div class="produto-card">
 
                 <span class="seta">›</span>
 
                 {% if inventory.medicine.image %}
-
-                    <img src="{{ inventory.medicine.image }}"
-                         alt="{{ inventory.medicine.name }}">
-
+                    <img src="{{ inventory.medicine.image }}" alt="{{ inventory.medicine.name }}">
                 {% else %}
-
-                    <img src="{% static 'img/medicamento.png' %}"
-                         alt="Sem imagem">
-
+                    <img src="{% static 'img/medicamento.png' %}" alt="Sem imagem">
                 {% endif %}
 
                 <h4>{{ inventory.medicine.name }}</h4>
-
-                <p class="produto-farmacia">
-                    {{ inventory.pharmacy.name }}
-                </p>
-
-                <p class="produto-estoque">
-                    Estoque: {{ inventory.stock }}
-                </p>
-
+                <p class="produto-farmacia">{{ inventory.pharmacy.name }}</p>
+                <p class="produto-estoque">Estoque: {{ inventory.stock }}</p>
                 {% if inventory.has_active_promotion %}
-                    <span class="produto-promocao">
-                        {{ inventory.promotion_title|default:"Promocao ativa" }}
-                    </span>
+                    <span class="produto-promocao">{{ inventory.promotion_title|default:"Promocao ativa" }}</span>
                 {% endif %}
 
                 <div class="rodape-card">
-
                     <div>
-
                         <p>Valor</p>
-
                         {% if inventory.has_active_promotion %}
-                            <small class="preco-antigo">
-                                R$ {{ inventory.price }}
-                            </small>
+                            <small class="preco-antigo">R$ {{ inventory.price }}</small>
                         {% endif %}
-
-                        <strong>
-                            R$ {{ inventory.effective_price }}
-                        </strong>
-
+                        <strong>R$ {{ inventory.effective_price }}</strong>
                     </div>
 
-                    <form method="post"
-                          action="{% url 'add_inventory_to_cart' inventory.id %}">
-
+                    <form method="post" action="{% url 'add_inventory_to_cart' inventory.id %}">
                         {% csrf_token %}
-
-                        <input type="hidden"
-                               name="next"
-                               value="{% url 'cart' %}">
-
-                        <button type="submit"
-                                aria-label="Adicionar {{ inventory.medicine.name }} ao carrinho">
-
+                        <input type="hidden" name="next" value="{% url 'cart' %}">
+                        <button type="submit" aria-label="Adicionar {{ inventory.medicine.name }} ao carrinho">
                             <i class="fa-solid fa-cart-shopping"></i>
-
                         </button>
-
                     </form>
-
                 </div>
 
             </div>
-
             {% empty %}
-
-            <p class="sem-produtos">
-                Nenhum produto disponível no estoque das farmácias.
-            </p>
-
+                <p class="sem-produtos">Nenhum produto disponível no estoque das farmácias.</p>
             {% endfor %}
 
         </div>
@@ -418,21 +257,13 @@
 </main>
 
 <footer class="rodape-dashboard">
-
-    <div class="logo-rodape">
-        REMAZ <span>PHARM</span>
-    </div>
+    <div class="logo-rodape">REMAZ <span>PHARM</span></div>
 
     <div class="links-rodape">
-
         <a href="#">Careers</a>
-
         <a href="#">Privacy Policy</a>
-
         <a href="#">Terms & Conditions</a>
-
     </div>
-
 </footer>
 
 <script>
@@ -445,49 +276,38 @@
     });
 
     document.addEventListener('click', function(e) {
-
         if (!e.target.closest('.perfil-container')) {
             menuDropdown.classList.remove('ativo');
         }
-
     });
 
-    // SCROLL PRODUTOS
+    // SCROLL DOS CARDS
 
-    const scrollContainer =
-        document.getElementById('produtos-scroll');
+    const scrollContainer = document.getElementById('produtos-scroll');
 
-    document.getElementById('scroll-right')
-    .addEventListener('click', () => {
-
+    document.getElementById('scroll-right').addEventListener('click', () => {
         scrollContainer.scrollBy({
             left: 350,
             behavior: 'smooth'
         });
-
     });
 
-    document.getElementById('scroll-left')
-    .addEventListener('click', () => {
-
+    document.getElementById('scroll-left').addEventListener('click', () => {
         scrollContainer.scrollBy({
             left: -350,
             behavior: 'smooth'
         });
-
     });
 
-    // BANNERS
+     // BANNER AUTOMÁTICO
 
-    const banners =
-        document.querySelectorAll('.banner');
+    const banners = document.querySelectorAll('.banner');
 
     let bannerIndex = 0;
 
     function trocarBanner() {
 
-        banners[bannerIndex]
-            .classList.remove('ativo');
+        banners[bannerIndex].classList.remove('ativo');
 
         bannerIndex++;
 
@@ -495,8 +315,7 @@
             bannerIndex = 0;
         }
 
-        banners[bannerIndex]
-            .classList.add('ativo');
+        banners[bannerIndex].classList.add('ativo');
     }
 
     setInterval(trocarBanner, 4000);
@@ -504,4 +323,5 @@
 </script>
 
 </body>
+
 </html>

@@ -25,8 +25,15 @@ from .models import (
     OrderItem,
     OrderStatusHistory,
     PaymentTransaction,
+    UserProfile,
 )
-from .forms import AddressForm, PharmacyMedicineCreateForm, PharmacyRegistrationForm
+from .forms import (
+    AddressForm,
+    PharmacyMedicineCreateForm,
+    PharmacyRegistrationForm,
+    UserProfileForm,
+    PaymentForm,
+)
 from .services.mercado_pago import create_pix_payment
 from .services.supabase_storage import upload_image
 from django.db.models import Count, Q
@@ -228,7 +235,7 @@ def pharmacy_auth_view(request):
             post_data = request.POST.copy()
             post_data['name'] = username
             post_data['cnpj'] = cnpj
-            form = PharmacyRegistrationForm(post_data)
+            form = PharmacyRegistrationForm(post_data, request.FILES)
 
             if password != password_confirm:
                 messages.error(request, 'Senhas não coincidem')
@@ -244,6 +251,26 @@ def pharmacy_auth_view(request):
                 pharmacy = form.save(commit=False)
                 pharmacy.owner = user
                 pharmacy.is_active = True
+
+                image_file = request.FILES.get('image_file')
+                if image_file:
+                    image_error = validate_product_image(image_file)
+                    if image_error:
+                        messages.error(request, image_error)
+                        return render(request, 'pharmacy_auth.html', {
+                            'active_tab': active_tab,
+                            'form': form,
+                        })
+                    try:
+                        pharmacy.logo = upload_image(image_file)
+                    except Exception as exc:
+                        print('Erro ao enviar logo para Supabase:', exc)
+                        messages.error(request, 'Não foi possível enviar a logo. Tente novamente.')
+                        return render(request, 'pharmacy_auth.html', {
+                            'active_tab': active_tab,
+                            'form': form,
+                        })
+
                 pharmacy.save()
                 from core.models import UserProfile
                 UserProfile.objects.create(user=user)
@@ -702,6 +729,29 @@ def orders_view(request):
 
 @login_required(login_url='login')
 def pharmacy_dashboard_view(request):
+    if request.method == 'POST' and request.POST.get('action') == 'update_logo':
+        pharmacy = get_accessible_pharmacy_or_404(request.user, request.POST.get('pharmacy_id'))
+        image_file = request.FILES.get('image_file')
+
+        if not image_file:
+            messages.error(request, 'Selecione a imagem da farmácia para enviar.')
+            return redirect('pharmacy_dashboard')
+
+        image_error = validate_product_image(image_file)
+        if image_error:
+            messages.error(request, image_error)
+            return redirect('pharmacy_dashboard')
+
+        try:
+            pharmacy.logo = upload_image(image_file)
+            pharmacy.save(update_fields=['logo'])
+            messages.success(request, 'Logo da farmácia atualizada com sucesso.')
+        except Exception as exc:
+            print('Erro ao enviar logo para Supabase:', exc)
+            messages.error(request, 'Não foi possível enviar a imagem. Tente novamente.')
+
+        return redirect('pharmacy_dashboard')
+
     pharmacies = get_accessible_pharmacies(request.user).annotate(
         total_products=Count('inventory_items', distinct=True),
         active_products=Count(
@@ -745,16 +795,38 @@ def pharmacy_dashboard_view(request):
 @login_required(login_url='login')
 def pharmacy_register_view(request):
     if request.method == 'POST':
-        form = PharmacyRegistrationForm(request.POST)
+        form = PharmacyRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
             pharmacy = form.save(commit=False)
             pharmacy.owner = request.user
             pharmacy.is_active = True
+
+            image_file = request.FILES.get('image_file')
+            if image_file:
+                image_error = validate_product_image(image_file)
+                if image_error:
+                    messages.error(request, image_error)
+                    return render(request, 'pharmacy_register.html', {
+                        'form': form,
+                        'display_name': get_display_name(request.user),
+                        'cart_count': get_cart_count(request.user),
+                    })
+                try:
+                    pharmacy.logo = upload_image(image_file)
+                except Exception as exc:
+                    print('Erro ao enviar logo para Supabase:', exc)
+                    messages.error(request, 'Não foi possível enviar a imagem. Tente novamente.')
+                    return render(request, 'pharmacy_register.html', {
+                        'form': form,
+                        'display_name': get_display_name(request.user),
+                        'cart_count': get_cart_count(request.user),
+                    })
+
             pharmacy.save()
-            messages.success(request, 'Farmacia cadastrada. Agora voce pode configurar o estoque.')
+            messages.success(request, 'Farmácia cadastrada. Agora você pode configurar o estoque.')
             return redirect('pharmacy_inventory', pharmacy_id=pharmacy.id)
 
-        messages.error(request, 'Confira os dados da farmacia.')
+        messages.error(request, 'Confira os dados da farmácia.')
     else:
         form = PharmacyRegistrationForm()
 
@@ -1004,17 +1076,47 @@ def profile_view(request):
     else:
         display_name = username
 
-    form = AddressForm(initial={
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    profile_form = UserProfileForm(initial={
+        'username': request.user.username,
+        'email': request.user.email,
+        'cpf': profile.cpf,
+        'nickname': profile.nickname,
+    })
+    address_form = AddressForm(initial={
         'recipient_name': request.user.username,
     })
 
     if request.method == 'POST':
         action = request.POST.get('action')
 
-        if action == 'add_address':
-            form = AddressForm(request.POST)
-            if form.is_valid():
-                address = form.save(commit=False)
+        if action == 'save_profile':
+            profile_form = UserProfileForm(request.POST)
+            if profile_form.is_valid():
+                username_clean = profile_form.cleaned_data['username'].strip()
+                email_clean = profile_form.cleaned_data['email'].strip()
+
+                if User.objects.exclude(pk=request.user.pk).filter(username=username_clean).exists():
+                    messages.error(request, 'Nome de usuário já está em uso.')
+                elif User.objects.exclude(pk=request.user.pk).filter(email=email_clean).exists():
+                    messages.error(request, 'Email já está em uso.')
+                else:
+                    request.user.username = username_clean
+                    request.user.email = email_clean
+                    request.user.save(update_fields=['username', 'email'])
+
+                    profile.cpf = profile_form.cleaned_data['cpf']
+                    profile.nickname = profile_form.cleaned_data['nickname']
+                    profile.save(update_fields=['cpf', 'nickname'])
+                    messages.success(request, 'Perfil atualizado com sucesso.')
+                    return redirect('perfil')
+            else:
+                messages.error(request, 'Confira os dados do perfil.')
+
+        elif action == 'add_address':
+            address_form = AddressForm(request.POST)
+            if address_form.is_valid():
+                address = address_form.save(commit=False)
                 address.user = request.user
                 address.save()
                 messages.success(request, 'Endereco salvo.')
@@ -1034,25 +1136,56 @@ def profile_view(request):
             address.delete()
             messages.success(request, 'Endereco removido.')
             return redirect('perfil')
+
     return render(request, 'profile.html', {
         'display_name': display_name,
-        'address_form': form,
+        'profile_form': profile_form,
+        'address_form': address_form,
         'addresses': request.user.addresses.all(),
         'cart_count': get_cart_count(request.user),
+        'user_email': request.user.email,
+        'user_cpf': profile.cpf,
+        'user_nickname': profile.nickname or '',
+        'user_username': request.user.username,
     })
 
 @login_required(login_url='login')
 def payment_view(request):
     username = request.user.username.strip()
     parts = username.split()
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
 
     if len(parts) >= 2:
         display_name = f"{parts[0]} {parts[-1]}"
     else:
         display_name = username
 
+    payment_form = PaymentForm(initial={
+        'payment_method': profile.payment_method,
+        'card_name': profile.payment_card_owner,
+        'card_number': profile.payment_card_last4 and f'**** **** **** {profile.payment_card_last4}' or '',
+        'card_expiry': profile.payment_card_expiry,
+    })
+
+    if request.method == 'POST' and request.POST.get('action') == 'save_payment':
+        payment_form = PaymentForm(request.POST)
+        if payment_form.is_valid():
+            profile.payment_method = payment_form.cleaned_data['payment_method']
+            profile.payment_card_owner = payment_form.cleaned_data['card_name']
+            card_number = payment_form.cleaned_data.get('card_number') or ''
+            cleaned_number = re.sub(r'\D', '', card_number)
+            profile.payment_card_last4 = cleaned_number[-4:] if len(cleaned_number) >= 4 else None
+            profile.payment_card_expiry = payment_form.cleaned_data['card_expiry']
+            profile.save(update_fields=['payment_method', 'payment_card_owner', 'payment_card_last4', 'payment_card_expiry'])
+            messages.success(request, 'Dados de pagamento salvos com sucesso.')
+            return redirect('pagamento')
+        messages.error(request, 'Confira os dados do pagamento.')
+
     return render(request, 'payment.html', {
-        'display_name': display_name
+        'display_name': display_name,
+        'cart_count': get_cart_count(request.user),
+        'payment_form': payment_form,
+        'profile': profile,
     })
 
 @login_required(login_url='login')
@@ -1066,5 +1199,6 @@ def help_view(request):
         display_name = username
 
     return render(request, 'help.html', {
-        'display_name': display_name
+        'display_name': display_name,
+        'cart_count': get_cart_count(request.user),
     })
