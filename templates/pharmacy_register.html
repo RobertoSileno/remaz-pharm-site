@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Remaz Pharm - Cadastrar farmacia</title>
+    <title>Remaz Pharm - Cadastrar farmácia</title>
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
@@ -51,12 +51,12 @@
     <section class="checkout-area">
         <div class="carrinho-header">
             <div>
-                <h1>Cadastrar farmacia</h1>
-                <p>Informe os dados cadastrais e o endereco da unidade parceira.</p>
+                <h1>Cadastrar farmácia</h1>
+                <p>Informe os dados cadastrais e o endereço da unidade parceira.</p>
             </div>
             <a class="btn-continuar" href="{% url 'pharmacy_dashboard' %}">
                 <i class="fa-solid fa-arrow-left"></i>
-                Area da farmacia
+                Área da farmácia
             </a>
         </div>
 
@@ -68,13 +68,13 @@
             </div>
         {% endif %}
 
-        <form class="checkout-layout" method="post">
+        <form class="checkout-layout" method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="checkout-coluna">
                 <section class="checkout-bloco">
                     <div class="checkout-titulo">
                         <i class="fa-solid fa-shop"></i>
-                        <h2>Dados da farmacia</h2>
+                        <h2>Dados da farmácia</h2>
                     </div>
 
                     <div class="checkout-grid">
@@ -89,12 +89,20 @@
                             {{ form.cnpj.errors }}
                         </div>
                     </div>
+
+                    <div class="checkout-grid">
+                        <div class="checkout-campo maior">
+                            <label>Logo da farmácia</label>
+                            {{ form.image_file }}
+                            {{ form.image_file.errors }}
+                        </div>
+                    </div>
                 </section>
 
                 <section class="checkout-bloco">
                     <div class="checkout-titulo">
                         <i class="fa-solid fa-location-dot"></i>
-                        <h2>Endereco</h2>
+                        <h2>Endereço</h2>
                     </div>
 
                     <div class="checkout-grid">
@@ -111,9 +119,9 @@
             </div>
 
             <aside class="resumo-carrinho checkout-resumo">
-                <h2>Proximo passo</h2>
-                <p>Depois do cadastro, voce podera cadastrar estoque, precos e promocoes desta farmacia.</p>
-                <button class="btn-finalizar" type="submit">Cadastrar farmacia</button>
+                <h2>Próximo passo</h2>
+                <p>Depois do cadastro, você poderá cadastrar estoque, preços e promoções desta farmácia.</p>
+                <button class="btn-finalizar" type="submit">Cadastrar farmácia</button>
             </aside>
         </form>
     </section>

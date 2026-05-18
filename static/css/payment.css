@@ -698,6 +698,74 @@ img {
     margin-top: auto;
 }
 
+@media (max-width: 780px) {
+    .topo-dashboard {
+        flex-wrap: wrap;
+        height: auto;
+        padding: 15px;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .logo-topo,
+    .busca-topo,
+    .usuario-topo,
+    .dashboard-wrapper {
+        width: 100%;
+    }
+
+    .dashboard-wrapper {
+        padding: 16px;
+    }
+
+    .row,
+    .linha {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .form-group {
+        width: 100%;
+    }
+
+    .pagamento-wrapper {
+        padding: 15px;
+    }
+
+    .card,
+    .checkout-opcoes,
+    .checkout-grid {
+        width: 100%;
+    }
+}
+
+@media (max-width: 520px) {
+    .topo-dashboard {
+        padding: 10px;
+    }
+
+    .busca-topo input {
+        height: 34px;
+        font-size: 12px;
+    }
+
+    .logo-topo img {
+        height: 60px;
+    }
+
+    .perfil-name {
+        font-size: 11px;
+    }
+
+    .btn-salvar {
+        width: 100%;
+    }
+
+    .links-rodape a {
+        font-size: 9px;
+    }
+}
+
 .logo-rodape {
     font-size: 28px;
     color: white;

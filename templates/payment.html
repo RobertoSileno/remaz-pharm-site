@@ -52,110 +52,120 @@
 </header>
 
 <main class="pagamento-wrapper">
+    {% if messages %}
+        <div class="checkout-mensagens">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
 
-    <h2 class="titulo"><i class="fas fa-credit-card"></i> Formas de pagamento</h2>
-    <p class="gestao-nota">Pagamentos Pix são gerados ao concluir o pedido. Cartão e dinheiro ficam como pagamento manual combinado com a farmácia.</p>
+    <form method="post" action="{% url 'pagamento' %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save_payment">
 
-    <!-- DÉBITO -->
-    <div class="card-section">
-        <div class="card-header" onclick="toggleCard(this)">
-            <span><i class="fas fa-credit-card"></i> Adicionar um Cartão de Débito</span>
-            <span class="seta">▼</span>
+        <h2 class="titulo"><i class="fas fa-credit-card"></i> Formas de pagamento</h2>
+        <p class="gestao-nota">Adicione os dados de pagamento para que suas alterações apareçam imediatamente após salvar.</p>
+
+        <div class="card-section">
+            <div class="card-header" onclick="toggleCard(this)">
+                <span><i class="fas fa-credit-card"></i> Dados do cartão</span>
+                <span class="seta">▼</span>
+            </div>
+
+            <div class="card-body" hidden>
+                <label>Forma de pagamento</label>
+                <div class="linha">
+                    <label class="radio-option">
+                        <input type="radio" name="payment_method" value="debit" {% if profile.payment_method == 'debit' %}checked{% endif %}>
+                        Cartão de Débito
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="payment_method" value="credit" {% if profile.payment_method == 'credit' %}checked{% endif %}>
+                        Cartão de Crédito
+                    </label>
+                </div>
+
+                <label>Nome no cartão</label>
+                {{ payment_form.card_name }}
+
+                <label>Número do cartão</label>
+                {{ payment_form.card_number }}
+
+                <div class="linha">
+                    <div>
+                        <label>Validade</label>
+                        {{ payment_form.card_expiry }}
+                    </div>
+                    <div>
+                        <label>CVV</label>
+                        <input type="password" name="card_cvv" placeholder="Digite" autocomplete="off">
+                    </div>
+                </div>
+
+                <button class="btn-salvar" type="submit">Salvar</button>
+            </div>
         </div>
 
-        <div class="card-body" hidden>
-            <label>Nome no cartão</label>
-            <input type="text" placeholder="Digite" disabled>
+        <div class="card-section">
+            <div class="card-header">
+                <span><i class="fas fa-qrcode"></i> Pagamento via Pix</span>
+                <span class="info-icon">ℹ️</span>
+            </div>
+            <div class="card-body pix-info">
+                <p>O código Pix será gerado automaticamente ao finalizar o pedido. Aceitamos pagamentos instantâneos via Pix.</p>
+            </div>
+        </div>
 
-            <label>Número do cartão</label>
-            <input type="text" placeholder="Digite" disabled>
+        <div class="card-section">
+            <div class="card-header">
+                <span><i class="fas fa-money-bill-wave"></i> Pagamento em Dinheiro</span>
+                <span class="info-icon">ℹ️</span>
+            </div>
+            <div class="card-body pix-info">
+                <p>Pagamento em dinheiro deve ser combinado diretamente com a farmácia no momento da retirada.</p>
+            </div>
+        </div>
 
-            <div class="linha">
-                <div>
+        <div class="security-section">
+            <h3><i class="fas fa-shield-alt"></i> Segurança e Privacidade</h3>
+            <div class="security-badges">
+                <div class="badge">
+                    <i class="fas fa-lock"></i>
+                    <span>Dados criptografados</span>
+                </div>
+                <div class="badge">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Pagamentos verificados</span>
+                </div>
+                <div class="badge">
+                    <i class="fas fa-user-shield"></i>
+                    <span>Proteção de dados</span>
+                </div>
+            </div>
+            <p class="security-note">Seus dados de pagamento são processados de forma segura e as alterações aparecem ao salvar.</p>
+        </div>
+    </form>
+
+    {% if profile.payment_card_last4 %}
+        <section class="usuario-area">
+            <h2>Cartão salvo</h2>
+            <div class="form-linha">
+                <div class="form-grupo">
+                    <label>Nome</label>
+                    <input type="text" value="{{ profile.payment_card_owner }}" disabled>
+                </div>
+                <div class="form-grupo">
+                    <label>Cartão</label>
+                    <input type="text" value="**** **** **** {{ profile.payment_card_last4 }}" disabled>
+                </div>
+                <div class="form-grupo">
                     <label>Validade</label>
-                    <input type="text" placeholder="MM/AA" disabled>
-                </div>
-                <div>
-                    <label>CVV</label>
-                    <input type="text" placeholder="Digite" disabled>
+                    <input type="text" value="{{ profile.payment_card_expiry }}" disabled>
                 </div>
             </div>
-
-            <button class="btn-salvar">Salvar</button>
-        </div>
-    </div>
-
-    <!-- CRÉDITO -->
-    <div class="card-section">
-        <div class="card-header" onclick="toggleCard(this)">
-            <span><i class="fas fa-credit-card"></i> Adicionar um Cartão de Crédito</span>
-            <span class="seta">▼</span>
-        </div>
-
-        <div class="card-body" hidden>
-            <label>Nome no cartão</label>
-            <input type="text" placeholder="Digite" disabled>
-
-            <label>Número do cartão</label>
-            <input type="text" placeholder="Digite" disabled>
-
-            <div class="linha">
-                <div>
-                    <label>Validade</label>
-                    <input type="text" placeholder="MM/AA" disabled>
-                </div>
-                <div>
-                    <label>CVV</label>
-                    <input type="text" placeholder="Digite" disabled>
-                </div>
-            </div>
-
-            <button class="btn-salvar">Salvar</button>
-        </div>
-    </div>
-
-    <!-- PIX -->
-    <div class="card-section">
-        <div class="card-header">
-            <span><i class="fas fa-qrcode"></i> Pagamento via Pix</span>
-            <span class="info-icon">ℹ️</span>
-        </div>
-        <div class="card-body pix-info">
-            <p>O código Pix será gerado automaticamente ao finalizar o pedido. Aceitamos pagamentos instantâneos via Pix.</p>
-        </div>
-    </div>
-
-    <!-- DINHEIRO -->
-    <div class="card-section">
-        <div class="card-header">
-            <span><i class="fas fa-money-bill-wave"></i> Pagamento em Dinheiro</span>
-            <span class="info-icon">ℹ️</span>
-        </div>
-        <div class="card-body pix-info">
-            <p>Pagamento em dinheiro deve ser combinado diretamente com a farmácia no momento da retirada.</p>
-        </div>
-    </div>
-
-    <!-- SEGURANÇA -->
-    <div class="security-section">
-        <h3><i class="fas fa-shield-alt"></i> Segurança e Privacidade</h3>
-        <div class="security-badges">
-            <div class="badge">
-                <i class="fas fa-lock"></i>
-                <span>Dados criptografados</span>
-            </div>
-            <div class="badge">
-                <i class="fas fa-check-circle"></i>
-                <span>Pagamentos verificados</span>
-            </div>
-            <div class="badge">
-                <i class="fas fa-user-shield"></i>
-                <span>Proteção de dados</span>
-            </div>
-        </div>
-        <p class="security-note">Seus dados de pagamento são processados de forma segura e não são armazenados em nossos servidores.</p>
-    </div>
-
+        </section>
+    {% endif %}
 </main>
 
 <!-- RODAPÉ ORIGINAL RESTAURADO -->

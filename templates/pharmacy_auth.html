@@ -62,7 +62,7 @@
                     <button type="submit" class="btn-entrar">Entrar</button>
                 </form>
             {% else %}
-                <form method="post">
+                <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     <input type="hidden" name="form_type" value="register">
 
@@ -79,6 +79,11 @@
                     <div class="campo">
                         <label>E-mail</label>
                         <input type="email" name="email" placeholder="Digite o e-mail da farmácia" required>
+                    </div>
+
+                    <div class="campo">
+                        <label>Logo da farmácia (opcional)</label>
+                        <input type="file" name="image_file" accept="image/png,image/jpeg,image/webp">
                     </div>
 
                     <div class="campo">

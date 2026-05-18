@@ -52,13 +52,13 @@
     <section class="gestao-area">
         <div class="carrinho-header">
             <div>
-                <h1>{% if request.user.is_staff %}Painel administrativo{% else %}Area da farmacia{% endif %}</h1>
-                <p>Controle estoque, produtos, promocoes, pedidos e receitas em um so lugar.</p>
+                <h1>{% if request.user.is_staff %}Painel administrativo{% else %}Área da farmácia{% endif %}</h1>
+                <p>Controle estoque, produtos, promoções, pedidos e receitas em um só lugar.</p>
             </div>
             <div class="carrinho-acoes-topo">
                 <a class="btn-finalizar" href="{% url 'pharmacy_register' %}">
                     <i class="fa-solid fa-plus"></i>
-                    Cadastrar farmacia
+                    Cadastrar farmácia
                 </a>
                 <a class="btn-continuar" href="{% url 'dashboard' %}">
                     <i class="fa-solid fa-arrow-left"></i>
@@ -72,13 +72,17 @@
                 <article class="farmacia-card farmacia-admin-card">
                     <div class="farmacia-card-top">
                         <div class="farmacia-card-icone">
-                            <i class="fa-solid fa-shop"></i>
+                            {% if pharmacy.logo %}
+                                <img src="{{ pharmacy.logo }}" alt="{{ pharmacy.name }} logo" class="farmacia-logo">
+                            {% else %}
+                                <i class="fa-solid fa-shop"></i>
+                            {% endif %}
                         </div>
                         <span class="status-pedido">{{ pharmacy.pending_orders }} pedidos ativos</span>
                     </div>
 
                     <h2>{{ pharmacy.name }}</h2>
-                    <p>{{ pharmacy.city|default:"Cidade nao informada" }}{% if pharmacy.state %} - {{ pharmacy.state }}{% endif %}</p>
+                    <p>{{ pharmacy.city|default:"Cidade não informada" }}{% if pharmacy.state %} - {{ pharmacy.state }}{% endif %}</p>
 
                     <div class="farmacia-metricas">
                         <div>
@@ -91,7 +95,7 @@
                         </div>
                         <div>
                             <strong>{{ pharmacy.active_promotions }}</strong>
-                            <span>promocoes</span>
+                            <span>promoções</span>
                         </div>
                         <div>
                             <strong>{{ pharmacy.pending_prescriptions }}</strong>
@@ -113,13 +117,23 @@
                             Receitas
                         </a>
                     </div>
+
+                    <form method="post" enctype="multipart/form-data" class="logo-upload-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="update_logo">
+                        <input type="hidden" name="pharmacy_id" value="{{ pharmacy.id }}">
+                        <label class="btn-continuar upload-logo-button">
+                            <input type="file" name="image_file" accept="image/png,image/jpeg,image/webp" hidden onchange="this.form.submit()">
+                            <i class="fa-solid fa-upload"></i> Adicionar logo
+                        </label>
+                    </form>
                 </article>
             {% empty %}
                 <div class="carrinho-vazio">
                     <i class="fa-solid fa-shop-lock"></i>
-                    <h2>Nenhuma farmacia vinculada</h2>
-                    <p>Cadastre uma farmacia para comecar a controlar estoque, pedidos e receitas.</p>
-                    <a href="{% url 'pharmacy_register' %}">Cadastrar farmacia</a>
+                    <h2>Nenhuma farmácia vinculada</h2>
+                    <p>Cadastre uma farmácia para comecar a controlar estoque, pedidos e receitas.</p>
+                    <a href="{% url 'pharmacy_register' %}">Cadastrar farmácia</a>
                 </div>
             {% endfor %}
         </div>

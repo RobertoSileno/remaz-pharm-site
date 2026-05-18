@@ -2,9 +2,18 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class UserProfile(models.Model):
+    PAYMENT_METHOD_CHOICES = [
+        ('credit', 'Cartão de crédito'),
+        ('debit', 'Cartão de débito'),
+    ]
+
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     cpf = models.CharField(max_length=14, unique=True, blank=True, null=True)
     nickname = models.CharField(max_length=15, blank=True, null=True)
+    payment_method = models.CharField(max_length=10, choices=PAYMENT_METHOD_CHOICES, blank=True, null=True)
+    payment_card_owner = models.CharField(max_length=100, blank=True, null=True)
+    payment_card_last4 = models.CharField(max_length=4, blank=True, null=True)
+    payment_card_expiry = models.CharField(max_length=5, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -100,6 +109,7 @@ class Pharmacy(models.Model):
     street = models.CharField(max_length=150, blank=True, null=True)
     number = models.CharField(max_length=20, blank=True, null=True)
     complement = models.CharField(max_length=150, blank=True, null=True)
+    logo = models.URLField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

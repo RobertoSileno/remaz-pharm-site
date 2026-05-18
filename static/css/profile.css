@@ -664,3 +664,22 @@ img {
         margin: 0 5px;
     }
 }
+
+@media (max-width: 500px) {
+    .usuario-area .form-linha,
+    .endereco-area .form-linha,
+    .form-group {
+        gap: 10px;
+    }
+
+    .form-grupo input,
+    .form-grupo select,
+    .form-grupo textarea {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .btn-salvar {
+        width: 100%;
+    }
+}

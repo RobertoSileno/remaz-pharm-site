@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Remaz Pharm - Analise de Receitas</title>
+    <title>Remaz Pharm - Análise de Receitas</title>
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
@@ -52,7 +52,7 @@
     <section class="gestao-area">
         <div class="carrinho-header">
             <div>
-                <h1>Analise de receitas</h1>
+                <h1>Análise de receitas</h1>
                 <p>{{ pharmacy.name }} aprova ou recusa receitas anexadas aos pedidos.</p>
             </div>
             <div class="carrinho-acoes-topo">
@@ -108,12 +108,12 @@
                         <div class="gestao-endereco">
                             <strong>Cliente</strong>
                             <span>{{ order.customer_name }} - {{ order.customer_phone }}</span>
-                            <span>{{ order.customer_email|default:"Email nao informado" }}</span>
+                            <span>{{ order.customer_email|default:"Email não informado" }}</span>
                         </div>
                     </div>
 
                     {% if order.prescription_review_reason %}
-                        <p class="gestao-nota">Motivo/observacao: {{ order.prescription_review_reason }}</p>
+                        <p class="gestao-nota">Motivo/observação: {{ order.prescription_review_reason }}</p>
                     {% endif %}
 
                     {% if order.prescription_reviewed_at %}
@@ -128,12 +128,12 @@
                         <input type="hidden" name="order_id" value="{{ order.id }}">
 
                         <div class="checkout-campo maior">
-                            <label>Motivo ou observacao</label>
+                            <label>Motivo ou observação</label>
                             <input
                                 type="text"
                                 name="prescription_review_reason"
                                 value="{{ order.prescription_review_reason }}"
-                                placeholder="Obrigatorio para recusa. Ex: CRM divergente, receita vencida"
+                                placeholder="Obrigatório para recusa. Ex: CRM divergente, receita vencida"
                             >
                         </div>
 
@@ -153,7 +153,7 @@
                 <div class="carrinho-vazio">
                     <i class="fa-solid fa-file-circle-check"></i>
                     <h2>Nenhuma receita para analisar</h2>
-                    <p>Pedidos com medicamentos controlados e receita anexada aparecerao aqui.</p>
+                    <p>Pedidos com medicamentos controlados e receita anexada aparecerão aqui.</p>
                 </div>
             {% endfor %}
         </div>
