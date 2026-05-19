@@ -1,5 +1,7 @@
 from django.urls import path
 from .views import (
+    about,
+    contact,
     dashboard_view,
     home,
     login_view,
@@ -30,6 +32,8 @@ from .views import (
 
 urlpatterns = [
     path('', home, name='home'),
+    path('quem-somos/', about, name='about'),
+    path('contato/', contact, name='contact'),
     path('login/', login_view, name='login'),
     path('registro/', register_view, name='registro'),
     path('farmacia/auth/', pharmacy_auth_view, name='pharmacy_auth'),

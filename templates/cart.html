@@ -10,7 +10,7 @@
 </head>
 <body class="page-carrinho">
 
-<header class="topo-dashboard">
+<header class="topo-dashboard{% if not user.is_authenticated %} topo-publico{% endif %}">
     <div class="logo-topo">
         <a href="{% url 'dashboard' %}">
             <img src="{% static 'img/logo/logo.png' %}" alt="Logo">
@@ -24,35 +24,51 @@
         </button>
     </form>
 
-    <div class="usuario-topo">
-        <a class="atalho-carrinho" href="{% url 'cart' %}" aria-label="Ver carrinho">
-            <i class="fa-solid fa-cart-shopping"></i>
-            <span>{{ cart_count|default:0 }}</span>
-        </a>
+    {% if user.is_authenticated %}
+        <div class="usuario-topo">
+            <a class="atalho-carrinho" href="{% url 'cart' %}" aria-label="Ver carrinho">
+                <i class="fa-solid fa-cart-shopping"></i>
+                <span>{{ cart_count|default:0 }}</span>
+            </a>
 
-        <div class="perfil-container">
-            <button class="perfil-icon" id="perfil-btn" type="button">
-                <div class="avatar"></div>
-            </button>
-            <div class="perfil-name">{{ display_name }}</div>
+            <div class="perfil-container">
+                <button class="perfil-icon" id="perfil-btn" type="button">
+                    <div class="avatar"></div>
+                </button>
+                <div class="perfil-name">{{ display_name }}</div>
 
-            <div class="menu-dropdown" id="menu-dropdown">
-                <a href="#">Configurações</a>
-                <a href="{% url 'perfil' %}">Perfil</a>
-                <a href="{% url 'pagamento' %}">Pagamento</a>
-                <a href="{% url 'cart' %}">Carrinho</a>
-                <a href="{% url 'orders' %}">Pedidos</a>
-                {% if user.pharmacies.exists %}
-                <a href="{% url 'pharmacy_dashboard' %}">Área da farmácia</a>
-                {% endif %}
-                <a href="{% url 'ajuda' %}">Ajuda</a>
-                <a href="{% url 'logout' %}">Sair</a>
+                <div class="menu-dropdown" id="menu-dropdown">
+                    <a href="#">Configurações</a>
+                    <a href="{% url 'perfil' %}">Perfil</a>
+                    <a href="{% url 'pagamento' %}">Pagamento</a>
+                    <a href="{% url 'cart' %}">Carrinho</a>
+                    <a href="{% url 'orders' %}">Pedidos</a>
+                    {% if user.pharmacies.exists %}
+                    <a href="{% url 'pharmacy_dashboard' %}">Área da farmácia</a>
+                    {% endif %}
+                    <a href="{% url 'ajuda' %}">Ajuda</a>
+                    <a href="{% url 'logout' %}">Sair</a>
+                </div>
             </div>
         </div>
-    </div>
+    {% else %}
+        <div class="acoes-publicas-dashboard">
+            <a href="{% url 'login' %}" class="btn-publico btn-publico-claro">Entrar</a>
+            <a href="{% url 'registro' %}" class="btn-publico btn-publico-vermelho">Inscreva-se</a>
+            <a href="{% url 'pharmacy_auth' %}" class="btn-publico btn-publico-claro">Farmácia</a>
+        </div>
+    {% endif %}
 </header>
 
 <main class="dashboard-wrapper">
+    {% if not user.is_authenticated %}
+        <nav class="menu-publico-home">
+            <a href="{% url 'home' %}">Home</a>
+            <a href="{% url 'about' %}">Quem somos</a>
+            <a href="{% url 'contact' %}">Contato</a>
+        </nav>
+    {% endif %}
+
     <section class="carrinho-area">
         <div class="carrinho-header">
             <div>
@@ -164,7 +180,7 @@
                         <span>Entrega</span>
                         <strong>A calcular</strong>
                     </div>
-                    {% if requires_prescription and not prescription_uploaded %}
+                    {% if user.is_authenticated and requires_prescription and not prescription_uploaded %}
                         <a class="btn-finalizar" href="{% url 'prescription_upload' %}">Enviar receita</a>
                     {% else %}
                         <a class="btn-finalizar" href="{% url 'checkout' %}">Finalizar compra</a>
@@ -182,29 +198,23 @@
     </section>
 </main>
 
-<footer class="rodape-dashboard">
-    <div class="logo-rodape">REMAZ <span>PHARM</span></div>
-
-    <div class="links-rodape">
-        <a href="#">Careers</a>
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms & Conditions</a>
-    </div>
-</footer>
+{% include 'partials/footer.html' %}
 
 <script>
     const perfilBtn = document.getElementById('perfil-btn');
     const menuDropdown = document.getElementById('menu-dropdown');
 
-    perfilBtn.addEventListener('click', function() {
-        menuDropdown.classList.toggle('ativo');
-    });
+    if (perfilBtn && menuDropdown) {
+        perfilBtn.addEventListener('click', function() {
+            menuDropdown.classList.toggle('ativo');
+        });
 
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.perfil-container')) {
-            menuDropdown.classList.remove('ativo');
-        }
-    });
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.perfil-container')) {
+                menuDropdown.classList.remove('ativo');
+            }
+        });
+    }
 </script>
 
 </body>

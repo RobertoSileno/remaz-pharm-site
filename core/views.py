@@ -2,6 +2,8 @@ import re
 import uuid
 from decimal import Decimal
 from pathlib import Path
+from types import SimpleNamespace
+from urllib.parse import urlencode
 
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
@@ -13,6 +15,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.urls import reverse
 from .models import (
     Address,
     Medicine,
@@ -69,6 +72,44 @@ def get_cart_count(user):
 
     return sum(item.quantity for item in cart.cartitem_set.all())
 
+def get_session_cart(request):
+    return request.session.setdefault('cart', {})
+
+def get_session_cart_count(request):
+    return sum(get_session_cart(request).values())
+
+def get_session_cart_items_and_total(request):
+    session_cart = get_session_cart(request)
+    inventory_ids = [int(inventory_id) for inventory_id in session_cart.keys()]
+    inventories = PharmacyInventory.objects.select_related(
+        'medicine',
+        'medicine__category',
+        'pharmacy'
+    ).filter(id__in=inventory_ids)
+    inventory_by_id = {inventory.id: inventory for inventory in inventories}
+    items = []
+    total = Decimal('0')
+
+    for inventory_id, quantity in session_cart.items():
+        inventory = inventory_by_id.get(int(inventory_id))
+        if not inventory:
+            continue
+
+        item = SimpleNamespace(
+            id=inventory.id,
+            medicine=inventory.medicine,
+            inventory=inventory,
+            quantity=quantity,
+            unit_price=inventory.effective_price,
+            pharmacy=inventory.pharmacy,
+            stock_available=inventory.stock,
+        )
+        item.subtotal = item.unit_price * item.quantity
+        items.append(item)
+        total += item.subtotal
+
+    return None, items, total
+
 def get_cart_items_and_total(user):
     cart, created = Cart.objects.get_or_create(user=user)
     items = list(
@@ -86,6 +127,31 @@ def get_cart_items_and_total(user):
         total += item.subtotal
 
     return cart, items, total
+
+def merge_session_cart_to_user(request):
+    session_cart = request.session.get('cart', {})
+    if not session_cart:
+        return
+
+    cart, created = Cart.objects.get_or_create(user=request.user)
+
+    for inventory_id, quantity in session_cart.items():
+        inventory = PharmacyInventory.objects.filter(id=inventory_id).select_related('medicine').first()
+        if not inventory or inventory.stock <= 0:
+            continue
+
+        item, created = CartItem.objects.get_or_create(
+            cart=cart,
+            inventory=inventory,
+            defaults={'medicine': inventory.medicine}
+        )
+        if created:
+            item.quantity = min(quantity, inventory.stock)
+        else:
+            item.quantity = min(item.quantity + quantity, inventory.stock)
+        item.save()
+
+    request.session.pop('cart', None)
 
 def get_accessible_pharmacies(user):
     pharmacies = Pharmacy.objects.filter(is_active=True)
@@ -151,8 +217,14 @@ def create_order_payment(order):
         amount=order.total,
     )
 
-def home(request):
+def about(request):
     return render(request, 'home.html')
+
+def contact(request):
+    return render(request, 'contact.html')
+
+def home(request):
+    return dashboard_view(request)
 
 def login_view(request):
     if request.method == 'POST':
@@ -186,6 +258,14 @@ def login_view(request):
                 messages.error(request, 'Senha incorreta')
             else:
                 login(request, user_auth)
+                merge_session_cart_to_user(request)
+                next_url = request.GET.get('next') or request.POST.get('next')
+                if next_url and url_has_allowed_host_and_scheme(
+                    next_url,
+                    allowed_hosts={request.get_host()},
+                    require_https=request.is_secure()
+                ):
+                    return redirect(next_url)
                 return redirect('dashboard')
     
     return render(request, 'login.html')
@@ -317,6 +397,13 @@ def register_view(request):
         UserProfile.objects.create(user=user, cpf=cpf)
         
         messages.success(request, 'Registro realizado! Faça login.')
+        next_url = request.POST.get('next')
+        if next_url and url_has_allowed_host_and_scheme(
+            next_url,
+            allowed_hosts={request.get_host()},
+            require_https=request.is_secure()
+        ):
+            return redirect(f"{reverse('login')}?{urlencode({'next': next_url})}")
         return redirect('login')
    
     return render(request, 'register.html')
@@ -328,15 +415,13 @@ def logout_view(request):
 def password_recovery_view(request):
     return render(request, 'password.recovery.html')
 
-@login_required(login_url='login')
 def dashboard_view(request):
-    username = request.user.username.strip()
-    parts = username.split()
-
-    if len(parts) >= 2:
-        display_name = f"{parts[0]} {parts[-1]}"
+    if request.user.is_authenticated:
+        display_name = get_display_name(request.user)
+        cart_count = get_cart_count(request.user)
     else:
-        display_name = username
+        display_name = 'Visitante'
+        cart_count = get_session_cart_count(request)
 
     search_query = request.GET.get('q', '').strip()
     selected_categories = request.GET.getlist('category')
@@ -372,14 +457,14 @@ def dashboard_view(request):
 
     return render(request, 'dashboard.html', {
         'display_name': display_name,
-        'cart_count': get_cart_count(request.user),
+        'cart_count': cart_count,
         'inventory_items': inventory_items,
         'categories': categories,
         'search_query': search_query,
         'selected_categories': selected_categories,
         'selected_tarja': selected_tarja,
     })
-@login_required(login_url='login')
+
 @require_POST
 def add_inventory_to_cart(request, inventory_id):
     inventory = get_object_or_404(
@@ -389,26 +474,37 @@ def add_inventory_to_cart(request, inventory_id):
         pharmacy__owner__isnull=False,
         is_available=True,
     )
-    cart, created = Cart.objects.get_or_create(user=request.user)
     next_url = request.POST.get('next')
 
     if inventory.stock <= 0:
         messages.error(request, 'Produto sem estoque nesta farmácia.')
         return redirect(next_url or 'dashboard')
 
-    item, created = CartItem.objects.get_or_create(
-        cart=cart,
-        inventory=inventory,
-        defaults={'medicine': inventory.medicine}
-    )
+    if request.user.is_authenticated:
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        item, created = CartItem.objects.get_or_create(
+            cart=cart,
+            inventory=inventory,
+            defaults={'medicine': inventory.medicine}
+        )
 
-    if not created:
-        if item.quantity >= inventory.stock:
+        if not created:
+            if item.quantity >= inventory.stock:
+                messages.error(request, 'Quantidade máxima disponível no estoque desta farmácia.')
+                return redirect(next_url or 'cart')
+
+            item.quantity += 1
+            item.save()
+    else:
+        session_cart = get_session_cart(request)
+        current_quantity = session_cart.get(str(inventory.id), 0)
+
+        if current_quantity >= inventory.stock:
             messages.error(request, 'Quantidade máxima disponível no estoque desta farmácia.')
             return redirect(next_url or 'cart')
 
-        item.quantity += 1
-        item.save()
+        session_cart[str(inventory.id)] = current_quantity + 1
+        request.session.modified = True
 
     if inventory.medicine.tarja == 'preta':
         clear_prescription_session(request)
@@ -425,7 +521,6 @@ def add_inventory_to_cart(request, inventory_id):
     return redirect('cart')
 
 
-@login_required(login_url='login')
 @require_POST
 def add_to_cart(request, medicine_id):
     medicine = get_object_or_404(Medicine, id=medicine_id)
@@ -444,9 +539,21 @@ def add_to_cart(request, medicine_id):
     return add_inventory_to_cart(request, inventory.id)
 
 
-@login_required(login_url='login')
 @require_POST
 def decrease_cart_item(request, item_id):
+    if not request.user.is_authenticated:
+        session_cart = get_session_cart(request)
+        key = str(item_id)
+        quantity = session_cart.get(key, 0)
+
+        if quantity > 1:
+            session_cart[key] = quantity - 1
+        else:
+            session_cart.pop(key, None)
+
+        request.session.modified = True
+        return redirect('cart')
+
     item = get_object_or_404(
         CartItem,
         id=item_id,
@@ -462,9 +569,14 @@ def decrease_cart_item(request, item_id):
     return redirect('cart')
 
 
-@login_required(login_url='login')
 @require_POST
 def remove_cart_item(request, item_id):
+    if not request.user.is_authenticated:
+        session_cart = get_session_cart(request)
+        session_cart.pop(str(item_id), None)
+        request.session.modified = True
+        return redirect('cart')
+
     item = get_object_or_404(
         CartItem,
         id=item_id,
@@ -475,9 +587,14 @@ def remove_cart_item(request, item_id):
 
     return redirect('cart')
 
-@login_required(login_url='login')
 @require_POST
 def clear_cart(request):
+    if not request.user.is_authenticated:
+        request.session.pop('cart', None)
+        clear_prescription_session(request)
+        messages.success(request, 'Carrinho limpo.')
+        return redirect('cart')
+
     cart = get_object_or_404(Cart, user=request.user)
     cart.cartitem_set.all().delete()
     clear_prescription_session(request)
@@ -486,17 +603,24 @@ def clear_cart(request):
     return redirect('cart')
 
 
-@login_required(login_url='login')
 def cart_view(request):
-    cart, items, total = get_cart_items_and_total(request.user)
+    if request.user.is_authenticated:
+        cart, items, total = get_cart_items_and_total(request.user)
+        display_name = get_display_name(request.user)
+        cart_count = get_cart_count(request.user)
+    else:
+        cart, items, total = get_session_cart_items_and_total(request)
+        display_name = 'Visitante'
+        cart_count = get_session_cart_count(request)
+
     requires_prescription = cart_requires_prescription(items)
 
     return render(request, 'cart.html', {
         'cart': cart,
         'items': items,
         'total': total,
-        'display_name': get_display_name(request.user),
-        'cart_count': get_cart_count(request.user),
+        'display_name': display_name,
+        'cart_count': cart_count,
         'requires_prescription': requires_prescription,
         'prescription_uploaded': prescription_uploaded(request),
     })

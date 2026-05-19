@@ -37,7 +37,7 @@
                     <div class="tab ativo">Entrar</div>
                 </a>
 
-                <a href="{% url 'registro' %}" class="tab-link">
+                <a href="{% url 'registro' %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="tab-link">
                     <div class="tab">Registrar</div>
                 </a>
 
@@ -46,6 +46,9 @@
             <!-- FORM -->
             <form method="post">
                 {% csrf_token %}
+                {% if request.GET.next %}
+                    <input type="hidden" name="next" value="{{ request.GET.next }}">
+                {% endif %}
 
                 <div class="campo">
                     <label>Email ou CPF</label>
