@@ -70,7 +70,7 @@
 
             <div class="form-linha">
                 <div class="form-grupo">
-                    <label>Nome completo</label>
+                    <label>{% if is_pharmacy_user %}Nome fantasia{% else %}Nome completo{% endif %}</label>
                     {{ profile_form.username }}
                 </div>
                 <div class="form-grupo">
@@ -81,7 +81,7 @@
 
             <div class="form-linha">
                 <div class="form-grupo">
-                    <label>CPF</label>
+                    <label>{% if is_pharmacy_user %}CNPJ{% else %}CPF{% endif %}</label>
                     {{ profile_form.cpf }}
                 </div>
                 <div class="form-grupo">
@@ -136,7 +136,7 @@
                     {{ address_form.label }}
                 </div>
                 <div class="form-grupo">
-                    <label>Quem recebe</label>
+                    <label>{% if is_pharmacy_user %}Responsável pela entrega{% else %}Quem recebe{% endif %}</label>
                     {{ address_form.recipient_name }}
                 </div>
                 <div class="form-grupo">

@@ -1201,35 +1201,69 @@ def profile_view(request):
         display_name = username
 
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
-    profile_form = UserProfileForm(initial={
+    pharmacy = request.user.pharmacies.order_by('created_at').first()
+    is_pharmacy_user = pharmacy is not None
+
+    profile_initial = {
         'username': request.user.username,
         'email': request.user.email,
         'cpf': profile.cpf,
         'nickname': profile.nickname,
-    })
-    address_form = AddressForm(initial={
+    }
+    address_initial = {
         'recipient_name': request.user.username,
-    })
+    }
+
+    if is_pharmacy_user:
+        profile_initial.update({
+            'username': pharmacy.name,
+            'cpf': pharmacy.cnpj,
+        })
+        address_initial.update({
+            'label': pharmacy.name,
+            'recipient_name': pharmacy.name,
+            'phone': pharmacy.phone,
+            'cep': pharmacy.cep,
+            'state': pharmacy.state,
+            'city': pharmacy.city,
+            'neighborhood': pharmacy.district,
+            'street': pharmacy.street,
+            'number': pharmacy.number,
+            'complement': pharmacy.complement,
+        })
+
+    profile_form = UserProfileForm(initial={
+        **profile_initial,
+    }, is_pharmacy_user=is_pharmacy_user)
+    address_form = AddressForm(initial=address_initial)
 
     if request.method == 'POST':
         action = request.POST.get('action')
 
         if action == 'save_profile':
-            profile_form = UserProfileForm(request.POST)
+            profile_form = UserProfileForm(request.POST, is_pharmacy_user=is_pharmacy_user)
             if profile_form.is_valid():
                 username_clean = profile_form.cleaned_data['username'].strip()
                 email_clean = profile_form.cleaned_data['email'].strip()
+                document_clean = normalize_digits(profile_form.cleaned_data['cpf'])
 
-                if User.objects.exclude(pk=request.user.pk).filter(username=username_clean).exists():
+                if not is_pharmacy_user and User.objects.exclude(pk=request.user.pk).filter(username=username_clean).exists():
                     messages.error(request, 'Nome de usuário já está em uso.')
                 elif User.objects.exclude(pk=request.user.pk).filter(email=email_clean).exists():
                     messages.error(request, 'Email já está em uso.')
+                elif is_pharmacy_user and document_clean and Pharmacy.objects.exclude(pk=pharmacy.pk).filter(cnpj=document_clean).exists():
+                    messages.error(request, 'CNPJ já está em uso.')
                 else:
-                    request.user.username = username_clean
+                    if is_pharmacy_user:
+                        pharmacy.name = username_clean
+                        pharmacy.cnpj = document_clean
+                        pharmacy.save(update_fields=['name', 'cnpj', 'updated_at'])
+                    else:
+                        request.user.username = username_clean
                     request.user.email = email_clean
-                    request.user.save(update_fields=['username', 'email'])
+                    request.user.save(update_fields=['username', 'email'] if not is_pharmacy_user else ['email'])
 
-                    profile.cpf = profile_form.cleaned_data['cpf']
+                    profile.cpf = profile_form.cleaned_data['cpf'] if not is_pharmacy_user else profile.cpf
                     profile.nickname = profile_form.cleaned_data['nickname']
                     profile.save(update_fields=['cpf', 'nickname'])
                     messages.success(request, 'Perfil atualizado com sucesso.')
@@ -1267,6 +1301,7 @@ def profile_view(request):
         'address_form': address_form,
         'addresses': request.user.addresses.all(),
         'cart_count': get_cart_count(request.user),
+        'is_pharmacy_user': is_pharmacy_user,
         'user_email': request.user.email,
         'user_cpf': profile.cpf,
         'user_nickname': profile.nickname or '',

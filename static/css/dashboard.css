@@ -30,6 +30,7 @@ img {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 24px;
     padding: 0 60px;
 }
 
@@ -40,6 +41,7 @@ img {
 .logo-topo {
     display: flex;
     align-items: center;
+    flex-shrink: 0;
 }
 
 .logo-topo img {
@@ -55,6 +57,9 @@ img {
 .busca-topo {
     position: relative;
     width: 380px;
+    max-width: 100%;
+    min-width: 220px;
+    flex: 0 1 380px;
 }
 
 .topo-publico .busca-topo {
@@ -89,6 +94,7 @@ img {
     align-items: center;
     color: white;
     font-size: 13px;
+    flex-shrink: 0;
 }
 
 .menu-publico-dashboard,
@@ -387,7 +393,7 @@ body.page-carrinho footer.rodape-dashboard {
 .banner-slider {
     position: relative;
     width: 100%;
-    height: 340px;
+    height: clamp(180px, 25vw, 340px);
     overflow: hidden;
     border-radius: 24px;
 }
@@ -455,6 +461,7 @@ body.page-carrinho footer.rodape-dashboard {
     gap: 22px;
     overflow-x: auto;
     scroll-behavior: smooth;
+    scroll-snap-type: x proximity;
     padding-bottom: 10px;
 }
 
@@ -465,6 +472,7 @@ body.page-carrinho footer.rodape-dashboard {
 /* CARD */
 
 .produto-card {
+    width: 220px;
     min-width: 220px;
     background: #f3f3f3;
     border: 1px solid #9bb9c8;
@@ -473,6 +481,7 @@ body.page-carrinho footer.rodape-dashboard {
     position: relative;
     text-align: center;
     flex-shrink: 0;
+    scroll-snap-align: start;
 }
 
 .produto-card img {
@@ -1862,8 +1871,8 @@ body.page-carrinho footer.rodape-dashboard {
         grid-template-columns: repeat(3, 1fr);
     }
 
-    .banner-principal img {
-        height: 250px;
+    .banner-slider {
+        height: 280px;
     }
 
     .carrinho-layout {
@@ -2023,9 +2032,18 @@ body.page-carrinho footer.rodape-dashboard {
         font-size: 12px;
     }
 
-    .banner-principal img {
-        height: 200px;
+    .banner-area {
+        margin-bottom: 48px;
+    }
+
+    .banner-slider {
+        height: 220px;
         border-radius: 16px;
+    }
+
+    .categoria-header {
+        gap: 12px;
+        margin-bottom: 18px;
     }
 
     .categoria-header h2 {
@@ -2085,10 +2103,25 @@ body.page-carrinho footer.rodape-dashboard {
         gap: 12px;
     }
 
+    .produtos-scroll {
+        gap: 14px;
+        padding-bottom: 12px;
+    }
+
     .produto-card {
-        min-width: auto;
+        width: 200px;
+        min-width: 200px;
         border-radius: 12px;
         padding: 10px;
+    }
+
+    .produto-card img {
+        width: 105px;
+        height: 125px;
+    }
+
+    .rodape-card strong {
+        font-size: 17px;
     }
 
     .carrinho-header {
@@ -2261,7 +2294,7 @@ body.page-carrinho footer.rodape-dashboard {
     }
 
     .categorias-home {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 10px;
         margin-bottom: 15px;
     }
@@ -2286,17 +2319,18 @@ body.page-carrinho footer.rodape-dashboard {
         font-size: 11px;
     }
 
-    .banner-principal img {
-        height: 140px;
+    .banner-slider {
+        height: 170px;
         border-radius: 12px;
     }
 
     .produto-card {
+        width: 170px;
         min-width: 160px;
         border-radius: 10px;
     }
 
-    .category-header h2 {
+    .categoria-header h2 {
         font-size: 18px;
         margin-bottom: 12px;
     }
@@ -2342,16 +2376,14 @@ body.page-carrinho footer.rodape-dashboard {
         border-radius: 12px;
     }
 
-    .categorias-home {
-        grid-template-columns: 1fr;
-    }
-
     .produto-card {
+        width: 170px;
         min-width: 160px;
     }
 
-    .banner-principal img {
-        height: 140px;
+    .produto-card img {
+        width: 92px;
+        height: 112px;
     }
 
     .checkout-opcoes,
@@ -2458,10 +2490,9 @@ body.page-carrinho footer.rodape-dashboard {
         padding: 8px 12px;
     }
 
-    .banner-principal img,
     .banner-slider {
         width: 100%;
-        height: auto;
+        height: 150px;
     }
 
     .categoria-item {

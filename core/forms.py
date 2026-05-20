@@ -47,6 +47,19 @@ class UserProfileForm(forms.Form):
     cpf = forms.CharField(max_length=14, required=False, label='CPF', widget=forms.TextInput(attrs={'placeholder': '000.000.000-00'}))
     nickname = forms.CharField(max_length=15, required=False, label='Apelido', widget=forms.TextInput(attrs={'placeholder': 'Como gostaria de ser chamado'}))
 
+    def __init__(self, *args, is_pharmacy_user=False, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if is_pharmacy_user:
+            self.fields['username'].label = 'Nome fantasia'
+            self.fields['username'].widget.attrs['placeholder'] = 'Digite o nome fantasia'
+            self.fields['cpf'] = forms.CharField(
+                max_length=18,
+                required=False,
+                label='CNPJ',
+                widget=forms.TextInput(attrs={'placeholder': '00.000.000/0000-00'})
+            )
+
 
 class PaymentForm(forms.Form):
     PAYMENT_METHOD_CHOICES = [
