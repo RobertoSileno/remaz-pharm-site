@@ -1104,6 +1104,20 @@ def pharmacy_inventory_update(request, inventory_id):
     return redirect('pharmacy_inventory', pharmacy_id=pharmacy.id)
 
 @login_required(login_url='login')
+@require_POST
+def pharmacy_inventory_delete(request, inventory_id):
+    inventory_item = get_object_or_404(PharmacyInventory.objects.select_related('pharmacy'), id=inventory_id)
+    pharmacy = get_accessible_pharmacy_or_404(request.user, inventory_item.pharmacy.id)
+    
+    medicine_name = inventory_item.medicine.name
+    pharmacy_id = pharmacy.id
+    
+    inventory_item.delete()
+    messages.success(request, f'{medicine_name} foi removido do estoque.')
+    
+    return redirect('pharmacy_inventory', pharmacy_id=pharmacy_id)
+
+@login_required(login_url='login')
 def pharmacy_orders_view(request, pharmacy_id):
     pharmacy = get_accessible_pharmacy_or_404(request.user, pharmacy_id)
 

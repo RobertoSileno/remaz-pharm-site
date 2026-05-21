@@ -285,7 +285,14 @@
                             <input type="checkbox" name="promotion_active" {% if item.promotion_active %}checked{% endif %}>
                             Promoção ativa
                         </label>
-                        <button class="btn-finalizar" type="submit">Atualizar</button>
+                        <div style="display: flex; gap: 10px; width: 100%;">
+                            <button class="btn-finalizar" type="submit" style="flex: 1;">Atualizar</button>
+                            <button class="btn-finalizar" style="background-color: #d32f2f; flex: 1; cursor: pointer;" type="button" onclick="if(confirm('Tem certeza que deseja excluir este produto do estoque?')) { document.getElementById('delete-form-{{ item.id }}').submit(); }">Excluir</button>
+                        </div>
+                    </form>
+                    
+                    <form id="delete-form-{{ item.id }}" method="post" action="{% url 'pharmacy_inventory_delete' item.id %}" style="display: none;">
+                        {% csrf_token %}
                     </form>
                 </article>
             {% empty %}
