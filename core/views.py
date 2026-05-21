@@ -455,10 +455,28 @@ def dashboard_view(request):
 
     categories = Category.objects.all()
 
+    category_queryset = Category.objects.filter(
+        medicine__pharmacy_inventory__pharmacy__is_active=True,
+        medicine__pharmacy_inventory__is_available=True,
+        medicine__pharmacy_inventory__stock__gt=0,
+    ).distinct().order_by('name')
+
+    if selected_categories:
+        category_queryset = category_queryset.filter(id__in=selected_categories)
+
+    inventory_items_by_category = []
+    for category in category_queryset:
+        category_items = inventory_items.filter(medicine__category=category)
+        if category_items.exists():
+            inventory_items_by_category.append({
+                'category': category,
+                'items': category_items,
+            })
+
     return render(request, 'dashboard.html', {
         'display_name': display_name,
         'cart_count': cart_count,
-        'inventory_items': inventory_items,
+        'inventory_items_by_category': inventory_items_by_category,
         'categories': categories,
         'search_query': search_query,
         'selected_categories': selected_categories,

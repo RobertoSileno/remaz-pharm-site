@@ -209,64 +209,68 @@
             </div>
         </form>
 
-        <div class="categoria-header">
-            <h2>Categoria</h2>
+        {% if inventory_items_by_category %}
+            {% for group in inventory_items_by_category %}
+                <div class="categoria-header">
+                    <h2>{{ group.category.name }}</h2>
 
-            <div class="setas-categoria">
-                <button class="scroll-btn" id="scroll-left" type="button">
-                    <i class="fa-solid fa-chevron-left"></i>
-                </button>
-
-                <button class="scroll-btn" id="scroll-right" type="button">
-                    <i class="fa-solid fa-chevron-right"></i>
-                </button>
-            </div>
-        </div>
-
-        <div class="produtos-scroll" id="produtos-scroll">
-
-            {% for inventory in inventory_items %}
-            <div class="produto-card">
-
-                <span class="seta">›</span>
-
-                {% if inventory.medicine.image %}
-                    <img src="{{ inventory.medicine.image }}" alt="{{ inventory.medicine.name }}">
-                {% else %}
-                    <img src="{% static 'img/medicamento.png' %}" alt="Sem imagem">
-                {% endif %}
-
-                <h4>{{ inventory.medicine.name }}</h4>
-                <p class="produto-farmacia">{{ inventory.pharmacy.name }}</p>
-                <p class="produto-estoque">Estoque: {{ inventory.stock }}</p>
-                {% if inventory.has_active_promotion %}
-                    <span class="produto-promocao">{{ inventory.promotion_title|default:"Promocao ativa" }}</span>
-                {% endif %}
-
-                <div class="rodape-card">
-                    <div>
-                        <p>Valor</p>
-                        {% if inventory.has_active_promotion %}
-                            <small class="preco-antigo">R$ {{ inventory.price }}</small>
-                        {% endif %}
-                        <strong>R$ {{ inventory.effective_price }}</strong>
-                    </div>
-
-                    <form method="post" action="{% url 'add_inventory_to_cart' inventory.id %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="next" value="{% url 'cart' %}">
-                        <button type="submit" aria-label="Adicionar {{ inventory.medicine.name }} ao carrinho">
-                            <i class="fa-solid fa-cart-shopping"></i>
+                    <div class="setas-categoria">
+                        <button class="scroll-btn" data-target="produtos-scroll-{{ forloop.counter }}" data-direction="left" type="button">
+                            <i class="fa-solid fa-chevron-left"></i>
                         </button>
-                    </form>
+
+                        <button class="scroll-btn" data-target="produtos-scroll-{{ forloop.counter }}" data-direction="right" type="button">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
                 </div>
 
-            </div>
-            {% empty %}
-                <p class="sem-produtos">Nenhum produto disponível no estoque das farmácias.</p>
-            {% endfor %}
+                <div class="produtos-scroll" id="produtos-scroll-{{ forloop.counter }}">
 
-        </div>
+                    {% for inventory in group.items %}
+                        <div class="produto-card">
+
+                            <span class="seta">›</span>
+
+                            {% if inventory.medicine.image %}
+                                <img src="{{ inventory.medicine.image }}" alt="{{ inventory.medicine.name }}">
+                            {% else %}
+                                <img src="{% static 'img/medicamento.png' %}" alt="Sem imagem">
+                            {% endif %}
+
+                            <h4>{{ inventory.medicine.name }}</h4>
+                            <p class="produto-farmacia">{{ inventory.pharmacy.name }}</p>
+                            <p class="produto-estoque">Estoque: {{ inventory.stock }}</p>
+                            {% if inventory.has_active_promotion %}
+                                <span class="produto-promocao">{{ inventory.promotion_title|default:"Promocao ativa" }}</span>
+                            {% endif %}
+
+                            <div class="rodape-card">
+                                <div>
+                                    <p>Valor</p>
+                                    {% if inventory.has_active_promotion %}
+                                        <small class="preco-antigo">R$ {{ inventory.price }}</small>
+                                    {% endif %}
+                                    <strong>R$ {{ inventory.effective_price }}</strong>
+                                </div>
+
+                                <form method="post" action="{% url 'add_inventory_to_cart' inventory.id %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{% url 'cart' %}">
+                                    <button type="submit" aria-label="Adicionar {{ inventory.medicine.name }} ao carrinho">
+                                        <i class="fa-solid fa-cart-shopping"></i>
+                                    </button>
+                                </form>
+                            </div>
+
+                        </div>
+                    {% endfor %}
+
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="sem-produtos">Nenhum produto disponível no estoque das farmácias.</p>
+        {% endif %}
 
     </section>
 
@@ -293,19 +297,18 @@
 
     // SCROLL DOS CARDS
 
-    const scrollContainer = document.getElementById('produtos-scroll');
-
-    document.getElementById('scroll-right').addEventListener('click', () => {
-        scrollContainer.scrollBy({
-            left: 350,
-            behavior: 'smooth'
-        });
-    });
-
-    document.getElementById('scroll-left').addEventListener('click', () => {
-        scrollContainer.scrollBy({
-            left: -350,
-            behavior: 'smooth'
+    document.querySelectorAll('.scroll-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const targetId = button.dataset.target;
+            const direction = button.dataset.direction;
+            const scrollContainer = document.getElementById(targetId);
+            if (!scrollContainer) {
+                return;
+            }
+            scrollContainer.scrollBy({
+                left: direction === 'right' ? 350 : -350,
+                behavior: 'smooth'
+            });
         });
     });
 
