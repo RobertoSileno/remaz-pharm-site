@@ -241,6 +241,18 @@ img {
     padding: 24px;
 }
 
+.dashboard-wrapper > section {
+    padding-inline: 24px;
+}
+
+.dashboard-wrapper > section:not(.banner-area) {
+    margin-bottom: 28px;
+}
+
+.banner-area {
+    margin-bottom: 28px;
+}
+
 .menu-publico-home {
     display: flex;
     justify-content: center;
@@ -381,6 +393,98 @@ body.page-carrinho footer.rodape-dashboard {
     font-weight: bold;
     color: #2b7695;
     text-align: center;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.farmacias-listagem {
+    margin-bottom: 28px;
+}
+
+.farmacias-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 18px;
+}
+
+.farmacia-card {
+    background: #f7f7f7;
+    border-radius: 18px;
+    padding: 18px;
+    border: 1px solid #d8d8d8;
+    text-align: left;
+    cursor: pointer;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.farmacia-card:hover {
+    transform: translateY(-3px);
+}
+
+.farmacia-logo {
+    width: 72px;
+    min-width: 72px;
+    height: 72px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #d8d8d8;
+}
+
+.farmacia-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.farmacia-logo-placeholder {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2b7695;
+    font-size: 20px;
+}
+
+.farmacia-dados h3 {
+    margin: 0 0 6px;
+    font-size: 16px;
+    color: #1f4e69;
+}
+
+.farmacia-dados p {
+    margin: 0;
+    color: #5d7a8c;
+    font-size: 14px;
+}
+
+.categoria-grupo {
+    margin-bottom: 28px;
+    padding-inline: 24px;
+}
+
+.categoria-header {
+    padding-inline: 24px;
+}
+
+.produtos-scroll {
+    display: flex;
+    gap: 22px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scroll-snap-type: x proximity;
+    padding: 0 24px 10px;
 }
 
 /* BANNER */

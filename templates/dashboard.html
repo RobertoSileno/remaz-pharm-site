@@ -84,48 +84,53 @@
     <!-- ÍCONES -->
     <section class="categorias-home">
 
-        <div class="categoria-item">
+        <div class="categoria-item" data-filter="all">
             <div class="categoria-icon">
                 <i class="fa-solid fa-pills"></i>
             </div>
             <span>Medicamentos</span>
         </div>
 
-        <div class="categoria-item">
+        <div class="categoria-item" data-filter="higiene-pessoal">
             <div class="categoria-icon">
                 <i class="fa-solid fa-pump-soap"></i>
             </div>
             <span>Higiene Pessoal</span>
         </div>
 
-        <div class="categoria-item">
+        <div class="categoria-item" data-filter="baby">
             <div class="categoria-icon">
                 <i class="fa-solid fa-baby"></i>
             </div>
             <span>Baby</span>
         </div>
 
-        <div class="categoria-item">
+        <div class="categoria-item" data-filter="beleza">
             <div class="categoria-icon">
                 <i class="fa-solid fa-heart"></i>
             </div>
             <span>Beleza</span>
         </div>
 
-        <div class="categoria-item">
+        <div class="categoria-item" data-filter="ofertas">
             <div class="categoria-icon">
                 <i class="fa-solid fa-tags"></i>
             </div>
             <span>Ofertas</span>
         </div>
 
-        <div class="categoria-item">
+        <div class="categoria-item" data-filter="farmacias">
             <div class="categoria-icon">
                 <i class="fa-solid fa-shop"></i>
             </div>
             <span>Farmácias</span>
         </div>
 
+    </section>
+
+    <section class="farmacias-listagem hidden" id="farmaciasListagem">
+        <h2>Farmácias com produtos</h2>
+        <div class="farmacias-grid" id="farmaciasGrid"></div>
     </section>
 
     <!-- BANNER -->
@@ -211,24 +216,30 @@
 
         {% if inventory_items_by_category %}
             {% for group in inventory_items_by_category %}
-                <div class="categoria-header">
-                    <h2>{{ group.category.name }}</h2>
+                <div class="categoria-grupo" data-category="{{ group.category.name }}">
+                    <div class="categoria-header">
+                        <h2>{{ group.category.name }}</h2>
 
-                    <div class="setas-categoria">
-                        <button class="scroll-btn" data-target="produtos-scroll-{{ forloop.counter }}" data-direction="left" type="button">
-                            <i class="fa-solid fa-chevron-left"></i>
-                        </button>
+                        <div class="setas-categoria">
+                            <button class="scroll-btn" data-target="produtos-scroll-{{ forloop.counter }}" data-direction="left" type="button">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </button>
 
-                        <button class="scroll-btn" data-target="produtos-scroll-{{ forloop.counter }}" data-direction="right" type="button">
-                            <i class="fa-solid fa-chevron-right"></i>
-                        </button>
+                            <button class="scroll-btn" data-target="produtos-scroll-{{ forloop.counter }}" data-direction="right" type="button">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>
                     </div>
-                </div>
 
-                <div class="produtos-scroll" id="produtos-scroll-{{ forloop.counter }}">
+                    <div class="produtos-scroll" id="produtos-scroll-{{ forloop.counter }}" data-category="{{ group.category.name }}">
 
                     {% for inventory in group.items %}
-                        <div class="produto-card">
+                        <div class="produto-card"
+                             data-pharmacy-id="{{ inventory.pharmacy.id }}"
+                             data-pharmacy-name="{{ inventory.pharmacy.name|escape }}"
+                             data-pharmacy-logo="{{ inventory.pharmacy.logo|default:''|escape }}"
+                             data-pharmacy-address="{{ inventory.pharmacy.street|default:''|escape }}, {{ inventory.pharmacy.number|default:''|escape }} {{ inventory.pharmacy.district|default:''|escape }}, {{ inventory.pharmacy.city|default:''|escape }}/{{ inventory.pharmacy.state|default:''|escape }}"
+                             data-promotion="{% if inventory.has_active_promotion %}1{% else %}0{% endif %}">
 
                             <span class="seta">›</span>
 
@@ -266,6 +277,7 @@
                         </div>
                     {% endfor %}
 
+                    </div>
                 </div>
             {% endfor %}
         {% else %}
@@ -309,6 +321,134 @@
                 left: direction === 'right' ? 350 : -350,
                 behavior: 'smooth'
             });
+        });
+    });
+
+    const iconFilters = document.querySelectorAll('.categoria-item[data-filter]');
+    const categoryGroups = document.querySelectorAll('.categoria-grupo');
+    const arrowGroups = document.querySelectorAll('.setas-categoria');
+    const categorySection = document.querySelector('.conteudo-principal');
+    const pharmacyListSection = document.getElementById('farmaciasListagem');
+    const pharmacyGrid = document.getElementById('farmaciasGrid');
+    let selectedPharmacyId = null;
+
+    function buildPharmacyCards() {
+        const pharmacies = new Map();
+        document.querySelectorAll('.produto-card').forEach(card => {
+            const id = card.dataset.pharmacyId;
+            if (!id || pharmacies.has(id)) {
+                return;
+            }
+            pharmacies.set(id, {
+                id,
+                name: card.dataset.pharmacyName,
+                logo: card.dataset.pharmacyLogo,
+                address: card.dataset.pharmacyAddress,
+            });
+        });
+
+        pharmacyGrid.innerHTML = '';
+
+        pharmacies.forEach(pharmacy => {
+            const card = document.createElement('button');
+            card.type = 'button';
+            card.className = 'farmacia-card';
+            card.dataset.pharmacyId = pharmacy.id;
+            card.innerHTML = `
+                <div class="farmacia-logo">
+                    ${pharmacy.logo ? `<img src="${pharmacy.logo}" alt="${pharmacy.name}">` : `<div class="farmacia-logo-placeholder"><i class="fa-solid fa-shop"></i></div>`}
+                </div>
+                <div class="farmacia-dados">
+                    <h3>${pharmacy.name}</h3>
+                    <p>${pharmacy.address}</p>
+                </div>
+            `;
+            pharmacyGrid.appendChild(card);
+        });
+
+        pharmacyGrid.querySelectorAll('.farmacia-card').forEach(card => {
+            card.addEventListener('click', () => {
+                selectPharmacy(card.dataset.pharmacyId);
+            });
+        });
+    }
+
+    function showPharmaciesView() {
+        selectedPharmacyId = null;
+        pharmacyListSection.classList.remove('hidden');
+        categorySection.classList.add('hidden');
+        buildPharmacyCards();
+        arrowGroups.forEach(arrowGroup => arrowGroup.style.display = 'none');
+    }
+
+    function showCategoryView() {
+        pharmacyListSection.classList.add('hidden');
+        categorySection.classList.remove('hidden');
+    }
+
+    function applyDashboardFilter(filter) {
+        selectedPharmacyId = null;
+        if (filter === 'farmacias') {
+            showPharmaciesView();
+            return;
+        }
+
+        showCategoryView();
+
+        categoryGroups.forEach(group => {
+            const categoryName = group.dataset.category.toLowerCase();
+            const cards = group.querySelectorAll('.produto-card');
+            let groupVisible = false;
+
+            if (filter === 'all') {
+                cards.forEach(card => card.style.display = '');
+                groupVisible = cards.length > 0;
+            } else if (filter === 'ofertas') {
+                cards.forEach(card => {
+                    const isPromo = card.dataset.promotion === '1';
+                    card.style.display = isPromo ? '' : 'none';
+                    if (isPromo) groupVisible = true;
+                });
+            } else {
+                const targetCategory = filter.replace('-', ' ');
+                if (categoryName.includes(targetCategory)) {
+                    cards.forEach(card => card.style.display = '');
+                    groupVisible = cards.length > 0;
+                } else {
+                    cards.forEach(card => card.style.display = 'none');
+                }
+            }
+
+            group.style.display = groupVisible ? '' : 'none';
+        });
+
+        arrowGroups.forEach(arrowGroup => arrowGroup.style.display = 'none');
+    }
+
+    function selectPharmacy(pharmacyId) {
+        selectedPharmacyId = pharmacyId;
+        showCategoryView();
+
+        categoryGroups.forEach(group => {
+            const cards = group.querySelectorAll('.produto-card');
+            let groupVisible = false;
+
+            cards.forEach(card => {
+                const visible = card.dataset.pharmacyId === pharmacyId;
+                card.style.display = visible ? '' : 'none';
+                if (visible) groupVisible = true;
+            });
+
+            group.style.display = groupVisible ? '' : 'none';
+        });
+
+        arrowGroups.forEach(arrowGroup => arrowGroup.style.display = 'none');
+    }
+
+    iconFilters.forEach(icon => {
+        icon.addEventListener('click', () => {
+            const filter = icon.dataset.filter;
+            applyDashboardFilter(filter);
         });
     });
 
