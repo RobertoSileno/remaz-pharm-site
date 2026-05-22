@@ -2607,3 +2607,28 @@ body.page-carrinho footer.rodape-dashboard {
         padding: 12px 10px;
     }
 }
+
+/* seu css atual acima */
+
+/* =========================
+   AJUSTE DE ALINHAMENTO
+========================= */
+
+.categorias-home,
+.banner-area,
+.conteudo-principal {
+    width: 100%;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 40px;
+    padding-right: 40px;
+}
+
+/* Remove diferenças internas que causavam desalinhamento */
+.categoria-grupo,
+.categoria-header,
+.produtos-scroll {
+    margin-left: 0;
+    padding-left: 0;
+}
