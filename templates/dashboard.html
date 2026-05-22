@@ -84,7 +84,7 @@
     <!-- ÍCONES -->
     <section class="categorias-home">
 
-        <div class="categoria-item" data-filter="all">
+        <div class="categoria-item" data-filter="medicamentos">
             <div class="categoria-icon">
                 <i class="fa-solid fa-pills"></i>
             </div>
@@ -379,15 +379,18 @@
         categorySection.classList.add('hidden');
         buildPharmacyCards();
         arrowGroups.forEach(arrowGroup => arrowGroup.style.display = 'none');
+        document.querySelectorAll('.produtos-scroll').forEach(container => container.classList.remove('grid-view'));
     }
 
     function showCategoryView() {
         pharmacyListSection.classList.add('hidden');
         categorySection.classList.remove('hidden');
+        document.querySelectorAll('.produtos-scroll').forEach(container => container.classList.remove('grid-view'));
     }
 
     function applyDashboardFilter(filter) {
         selectedPharmacyId = null;
+
         if (filter === 'farmacias') {
             showPharmaciesView();
             return;
@@ -452,7 +455,7 @@
         });
     });
 
-     // BANNER AUTOMÁTICO
+    // BANNER AUTOMÁTICO
 
     const banners = document.querySelectorAll('.banner');
 

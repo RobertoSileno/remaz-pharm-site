@@ -563,6 +563,7 @@ body.page-carrinho footer.rodape-dashboard {
 .produtos-scroll {
     display: flex;
     gap: 22px;
+    width: 100%;
     overflow-x: auto;
     scroll-behavior: smooth;
     scroll-snap-type: x proximity;
@@ -571,6 +572,22 @@ body.page-carrinho footer.rodape-dashboard {
 
 .produtos-scroll::-webkit-scrollbar {
     display: none;
+}
+
+.produtos-scroll.grid-view {
+    display: grid !important;
+    grid-template-columns: repeat(6, minmax(220px, 1fr));
+    gap: 22px;
+    overflow: visible;
+    padding-bottom: 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.produtos-scroll.grid-view .produto-card {
+    width: 100%;
+    min-width: 0;
+    flex-shrink: 0;
 }
 
 /* CARD */
