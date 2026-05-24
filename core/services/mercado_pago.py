@@ -1,4 +1,5 @@
 import uuid
+import logging
 from decimal import Decimal
 
 import requests
@@ -6,6 +7,7 @@ from django.conf import settings
 
 
 MERCADO_PAGO_PAYMENT_URL = 'https://api.mercadopago.com/v1/payments'
+logger = logging.getLogger(__name__)
 
 
 def create_pix_payment(order):
@@ -46,11 +48,12 @@ def create_pix_payment(order):
             timeout=20,
         )
         data = response.json() if response.content else {}
-    except requests.RequestException as exc:
+    except requests.RequestException:
+        logger.exception('Falha ao comunicar com Mercado Pago para o pedido %s.', order.id)
         return {
             'configured': True,
             'status': 'error',
-            'error_message': str(exc),
+            'error_message': 'Nao foi possivel gerar o Pix agora. Tente novamente mais tarde.',
         }
 
     if response.status_code >= 400:

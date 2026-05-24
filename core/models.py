@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     cpf = models.CharField(max_length=14, unique=True, blank=True, null=True)
@@ -15,6 +16,24 @@ class UserProfile(models.Model):
     class Meta:
         verbose_name = 'Perfil de Usuário'
         verbose_name_plural = 'Perfis de Usuários'
+
+
+class MobileAuthToken(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='mobile_auth_tokens')
+    key_hash = models.CharField(max_length=64, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    last_used_at = models.DateTimeField(blank=True, null=True)
+    revoked_at = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self):
+        return f'Token mobile de {self.user_id}'
+
+    class Meta:
+        ordering = ('-created_at',)
+        verbose_name = 'Token de autenticacao mobile'
+        verbose_name_plural = 'Tokens de autenticacao mobile'
+
 
 class Address(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='addresses')

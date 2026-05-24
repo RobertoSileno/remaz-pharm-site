@@ -1,8 +1,14 @@
 import uuid
+import hashlib
+import logging
 from decimal import Decimal
 from pathlib import Path
 
 from django.conf import settings
+from django.contrib.auth.password_validation import validate_password
+from django.core.cache import cache
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.core.files.storage import FileSystemStorage
 from django.db import transaction
 from django.http import FileResponse, Http404
@@ -13,6 +19,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.utils import timezone
 from .models import (
+    UserProfile,
     Address,
     Medicine,
     Category,
@@ -35,8 +42,12 @@ from django.utils.http import url_has_allowed_host_and_scheme
 GOVBR_SIGNATURE_URL = 'https://assinador.iti.br'
 PRESCRIPTION_EXTENSIONS = {'pdf'}
 PRESCRIPTION_MAX_SIZE = 10 * 1024 * 1024
+PRESCRIPTION_CONTENT_TYPES = {'application/pdf', 'application/octet-stream'}
 PRODUCT_IMAGE_CONTENT_TYPES = {'image/png', 'image/jpeg', 'image/webp'}
 PRODUCT_IMAGE_MAX_SIZE = 5 * 1024 * 1024
+LOGIN_ATTEMPT_LIMIT = 5
+LOGIN_LOCK_SECONDS = 15 * 60
+logger = logging.getLogger(__name__)
 
 def get_display_name(user):
     username = user.username.strip()
@@ -96,6 +107,33 @@ def clear_prescription_session(request):
     request.session.pop('prescription_uploaded', None)
     request.session.pop('prescription_file', None)
 
+
+def validate_prescription_file(prescription_file):
+    file_ext = prescription_file.name.rsplit('.', 1)[-1].lower() if '.' in prescription_file.name else ''
+    if file_ext not in PRESCRIPTION_EXTENSIONS:
+        return 'Envie a receita em formato PDF.'
+    if prescription_file.size > PRESCRIPTION_MAX_SIZE:
+        return 'A receita deve ter no maximo 10 MB.'
+    if prescription_file.content_type not in PRESCRIPTION_CONTENT_TYPES:
+        return 'O arquivo enviado nao foi reconhecido como PDF.'
+    signature = prescription_file.read(5)
+    prescription_file.seek(0)
+    if signature != b'%PDF-':
+        return 'O arquivo enviado nao e um PDF valido.'
+    return ''
+
+
+def valid_cpf(cpf):
+    if not cpf.isdigit() or len(cpf) != 11 or cpf == cpf[0] * 11:
+        return False
+    for length in (9, 10):
+        total = sum(int(cpf[index]) * (length + 1 - index) for index in range(length))
+        digit = (total * 10 % 11) % 10
+        if digit != int(cpf[length]):
+            return False
+    return True
+
+
 def validate_product_image(image_file):
     if image_file.content_type not in PRODUCT_IMAGE_CONTENT_TYPES:
         return 'Envie uma imagem PNG, JPG, JPEG ou WebP.'
@@ -144,69 +182,77 @@ def home(request):
 
 def login_view(request):
     if request.method == 'POST':
-        email_or_cpf = request.POST['username']  # campo do form
-        password = request.POST['password']
+        email_or_cpf = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
+        remote_address = request.META.get('REMOTE_ADDR', '')
+        throttle_digest = hashlib.sha256(f'{remote_address}:{email_or_cpf.lower()}'.encode('utf-8')).hexdigest()
+        throttle_key = f'web_login_attempts:{throttle_digest}'
+        attempts = cache.get(throttle_key, 0)
+        if attempts >= LOGIN_ATTEMPT_LIMIT:
+            messages.error(request, 'Muitas tentativas. Aguarde alguns minutos.')
+            return render(request, 'login.html')
         
         user = None
         
-        # Verifica se é email (contém @)
         if '@' in email_or_cpf:
-            try:
-                user = User.objects.get(email=email_or_cpf)
-            except User.DoesNotExist:
-                pass
+            user = User.objects.filter(email__iexact=email_or_cpf).first()
         else:
-            # Trata como CPF (remove pontos e hífen)
             cpf_limpo = email_or_cpf.replace('.', '').replace('-', '')
-            try:
-                from core.models import UserProfile
-                profile = UserProfile.objects.get(cpf=cpf_limpo)
-                user = profile.user
-            except UserProfile.DoesNotExist:
-                pass
+            profile = UserProfile.objects.select_related('user').filter(cpf=cpf_limpo).first()
+            user = profile.user if profile else None
         
-        # Verifica se o usuário foi encontrado
-        if user is None:
-            messages.error(request, 'Email/CPF não encontrado')
+        user_auth = authenticate(request, username=user.username, password=password) if user else None
+        if user_auth is None:
+            cache.set(throttle_key, attempts + 1, LOGIN_LOCK_SECONDS)
+            messages.error(request, 'Credenciais invalidas.')
         else:
-            # Tenta autenticar com a senha
-            user_auth = authenticate(request, username=user.username, password=password)
-            if user_auth is None:
-                messages.error(request, 'Senha incorreta')
-            else:
-                login(request, user_auth)
-                return redirect('dashboard')
+            cache.delete(throttle_key)
+            login(request, user_auth)
+            return redirect('dashboard')
     
     return render(request, 'login.html')
 
 def register_view(request):
     if request.method == 'POST':
-        username = request.POST['username']  # Nome completo (ou altere para email se preferir)
-        email = request.POST['email']
-        password = request.POST['password']
-        password_confirm = request.POST['password_confirm']
-        cpf = request.POST.get('cpf', '').replace('.', '').replace('-', '')  # Limpa o CPF
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip().lower()
+        password = request.POST.get('password', '')
+        password_confirm = request.POST.get('password_confirm', '')
+        cpf = request.POST.get('cpf', '').replace('.', '').replace('-', '')
         
         if password != password_confirm:
-            messages.error(request, 'Senhas não coincidem')
+            messages.error(request, 'Senhas nao coincidem.')
+            return render(request, 'register.html')
+
+        try:
+            validate_email(email)
+        except ValidationError:
+            messages.error(request, 'Informe um e-mail valido.')
+            return render(request, 'register.html')
+
+        if not cpf or not valid_cpf(cpf):
+            messages.error(request, 'Informe um CPF valido.')
             return render(request, 'register.html')
         
-        if User.objects.filter(username=username).exists():
-            messages.error(request, 'Usuário já existe')
+        if User.objects.filter(Q(username=username) | Q(email__iexact=email)).exists():
+            messages.error(request, 'Nome ou e-mail ja cadastrado.')
             return render(request, 'register.html')
         
         if cpf and User.objects.filter(profile__cpf=cpf).exists():
-            messages.error(request, 'CPF já cadastrado')
+            messages.error(request, 'CPF ja cadastrado.')
             return render(request, 'register.html')
-        
+
+        candidate = User(username=username, email=email)
+        try:
+            validate_password(password, candidate)
+        except ValidationError as exc:
+            messages.error(request, 'Senha invalida: ' + ' '.join(exc.messages))
+            return render(request, 'register.html')
+
         user = User.objects.create_user(username=username, email=email, password=password)
-        user.save()
-        
-        # Criar perfil do usuário com CPF (sem nickname)
-        from core.models import UserProfile
         UserProfile.objects.create(user=user, cpf=cpf)
         
-        messages.success(request, 'Registro realizado! Faça login.')
+        messages.success(request, 'Registro realizado! Faca login.')
         return redirect('login')
    
     return render(request, 'register.html')
@@ -557,15 +603,12 @@ def prescription_upload_view(request):
         if not prescription_file:
             messages.error(request, 'Selecione a receita digitalizada e assinada antes de continuar.')
         else:
-            file_ext = prescription_file.name.rsplit('.', 1)[-1].lower()
-
-            if file_ext not in PRESCRIPTION_EXTENSIONS:
-                messages.error(request, 'Envie a receita em formato PDF.')
-            elif prescription_file.size > PRESCRIPTION_MAX_SIZE:
-                messages.error(request, 'A receita deve ter no máximo 10 MB.')
+            validation_error = validate_prescription_file(prescription_file)
+            if validation_error:
+                messages.error(request, validation_error)
             else:
                 storage = FileSystemStorage(location=str(settings.PRIVATE_MEDIA_ROOT / 'prescriptions'))
-                file_name = f'user_{request.user.id}_{uuid.uuid4().hex}.{file_ext}'
+                file_name = f'user_{request.user.id}_{uuid.uuid4().hex}.pdf'
                 saved_name = storage.save(file_name, prescription_file)
 
                 request.session['prescription_uploaded'] = True
@@ -698,8 +741,8 @@ def pharmacy_inventory_view(request, pharmacy_id):
                 if image_file:
                     try:
                         image_url = upload_image(image_file)
-                    except Exception as exc:
-                        print('Erro ao enviar imagem para Supabase:', exc)
+                    except Exception:
+                        logger.exception('Falha no upload de imagem para Supabase.')
                         messages.error(request, 'Nao foi possivel enviar a imagem para o Supabase. Tente novamente.')
                         return redirect('pharmacy_inventory', pharmacy_id=pharmacy.id)
 
@@ -725,8 +768,8 @@ def pharmacy_inventory_view(request, pharmacy_id):
                 try:
                     medicine.image = upload_image(image_file)
                     medicine.save(update_fields=['image'])
-                except Exception as exc:
-                    print('Erro ao enviar imagem para Supabase:', exc)
+                except Exception:
+                    logger.exception('Falha no upload de imagem para Supabase.')
                     messages.error(request, 'Nao foi possivel enviar a imagem para o Supabase. Tente novamente.')
                     return redirect('pharmacy_inventory', pharmacy_id=pharmacy.id)
 
@@ -785,8 +828,8 @@ def pharmacy_inventory_update(request, inventory_id):
         try:
             inventory_item.medicine.image = upload_image(image_file)
             inventory_item.medicine.save(update_fields=['image'])
-        except Exception as exc:
-            print('Erro ao enviar imagem para Supabase:', exc)
+        except Exception:
+            logger.exception('Falha no upload de imagem para Supabase.')
             messages.error(request, 'Nao foi possivel enviar a imagem para o Supabase. Tente novamente.')
             return redirect('pharmacy_inventory', pharmacy_id=pharmacy.id)
 
