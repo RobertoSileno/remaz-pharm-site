@@ -368,6 +368,7 @@ body.page-checkout footer.rodape-dashboard {
 
 .categoria-item {
     background: #f7f7f7;
+    border: 1px solid transparent;
     border-radius: 18px;
     padding: 18px 10px;
     display: flex;
@@ -376,10 +377,24 @@ body.page-checkout footer.rodape-dashboard {
     justify-content: center;
     transition: 0.3s;
     cursor: pointer;
+    font: inherit;
+    width: 100%;
 }
 
 .categoria-item:hover {
     transform: translateY(-4px);
+}
+
+.categoria-item.ativo {
+    background: #ffffff;
+    border-color: #9bb9c8;
+    box-shadow: 0 8px 22px rgba(43, 118, 149, 0.14);
+    transform: translateY(-4px);
+}
+
+.categoria-item.ativo .categoria-icon {
+    border-color: #d63031;
+    background: #fff5f5;
 }
 
 .categoria-icon {
@@ -404,6 +419,10 @@ body.page-checkout footer.rodape-dashboard {
     font-weight: bold;
     color: #2b7695;
     text-align: center;
+}
+
+.sem-produtos-filtro {
+    margin-top: 18px;
 }
 
 .hidden {
@@ -591,7 +610,7 @@ body.page-checkout footer.rodape-dashboard {
 
 .produtos-scroll.grid-view {
     display: grid !important;
-    grid-template-columns: repeat(6, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 22px;
     overflow: visible;
     padding-bottom: 10px;
@@ -610,9 +629,9 @@ body.page-checkout footer.rodape-dashboard {
 .produto-card {
     width: 220px;
     min-width: 220px;
-    background: #f3f3f3;
-    border: 1px solid #9bb9c8;
-    border-radius: 14px;
+    background: #ffffff;
+    border: 1px solid #c8d9e2;
+    border-radius: 12px;
     padding: 14px;
     position: relative;
     text-align: center;
@@ -621,7 +640,15 @@ body.page-checkout footer.rodape-dashboard {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    height: 360px; /* padroniza altura dos cards */
+    height: 374px;
+    box-shadow: 0 8px 22px rgba(31, 78, 105, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.produto-card:hover {
+    transform: translateY(-4px);
+    border-color: #92b5c6;
+    box-shadow: 0 14px 30px rgba(31, 78, 105, 0.14);
 }
 
 .produto-card img,
@@ -655,11 +682,16 @@ body.page-checkout footer.rodape-dashboard {
 }
 
 .produto-card h4 {
+    color: #1f4e69;
     font-size: 15px;
-    color: #2e6585;
-    min-height: 42px;
-    margin-bottom: 12px;
-    line-height: 1.4;
+    font-weight: 700;
+    line-height: 1.35;
+    min-height: 41px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
 .seta {
@@ -680,32 +712,43 @@ body.page-checkout footer.rodape-dashboard {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border: 1px solid #9bb9c8;
+    border: 1px solid #d3e7ef;
     border-radius: 8px;
-    padding: 8px;
-    background: #fffaf5;
-    margin-top: 10px;
+    padding: 12px;
+    background: #eef7fa;
+    margin-top: 12px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.rodape-card > div {
+    min-width: 0;
+    text-align: left;
 }
 
 .rodape-card p {
-    font-size: 12px;
-    color: #6a737a;
+    color: #527286;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
     text-align: left;
+    text-transform: uppercase;
 }
 
 .rodape-card strong {
     display: block;
-    font-size: 20px;
-    color: #d6472d;
+    color: #c83d2c;
+    font-size: 21px;
     font-weight: bold;
+    line-height: 1.1;
 }
 
 .preco-antigo {
     display: block;
-    color: #8b969c;
+    color: #65727a;
     font-size: 11px;
     text-align: left;
     text-decoration: line-through;
+    margin-bottom: 2px;
 }
 
 .rodape-card button {
@@ -717,6 +760,13 @@ body.page-checkout footer.rodape-dashboard {
     cursor: pointer;
     font-size: 18px;
     color: white;
+    box-shadow: 0 6px 14px rgba(43, 118, 149, 0.22);
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.rodape-card button:hover {
+    background: #1f4e69;
+    transform: translateY(-1px);
 }
 
 /* FOOTER */
@@ -1545,12 +1595,13 @@ body.page-checkout footer.rodape-dashboard {
 
 .produto-farmacia {
     font-weight: bold;
-    color: #2e6585;
-    margin-top: -6px;
+    color: #2b617f;
+    margin-top: -4px;
 }
 
 .produto-estoque {
-    margin: 2px 0 8px;
+    color: #667782;
+    margin: 3px 0 8px;
 }
 
 .produto-promocao {

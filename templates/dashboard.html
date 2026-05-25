@@ -84,53 +84,53 @@
     <!-- ÍCONES -->
     <section class="categorias-home">
 
-        <div class="categoria-item" data-filter="medicamentos">
+        <button class="categoria-item" data-filter="medicamentos" type="button" aria-pressed="false">
             <div class="categoria-icon">
                 <i class="fa-solid fa-pills"></i>
             </div>
             <span>Medicamentos</span>
-        </div>
+        </button>
 
-        <div class="categoria-item" data-filter="higiene-pessoal">
+        <button class="categoria-item" data-filter="higiene-pessoal" type="button" aria-pressed="false">
             <div class="categoria-icon">
                 <i class="fa-solid fa-pump-soap"></i>
             </div>
             <span>Higiene Pessoal</span>
-        </div>
+        </button>
 
-        <div class="categoria-item" data-filter="baby">
+        <button class="categoria-item" data-filter="baby" type="button" aria-pressed="false">
             <div class="categoria-icon">
                 <i class="fa-solid fa-baby"></i>
             </div>
             <span>Baby</span>
-        </div>
+        </button>
 
-        <div class="categoria-item" data-filter="beleza">
+        <button class="categoria-item" data-filter="beleza" type="button" aria-pressed="false">
             <div class="categoria-icon">
                 <i class="fa-solid fa-heart"></i>
             </div>
             <span>Beleza</span>
-        </div>
+        </button>
 
-        <div class="categoria-item" data-filter="ofertas">
+        <button class="categoria-item" data-filter="ofertas" type="button" aria-pressed="false">
             <div class="categoria-icon">
                 <i class="fa-solid fa-tags"></i>
             </div>
             <span>Ofertas</span>
-        </div>
+        </button>
 
-        <div class="categoria-item" data-filter="farmacias">
+        <button class="categoria-item" data-filter="suplementos" type="button" aria-pressed="false">
             <div class="categoria-icon">
                 <i class="fa-solid fa-shop"></i>
             </div>
             <span>Suplementos</span>
-        </div>
+        </button>
 
     </section>
 
-    <section class="farmacias-listagem hidden" id="farmaciasListagem">
+    <section class="suplementos-listagem hidden" id="suplementosListagem">
         <h2>Suplementos</h2>
-        <div class="farmacias-grid" id="farmaciasGrid"></div>
+        <div class="suplementos-grid" id="suplementosGrid"></div>
     </section>
 
     <!-- BANNER -->
@@ -216,7 +216,7 @@
 
         {% if inventory_items_by_category %}
             {% for group in inventory_items_by_category %}
-                <div class="categoria-grupo" data-category="{{ group.category.name }}">
+                <div class="categoria-grupo" data-category="{{ group.category.name }}" data-category-slug="{{ group.category.name|slugify }}" id="categoria-{{ group.category.name|slugify }}">
                     <div class="categoria-header">
                         <h2>{{ group.category.name }}</h2>
 
@@ -283,6 +283,7 @@
                     </div>
                 </div>
             {% endfor %}
+            <p class="sem-produtos sem-produtos-filtro hidden" id="semProdutosFiltro">Nenhum produto encontrado nessa categoria.</p>
         {% else %}
             <p class="sem-produtos">Nenhum produto disponível no estoque de suplementos.</p>
         {% endif %}
@@ -333,9 +334,60 @@
     const categorySection = document.querySelector('.conteudo-principal');
     const pharmacyListSection = document.getElementById('farmaciasListagem');
     const pharmacyGrid = document.getElementById('farmaciasGrid');
+    const noProductsMessage = document.getElementById('semProdutosFiltro');
     let selectedPharmacyId = null;
 
+    const categoryAliases = {
+        'medicamentos': ['medicamentos', 'medicamento', 'remedios', 'remedio'],
+        'higiene-pessoal': ['higiene pessoal', 'higiene', 'higiene-pessoal'],
+        'baby': ['baby', 'bebe', 'bebes', 'infantil'],
+        'beleza': ['beleza'],
+        'ofertas': ['ofertas', 'oferta'],
+        'suplementos': ['suplementos', 'suplemento'],
+    };
+
+    function normalizeText(value) {
+        return (value || '')
+            .toString()
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[-_]+/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
+    function setActiveFilter(filter) {
+        iconFilters.forEach(icon => {
+            const isActive = icon.dataset.filter === filter;
+            icon.classList.toggle('ativo', isActive);
+            icon.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
+    }
+
+    function updateNoProductsMessage(hasVisibleProducts) {
+        if (!noProductsMessage) {
+            return;
+        }
+
+        noProductsMessage.classList.toggle('hidden', hasVisibleProducts);
+    }
+
+    function setProductsLayout(isFiltered) {
+        document.querySelectorAll('.produtos-scroll').forEach(container => {
+            container.classList.toggle('grid-view', isFiltered);
+        });
+
+        arrowGroups.forEach(arrowGroup => {
+            arrowGroup.style.display = isFiltered ? 'none' : '';
+        });
+    }
+
     function buildPharmacyCards() {
+        if (!pharmacyGrid) {
+            return;
+        }
+
         const pharmacies = new Map();
         document.querySelectorAll('.produto-card').forEach(card => {
             const id = card.dataset.pharmacyId;
@@ -377,22 +429,31 @@
     }
 
     function showPharmaciesView() {
+        if (!pharmacyListSection || !categorySection) {
+            showCategoryView();
+            return;
+        }
+
         selectedPharmacyId = null;
         pharmacyListSection.classList.remove('hidden');
         categorySection.classList.add('hidden');
         buildPharmacyCards();
-        arrowGroups.forEach(arrowGroup => arrowGroup.style.display = 'none');
-        document.querySelectorAll('.produtos-scroll').forEach(container => container.classList.remove('grid-view'));
+        setProductsLayout(false);
     }
 
     function showCategoryView() {
-        pharmacyListSection.classList.add('hidden');
-        categorySection.classList.remove('hidden');
-        document.querySelectorAll('.produtos-scroll').forEach(container => container.classList.remove('grid-view'));
+        if (pharmacyListSection) {
+            pharmacyListSection.classList.add('hidden');
+        }
+
+        if (categorySection) {
+            categorySection.classList.remove('hidden');
+        }
     }
 
     function applyDashboardFilter(filter) {
         selectedPharmacyId = null;
+        setActiveFilter(filter);
 
         if (filter === 'farmacias') {
             showPharmaciesView();
@@ -400,9 +461,12 @@
         }
 
         showCategoryView();
+        setProductsLayout(false);
+        let hasVisibleProducts = false;
+        const aliases = (categoryAliases[filter] || [filter]).map(normalizeText);
 
         categoryGroups.forEach(group => {
-            const categoryName = group.dataset.category.toLowerCase();
+            const categoryName = normalizeText(group.dataset.category);
             const cards = group.querySelectorAll('.produto-card');
             let groupVisible = false;
 
@@ -410,14 +474,30 @@
                 cards.forEach(card => card.style.display = '');
                 groupVisible = cards.length > 0;
             } else if (filter === 'ofertas') {
-                cards.forEach(card => {
-                    const isPromo = card.dataset.promotion === '1';
-                    card.style.display = isPromo ? '' : 'none';
-                    if (isPromo) groupVisible = true;
-                });
+                const categoryMatches = aliases.some(alias => (
+                    categoryName === alias ||
+                    categoryName.includes(alias) ||
+                    alias.includes(categoryName)
+                ));
+
+                if (categoryMatches) {
+                    cards.forEach(card => card.style.display = '');
+                    groupVisible = cards.length > 0;
+                } else {
+                    cards.forEach(card => {
+                        const isPromo = card.dataset.promotion === '1';
+                        card.style.display = isPromo ? '' : 'none';
+                        if (isPromo) groupVisible = true;
+                    });
+                }
             } else {
-                const targetCategory = filter.replace('-', ' ');
-                if (categoryName.includes(targetCategory)) {
+                const categoryMatches = aliases.some(alias => (
+                    categoryName === alias ||
+                    categoryName.includes(alias) ||
+                    alias.includes(categoryName)
+                ));
+
+                if (categoryMatches) {
                     cards.forEach(card => card.style.display = '');
                     groupVisible = cards.length > 0;
                 } else {
@@ -426,14 +506,26 @@
             }
 
             group.style.display = groupVisible ? '' : 'none';
+            if (groupVisible) {
+                hasVisibleProducts = true;
+            }
         });
 
-        arrowGroups.forEach(arrowGroup => arrowGroup.style.display = 'none');
+        updateNoProductsMessage(hasVisibleProducts);
+
+        const firstVisibleGroup = Array.from(categoryGroups).find(group => group.style.display !== 'none');
+        if (firstVisibleGroup) {
+            setTimeout(() => {
+                firstVisibleGroup.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
     }
 
     function selectPharmacy(pharmacyId) {
         selectedPharmacyId = pharmacyId;
         showCategoryView();
+        setProductsLayout(false);
+        let hasVisibleProducts = false;
 
         categoryGroups.forEach(group => {
             const cards = group.querySelectorAll('.produto-card');
@@ -446,9 +538,12 @@
             });
 
             group.style.display = groupVisible ? '' : 'none';
+            if (groupVisible) {
+                hasVisibleProducts = true;
+            }
         });
 
-        arrowGroups.forEach(arrowGroup => arrowGroup.style.display = 'none');
+        updateNoProductsMessage(hasVisibleProducts);
     }
 
     iconFilters.forEach(icon => {
