@@ -114,6 +114,38 @@ img {
     bottom: 6px;
 }
 
+/* CARRINHO */
+.atalho-carrinho {
+    position: relative;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: white;
+    color: #2b7695;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    margin-right: 22px;
+}
+
+.atalho-carrinho span {
+    position: absolute;
+    right: -7px;
+    top: -7px;
+    min-width: 19px;
+    height: 19px;
+    border-radius: 50%;
+    background: #d6472d;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 0 5px;
+}
+
 /* DROPDOWN */
 .menu-dropdown {
     position: absolute;
@@ -136,6 +168,14 @@ img {
     text-decoration: none;
     color: #333;
     font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.menu-dropdown a i {
+    width: 18px;
+    text-align: center;
 }
 
 .menu-dropdown a:hover {
@@ -217,7 +257,7 @@ img {
     color: #4a6f86;
 }
 
-.form-grupo input, 
+.form-grupo input,
 .form-grupo select {
     height: 40px;
     border-radius: 20px;
@@ -226,7 +266,7 @@ img {
     background: #f7f7f7;
     outline: none;
     transition: 0.2s;
-    
+
     font-family: Arial, sans-serif;
     font-size: 13px;
     color: #22597a;
@@ -395,20 +435,251 @@ img {
 }
 
 /* RESPONSIVO */
+@media (max-width: 1024px) {
+    .topo-dashboard {
+        padding: 0 40px;
+    }
+    .dashboard-wrapper {
+        padding: 30px 20px;
+    }
+    .usuario-area,
+    .endereco-area {
+        max-width: 100%;
+    }
+}
+
 @media (max-width: 768px) {
     .topo-dashboard {
         flex-direction: column;
         height: auto;
-        padding: 20px;
-        gap: 10px;
+        padding: 15px;
+        gap: 12px;
     }
-    .busca-topo { width: 100%; }
+
+    .logo-topo img {
+        height: 50px;
+    }
+
+    .busca-topo {
+        width: 100%;
+        max-width: 300px;
+        margin: 0 auto;
+    }
+
+    .usuario-topo {
+        width: 100%;
+        justify-content: center;
+        gap: 15px;
+    }
+
+    .atalho-carrinho {
+        margin-right: 10px;
+    }
+
+    .perfil-container {
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .perfil-name {
+        margin-top: 0;
+        font-size: 12px;
+    }
+
+    .dashboard-wrapper {
+        padding: 20px 15px;
+    }
+
+    .usuario-area h2,
+    .endereco-area h2 {
+        font-size: 18px;
+        margin-bottom: 15px;
+    }
+
     .form-linha {
         flex-direction: column;
         gap: 12px;
     }
-    .gestao-card-topo,
+
+    .form-grupo {
+        flex: 1 !important;
+    }
+
+    .usuario-area .form-linha:nth-of-type(1) .form-grupo:first-child { flex: 1; }
+    .usuario-area .form-linha:nth-of-type(1) .form-grupo:last-child { flex: 1; }
+    .usuario-area .form-linha:nth-of-type(2) .form-grupo:nth-child(1) { flex: 1; }
+    .usuario-area .form-linha:nth-of-type(2) .form-grupo:nth-child(2) { flex: 1; }
+    .usuario-area .form-linha:nth-of-type(2) .form-grupo:nth-child(3) { flex: 1; }
+    .usuario-area .form-linha:nth-of-type(3) .form-grupo:nth-child(1) { flex: 1; }
+    .usuario-area .form-linha:nth-of-type(3) .form-grupo:nth-child(2) { flex: 1; }
+    .usuario-area .form-linha:nth-of-type(3) .form-grupo:nth-child(3) { flex: 1; }
+    .usuario-area .form-linha:nth-of-type(4) .form-grupo { flex: 1; }
+
+    .endereco-area .form-linha:nth-of-type(1) .form-grupo:first-child { flex: 1; }
+    .endereco-area .form-linha:nth-of-type(1) .form-grupo:last-child { flex: 1; }
+    .endereco-area .form-linha:nth-of-type(4) .form-grupo:first-child { flex: 1; }
+    .endereco-area .form-linha:nth-of-type(4) .form-grupo:last-child { flex: 1; }
+
+    .gestao-card-topo {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
     .pedido-status-form {
         flex-direction: column;
+        gap: 8px;
+    }
+
+    .btn-finalizar,
+    .btn-recusa {
+        width: 100%;
+        padding: 10px 12px;
+    }
+
+    .form-acoes {
+        text-align: center;
+    }
+
+    .form-acoes button {
+        width: 100%;
+        padding: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .topo-dashboard {
+        padding: 10px;
+        gap: 8px;
+    }
+
+    .logo-topo img {
+        height: 40px;
+    }
+
+    .busca-topo {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .busca-topo input {
+        height: 35px;
+        font-size: 12px;
+    }
+
+    .usuario-topo {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .atalho-carrinho {
+        width: 35px;
+        height: 35px;
+        font-size: 14px;
+    }
+
+    .atalho-carrinho span {
+        width: 16px;
+        height: 16px;
+        font-size: 10px;
+        right: -5px;
+        top: -5px;
+    }
+
+    .avatar {
+        width: 28px;
+        height: 28px;
+    }
+
+    .perfil-name {
+        font-size: 10px;
+        max-width: 70px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .menu-dropdown {
+        min-width: 140px;
+        top: 40px;
+    }
+
+    .menu-dropdown a {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+
+    .dashboard-wrapper {
+        padding: 15px 10px;
+    }
+
+    .usuario-area h2,
+    .endereco-area h2 {
+        font-size: 16px;
+        margin-bottom: 12px;
+    }
+
+    .form-grupo label {
+        font-size: 11px;
+        margin-bottom: 4px;
+    }
+
+    .form-grupo input,
+    .form-grupo select {
+        height: 35px;
+        border-radius: 15px;
+        padding: 0 10px;
+        font-size: 12px;
+    }
+
+    .gestao-card {
+        padding: 12px;
+    }
+
+    .gestao-card h2 {
+        font-size: 15px;
+    }
+
+    .gestao-card p {
+        font-size: 12px;
+    }
+
+    .btn-finalizar,
+    .btn-recusa {
+        width: 100%;
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+
+    .rodape-dashboard {
+        padding: 20px 15px;
+    }
+
+    .logo-rodape {
+        font-size: 20px;
+    }
+
+    .links-rodape a {
+        font-size: 11px;
+        margin: 0 5px;
+    }
+}
+
+@media (max-width: 500px) {
+    .usuario-area .form-linha,
+    .endereco-area .form-linha,
+    .form-group {
+        gap: 10px;
+    }
+
+    .form-grupo input,
+    .form-grupo select,
+    .form-grupo textarea {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .btn-salvar {
+        width: 100%;
     }
 }

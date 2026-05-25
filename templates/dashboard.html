@@ -11,7 +11,7 @@
 </head>
 <body>
 
-<header class="topo-dashboard">
+<header class="topo-dashboard{% if not user.is_authenticated %} topo-publico{% endif %}">
     <div class="logo-topo">
         <a href="{% url 'dashboard' %}">
             <img src="{% static 'img/logo/logo.png' %}" alt="Logo">
@@ -34,80 +34,103 @@
         </button>
     </form>
 
-    <div class="usuario-topo">
-        <a class="atalho-carrinho" href="{% url 'cart' %}" aria-label="Ver carrinho">
-            <i class="fa-solid fa-cart-shopping"></i>
-            <span>{{ cart_count|default:0 }}</span>
-        </a>
+    {% if user.is_authenticated %}
+        <div class="usuario-topo">
+            <a class="atalho-carrinho" href="{% url 'cart' %}" aria-label="Ver carrinho">
+                <i class="fa-solid fa-cart-shopping"></i>
+                <span>{{ cart_count|default:0 }}</span>
+            </a>
 
-        <div class="perfil-container">
-            <button class="perfil-icon" id="perfil-btn" type="button">
-                <div class="avatar"></div>
-            </button>
+            <div class="perfil-container">
+                <button class="perfil-icon" id="perfil-btn" type="button">
+                    <div class="avatar"></div>
+                </button>
 
-            <div class="perfil-name">{{ display_name }}</div>
+                <div class="perfil-name">{{ display_name }}</div>
 
-            <div class="menu-dropdown" id="menu-dropdown">
-                <a href="#">Configurações</a>
-                <a href="{% url 'perfil' %}">Perfil</a>
-                <a href="{% url 'pagamento' %}">Pagamento</a>
-                <a href="{% url 'cart' %}">Carrinho</a>
-                <a href="{% url 'orders' %}">Pedidos</a>
-                <a href="{% url 'pharmacy_dashboard' %}">Área da farmácia</a>
-                <a href="{% url 'ajuda' %}">Ajuda</a>
-                <a href="{% url 'logout' %}">Sair</a>
+                <div class="menu-dropdown" id="menu-dropdown">
+                    <a href="#">Configurações</a>
+                    <a href="{% url 'perfil' %}">Perfil</a>
+                    <a href="{% url 'pagamento' %}">Pagamento</a>
+                    <a href="{% url 'cart' %}">Carrinho</a>
+                    <a href="{% url 'orders' %}">Pedidos</a>
+                    {% if user.pharmacies.exists %}
+                    <a href="{% url 'pharmacy_dashboard' %}">Área da farmácia</a>
+                    {% endif %}
+                    <a href="{% url 'ajuda' %}">Ajuda</a>
+                    <a href="{% url 'logout' %}">Sair</a>
+                </div>
             </div>
         </div>
-    </div>
+    {% else %}
+        <div class="acoes-publicas-dashboard">
+            <a href="{% url 'login' %}" class="btn-publico btn-publico-claro">Entrar</a>
+            <a href="{% url 'registro' %}" class="btn-publico btn-publico-vermelho">Inscreva-se</a>
+            <a href="{% url 'pharmacy_auth' %}" class="btn-publico btn-publico-claro">Farmácia</a>
+        </div>
+    {% endif %}
 </header>
 
 <main class="dashboard-wrapper">
 
+    {% if not user.is_authenticated %}
+        <nav class="menu-publico-home">
+            <a href="{% url 'home' %}">Home</a>
+            <a href="{% url 'about' %}">Quem somos</a>
+            <a href="{% url 'contact' %}">Contato</a>
+        </nav>
+    {% endif %}
+
     <!-- ÍCONES -->
     <section class="categorias-home">
 
-        <div class="categoria-item">
+        <div class="categoria-item" data-filter="medicamentos">
             <div class="categoria-icon">
                 <i class="fa-solid fa-pills"></i>
             </div>
             <span>Medicamentos</span>
         </div>
 
-        <div class="categoria-item">
+        <div class="categoria-item" data-filter="higiene-pessoal">
             <div class="categoria-icon">
                 <i class="fa-solid fa-pump-soap"></i>
             </div>
             <span>Higiene Pessoal</span>
         </div>
 
-        <div class="categoria-item">
+        <div class="categoria-item" data-filter="baby">
             <div class="categoria-icon">
                 <i class="fa-solid fa-baby"></i>
             </div>
             <span>Baby</span>
         </div>
 
-        <div class="categoria-item">
+        <div class="categoria-item" data-filter="beleza">
             <div class="categoria-icon">
                 <i class="fa-solid fa-heart"></i>
             </div>
             <span>Beleza</span>
         </div>
 
-        <div class="categoria-item">
+        <div class="categoria-item" data-filter="ofertas">
             <div class="categoria-icon">
                 <i class="fa-solid fa-tags"></i>
             </div>
             <span>Ofertas</span>
         </div>
 
-        <div class="categoria-item">
+        <div class="categoria-item" data-filter="farmacias">
             <div class="categoria-icon">
                 <i class="fa-solid fa-shop"></i>
             </div>
             <span>Farmácias</span>
         </div>
 
+    </section>
+
+    <section class="farmacias-listagem hidden" id="farmaciasListagem">
+        <h2>Farmácias com produtos</h2>
+        <div class="farmacias-grid" id="farmaciasGrid"></div>
     </section>
 
     <!-- BANNER -->
@@ -132,16 +155,21 @@
             <input type="hidden" name="q" value="{{ search_query }}">
 
             <div class="filtro-grupo">
-                <h3>Categorias</h3>
+                <div class="filtro-header">
+                    <i class="fa-solid fa-list"></i>
+                    <h3>Categorias</h3>
+                </div>
                 <div class="filtro-opcoes">
                     {% for category in categories %}
-                        <label>
+                        <label class="filtro-label">
                             <input
                                 type="checkbox"
+                                class="filtro-checkbox"
                                 name="category"
                                 value="{{ category.id }}"
                                 {% if category.id|stringformat:"s" in selected_categories %}checked{% endif %}
                             >
+                            <span class="checkmark"></span>
                             {{ category.name }}
                         </label>
                     {% empty %}
@@ -151,136 +179,283 @@
             </div>
 
             <div class="filtro-grupo">
-                <h3>Tarja</h3>
+                <div class="filtro-header">
+                    <i class="fa-solid fa-flask-vial"></i>
+                    <h3>Tarja</h3>
+                </div>
                 <div class="filtro-opcoes">
-                    <label>
-                        <input type="checkbox" name="tarja" value="sem" {% if 'sem' in selected_tarja %}checked{% endif %}>
+                    <label class="filtro-label">
+                        <input type="checkbox" class="filtro-checkbox" name="tarja" value="sem" {% if 'sem' in selected_tarja %}checked{% endif %}>
+                        <span class="checkmark"></span>
                         Sem tarja
                     </label>
-                    <label>
-                        <input type="checkbox" name="tarja" value="vermelha" {% if 'vermelha' in selected_tarja %}checked{% endif %}>
+                    <label class="filtro-label">
+                        <input type="checkbox" class="filtro-checkbox" name="tarja" value="vermelha" {% if 'vermelha' in selected_tarja %}checked{% endif %}>
+                        <span class="checkmark"></span>
                         Tarja vermelha
                     </label>
-                    <label>
-                        <input type="checkbox" name="tarja" value="preta" {% if 'preta' in selected_tarja %}checked{% endif %}>
+                    <label class="filtro-label">
+                        <input type="checkbox" class="filtro-checkbox" name="tarja" value="preta" {% if 'preta' in selected_tarja %}checked{% endif %}>
+                        <span class="checkmark"></span>
                         Tarja preta
                     </label>
                 </div>
             </div>
 
             <div class="filtro-acoes">
-                <button type="submit">Filtrar</button>
-                <a href="{% url 'dashboard' %}">Limpar</a>
+                <button type="submit" class="filtro-btn filtro-btn-primary">
+                    <i class="fa-solid fa-filter"></i>
+                    Filtrar
+                </button>
+                <a href="{% url 'dashboard' %}" class="filtro-btn filtro-btn-secondary">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    Limpar
+                </a>
             </div>
         </form>
 
-        <div class="categoria-header">
-            <h2>Categoria</h2>
+        {% if inventory_items_by_category %}
+            {% for group in inventory_items_by_category %}
+                <div class="categoria-grupo" data-category="{{ group.category.name }}">
+                    <div class="categoria-header">
+                        <h2>{{ group.category.name }}</h2>
 
-            <div class="setas-categoria">
-                <button class="scroll-btn" id="scroll-left" type="button">
-                    <i class="fa-solid fa-chevron-left"></i>
-                </button>
+                        <div class="setas-categoria">
+                            <button class="scroll-btn" data-target="produtos-scroll-{{ forloop.counter }}" data-direction="left" type="button">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </button>
 
-                <button class="scroll-btn" id="scroll-right" type="button">
-                    <i class="fa-solid fa-chevron-right"></i>
-                </button>
-            </div>
-        </div>
-
-        <div class="produtos-scroll" id="produtos-scroll">
-
-            {% for inventory in inventory_items %}
-            <div class="produto-card">
-
-                <span class="seta">›</span>
-
-                {% if inventory.medicine.image %}
-                    <img src="{{ inventory.medicine.image }}" alt="{{ inventory.medicine.name }}">
-                {% else %}
-                    <img src="{% static 'img/medicamento.png' %}" alt="Sem imagem">
-                {% endif %}
-
-                <h4>{{ inventory.medicine.name }}</h4>
-                <p class="produto-farmacia">{{ inventory.pharmacy.name }}</p>
-                <p class="produto-estoque">Estoque: {{ inventory.stock }}</p>
-                {% if inventory.has_active_promotion %}
-                    <span class="produto-promocao">{{ inventory.promotion_title|default:"Promocao ativa" }}</span>
-                {% endif %}
-
-                <div class="rodape-card">
-                    <div>
-                        <p>Valor</p>
-                        {% if inventory.has_active_promotion %}
-                            <small class="preco-antigo">R$ {{ inventory.price }}</small>
-                        {% endif %}
-                        <strong>R$ {{ inventory.effective_price }}</strong>
+                            <button class="scroll-btn" data-target="produtos-scroll-{{ forloop.counter }}" data-direction="right" type="button">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>
                     </div>
 
-                    <form method="post" action="{% url 'add_inventory_to_cart' inventory.id %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="next" value="{% url 'cart' %}">
-                        <button type="submit" aria-label="Adicionar {{ inventory.medicine.name }} ao carrinho">
-                            <i class="fa-solid fa-cart-shopping"></i>
-                        </button>
-                    </form>
+                    <div class="produtos-scroll" id="produtos-scroll-{{ forloop.counter }}" data-category="{{ group.category.name }}">
+
+                    {% for inventory in group.items %}
+                        <div class="produto-card"
+                             data-pharmacy-id="{{ inventory.pharmacy.id }}"
+                             data-pharmacy-name="{{ inventory.pharmacy.name|escape }}"
+                             data-pharmacy-logo="{{ inventory.pharmacy.logo|default:''|escape }}"
+                             data-pharmacy-address="{{ inventory.pharmacy.street|default:''|escape }}, {{ inventory.pharmacy.number|default:''|escape }} {{ inventory.pharmacy.district|default:''|escape }}, {{ inventory.pharmacy.city|default:''|escape }}/{{ inventory.pharmacy.state|default:''|escape }}"
+                             data-promotion="{% if inventory.has_active_promotion %}1{% else %}0{% endif %}">
+
+                            <span class="seta">›</span>
+
+                            {% if inventory.medicine.image %}
+                                <img src="{{ inventory.medicine.image }}" alt="{{ inventory.medicine.name }}">
+                            {% else %}
+                                <span class="produto-imagem-placeholder" aria-label="Sem imagem"><i class="fa-solid fa-pills"></i></span>
+                            {% endif %}
+
+                            <h4>{{ inventory.medicine.name }}</h4>
+                            <p class="produto-farmacia">{{ inventory.pharmacy.name }}</p>
+                            <p class="produto-estoque">Estoque: {{ inventory.stock }}</p>
+                            {% if inventory.has_active_promotion %}
+                                <span class="produto-promocao">{{ inventory.promotion_title|default:"Promocao ativa" }}</span>
+                            {% endif %}
+
+                            <div class="rodape-card">
+                                <div>
+                                    <p>Valor</p>
+                                    {% if inventory.has_active_promotion %}
+                                        <small class="preco-antigo">R$ {{ inventory.price }}</small>
+                                    {% endif %}
+                                    <strong>R$ {{ inventory.effective_price }}</strong>
+                                </div>
+
+                                <form method="post" action="{% url 'add_inventory_to_cart' inventory.id %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{% url 'cart' %}">
+                                    <button type="submit" aria-label="Adicionar {{ inventory.medicine.name }} ao carrinho">
+                                        <i class="fa-solid fa-cart-shopping"></i>
+                                    </button>
+                                </form>
+                            </div>
+
+                        </div>
+                    {% endfor %}
+
+                    </div>
                 </div>
-
-            </div>
-            {% empty %}
-                <p class="sem-produtos">Nenhum produto disponível no estoque das farmácias.</p>
             {% endfor %}
-
-        </div>
+        {% else %}
+            <p class="sem-produtos">Nenhum produto disponível no estoque das farmácias.</p>
+        {% endif %}
 
     </section>
 
 </main>
 
-<footer class="rodape-dashboard">
-    <div class="logo-rodape">REMAZ <span>PHARM</span></div>
-
-    <div class="links-rodape">
-        <a href="#">Careers</a>
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms & Conditions</a>
-    </div>
-</footer>
+{% include 'partials/footer.html' %}
 
 <script>
 
     const perfilBtn = document.getElementById('perfil-btn');
     const menuDropdown = document.getElementById('menu-dropdown');
 
-    perfilBtn.addEventListener('click', function() {
-        menuDropdown.classList.toggle('ativo');
-    });
+    if (perfilBtn && menuDropdown) {
+        perfilBtn.addEventListener('click', function() {
+            menuDropdown.classList.toggle('ativo');
+        });
 
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.perfil-container')) {
-            menuDropdown.classList.remove('ativo');
-        }
-    });
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.perfil-container')) {
+                menuDropdown.classList.remove('ativo');
+            }
+        });
+    }
 
     // SCROLL DOS CARDS
 
-    const scrollContainer = document.getElementById('produtos-scroll');
-
-    document.getElementById('scroll-right').addEventListener('click', () => {
-        scrollContainer.scrollBy({
-            left: 350,
-            behavior: 'smooth'
+    document.querySelectorAll('.scroll-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const targetId = button.dataset.target;
+            const direction = button.dataset.direction;
+            const scrollContainer = document.getElementById(targetId);
+            if (!scrollContainer) {
+                return;
+            }
+            scrollContainer.scrollBy({
+                left: direction === 'right' ? 350 : -350,
+                behavior: 'smooth'
+            });
         });
     });
 
-    document.getElementById('scroll-left').addEventListener('click', () => {
-        scrollContainer.scrollBy({
-            left: -350,
-            behavior: 'smooth'
+    const iconFilters = document.querySelectorAll('.categoria-item[data-filter]');
+    const categoryGroups = document.querySelectorAll('.categoria-grupo');
+    const arrowGroups = document.querySelectorAll('.setas-categoria');
+    const categorySection = document.querySelector('.conteudo-principal');
+    const pharmacyListSection = document.getElementById('farmaciasListagem');
+    const pharmacyGrid = document.getElementById('farmaciasGrid');
+    let selectedPharmacyId = null;
+
+    function buildPharmacyCards() {
+        const pharmacies = new Map();
+        document.querySelectorAll('.produto-card').forEach(card => {
+            const id = card.dataset.pharmacyId;
+            if (!id || pharmacies.has(id)) {
+                return;
+            }
+            pharmacies.set(id, {
+                id,
+                name: card.dataset.pharmacyName,
+                logo: card.dataset.pharmacyLogo,
+                address: card.dataset.pharmacyAddress,
+            });
+        });
+
+        pharmacyGrid.innerHTML = '';
+
+        pharmacies.forEach(pharmacy => {
+            const card = document.createElement('button');
+            card.type = 'button';
+            card.className = 'farmacia-card';
+            card.dataset.pharmacyId = pharmacy.id;
+            card.innerHTML = `
+                <div class="farmacia-logo">
+                    ${pharmacy.logo ? `<img src="${pharmacy.logo}" alt="${pharmacy.name}">` : `<div class="farmacia-logo-placeholder"><i class="fa-solid fa-shop"></i></div>`}
+                </div>
+                <div class="farmacia-dados">
+                    <h3>${pharmacy.name}</h3>
+                    <p>${pharmacy.address}</p>
+                </div>
+            `;
+            pharmacyGrid.appendChild(card);
+        });
+
+        pharmacyGrid.querySelectorAll('.farmacia-card').forEach(card => {
+            card.addEventListener('click', () => {
+                selectPharmacy(card.dataset.pharmacyId);
+            });
+        });
+    }
+
+    function showPharmaciesView() {
+        selectedPharmacyId = null;
+        pharmacyListSection.classList.remove('hidden');
+        categorySection.classList.add('hidden');
+        buildPharmacyCards();
+        arrowGroups.forEach(arrowGroup => arrowGroup.style.display = 'none');
+        document.querySelectorAll('.produtos-scroll').forEach(container => container.classList.remove('grid-view'));
+    }
+
+    function showCategoryView() {
+        pharmacyListSection.classList.add('hidden');
+        categorySection.classList.remove('hidden');
+        document.querySelectorAll('.produtos-scroll').forEach(container => container.classList.remove('grid-view'));
+    }
+
+    function applyDashboardFilter(filter) {
+        selectedPharmacyId = null;
+
+        if (filter === 'farmacias') {
+            showPharmaciesView();
+            return;
+        }
+
+        showCategoryView();
+
+        categoryGroups.forEach(group => {
+            const categoryName = group.dataset.category.toLowerCase();
+            const cards = group.querySelectorAll('.produto-card');
+            let groupVisible = false;
+
+            if (filter === 'all') {
+                cards.forEach(card => card.style.display = '');
+                groupVisible = cards.length > 0;
+            } else if (filter === 'ofertas') {
+                cards.forEach(card => {
+                    const isPromo = card.dataset.promotion === '1';
+                    card.style.display = isPromo ? '' : 'none';
+                    if (isPromo) groupVisible = true;
+                });
+            } else {
+                const targetCategory = filter.replace('-', ' ');
+                if (categoryName.includes(targetCategory)) {
+                    cards.forEach(card => card.style.display = '');
+                    groupVisible = cards.length > 0;
+                } else {
+                    cards.forEach(card => card.style.display = 'none');
+                }
+            }
+
+            group.style.display = groupVisible ? '' : 'none';
+        });
+
+        arrowGroups.forEach(arrowGroup => arrowGroup.style.display = 'none');
+    }
+
+    function selectPharmacy(pharmacyId) {
+        selectedPharmacyId = pharmacyId;
+        showCategoryView();
+
+        categoryGroups.forEach(group => {
+            const cards = group.querySelectorAll('.produto-card');
+            let groupVisible = false;
+
+            cards.forEach(card => {
+                const visible = card.dataset.pharmacyId === pharmacyId;
+                card.style.display = visible ? '' : 'none';
+                if (visible) groupVisible = true;
+            });
+
+            group.style.display = groupVisible ? '' : 'none';
+        });
+
+        arrowGroups.forEach(arrowGroup => arrowGroup.style.display = 'none');
+    }
+
+    iconFilters.forEach(icon => {
+        icon.addEventListener('click', () => {
+            const filter = icon.dataset.filter;
+            applyDashboardFilter(filter);
         });
     });
 
-     // BANNER AUTOMÁTICO
+    // BANNER AUTOMÁTICO
 
     const banners = document.querySelectorAll('.banner');
 

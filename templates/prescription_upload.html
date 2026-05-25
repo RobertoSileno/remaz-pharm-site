@@ -42,7 +42,9 @@
                 <a href="{% url 'pagamento' %}">Pagamento</a>
                 <a href="{% url 'cart' %}">Carrinho</a>
                 <a href="{% url 'orders' %}">Pedidos</a>
+                {% if user.pharmacies.exists %}
                 <a href="{% url 'pharmacy_dashboard' %}">Área da farmácia</a>
+                {% endif %}
                 <a href="{% url 'ajuda' %}">Ajuda</a>
                 <a href="{% url 'logout' %}">Sair</a>
             </div>
@@ -93,7 +95,7 @@
                                 {% if item.medicine.image %}
                                     <img src="{{ item.medicine.image }}" alt="{{ item.medicine.name }}">
                                 {% else %}
-                                    <img src="{% static 'img/medicamento.png' %}" alt="Sem imagem">
+                                    <span class="produto-imagem-placeholder" aria-label="Sem imagem"><i class="fa-solid fa-pills"></i></span>
                                 {% endif %}
                                 <div>
                                     <strong>{{ item.medicine.name }}</strong>
@@ -147,15 +149,7 @@
     </section>
 </main>
 
-<footer class="rodape-dashboard">
-    <div class="logo-rodape">REMAZ <span>PHARM</span></div>
-
-    <div class="links-rodape">
-        <a href="#">Careers</a>
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms & Conditions</a>
-    </div>
-</footer>
+{% include 'partials/footer.html' %}
 
 <script>
     const perfilBtn = document.getElementById('perfil-btn');

@@ -169,6 +169,7 @@ db.sqlite3
 __pycache__/
 *.pyc
 media/
+media_private/
 CODEX_CONTEXT.md
 
 # PyCharm

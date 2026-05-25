@@ -1,8 +1,11 @@
+import re
 import uuid
 import hashlib
 import logging
 from decimal import Decimal
 from pathlib import Path
+from types import SimpleNamespace
+from urllib.parse import urlencode
 
 from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
@@ -18,6 +21,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.urls import reverse
 from .models import (
     UserProfile,
     Address,
@@ -32,7 +36,13 @@ from .models import (
     OrderStatusHistory,
     PaymentTransaction,
 )
-from .forms import AddressForm, PharmacyMedicineCreateForm, PharmacyRegistrationForm
+from .forms import (
+    AddressForm,
+    PharmacyMedicineCreateForm,
+    PharmacyRegistrationForm,
+    UserProfileForm,
+    PaymentForm,
+)
 from .services.mercado_pago import create_pix_payment
 from .services.supabase_storage import upload_image
 from django.db.models import Count, Q
@@ -48,6 +58,10 @@ PRODUCT_IMAGE_MAX_SIZE = 5 * 1024 * 1024
 LOGIN_ATTEMPT_LIMIT = 5
 LOGIN_LOCK_SECONDS = 15 * 60
 logger = logging.getLogger(__name__)
+
+def normalize_digits(value):
+    return re.sub(r'\D', '', (value or '').strip())
+
 
 def get_display_name(user):
     username = user.username.strip()
@@ -68,6 +82,44 @@ def get_cart_count(user):
 
     return sum(item.quantity for item in cart.cartitem_set.all())
 
+def get_session_cart(request):
+    return request.session.setdefault('cart', {})
+
+def get_session_cart_count(request):
+    return sum(get_session_cart(request).values())
+
+def get_session_cart_items_and_total(request):
+    session_cart = get_session_cart(request)
+    inventory_ids = [int(inventory_id) for inventory_id in session_cart.keys()]
+    inventories = PharmacyInventory.objects.select_related(
+        'medicine',
+        'medicine__category',
+        'pharmacy'
+    ).filter(id__in=inventory_ids)
+    inventory_by_id = {inventory.id: inventory for inventory in inventories}
+    items = []
+    total = Decimal('0')
+
+    for inventory_id, quantity in session_cart.items():
+        inventory = inventory_by_id.get(int(inventory_id))
+        if not inventory:
+            continue
+
+        item = SimpleNamespace(
+            id=inventory.id,
+            medicine=inventory.medicine,
+            inventory=inventory,
+            quantity=quantity,
+            unit_price=inventory.effective_price,
+            pharmacy=inventory.pharmacy,
+            stock_available=inventory.stock,
+        )
+        item.subtotal = item.unit_price * item.quantity
+        items.append(item)
+        total += item.subtotal
+
+    return None, items, total
+
 def get_cart_items_and_total(user):
     cart, created = Cart.objects.get_or_create(user=user)
     items = list(
@@ -85,6 +137,31 @@ def get_cart_items_and_total(user):
         total += item.subtotal
 
     return cart, items, total
+
+def merge_session_cart_to_user(request):
+    session_cart = request.session.get('cart', {})
+    if not session_cart:
+        return
+
+    cart, created = Cart.objects.get_or_create(user=request.user)
+
+    for inventory_id, quantity in session_cart.items():
+        inventory = PharmacyInventory.objects.filter(id=inventory_id).select_related('medicine').first()
+        if not inventory or inventory.stock <= 0:
+            continue
+
+        item, created = CartItem.objects.get_or_create(
+            cart=cart,
+            inventory=inventory,
+            defaults={'medicine': inventory.medicine}
+        )
+        if created:
+            item.quantity = min(quantity, inventory.stock)
+        else:
+            item.quantity = min(item.quantity + quantity, inventory.stock)
+        item.save()
+
+    request.session.pop('cart', None)
 
 def get_accessible_pharmacies(user):
     pharmacies = Pharmacy.objects.filter(is_active=True)
@@ -177,8 +254,14 @@ def create_order_payment(order):
         amount=order.total,
     )
 
-def home(request):
+def about(request):
     return render(request, 'home.html')
+
+def contact(request):
+    return render(request, 'contact.html')
+
+def home(request):
+    return dashboard_view(request)
 
 def login_view(request):
     if request.method == 'POST':
@@ -191,26 +274,145 @@ def login_view(request):
         if attempts >= LOGIN_ATTEMPT_LIMIT:
             messages.error(request, 'Muitas tentativas. Aguarde alguns minutos.')
             return render(request, 'login.html')
-        
+
         user = None
-        
+
         if '@' in email_or_cpf:
             user = User.objects.filter(email__iexact=email_or_cpf).first()
         else:
-            cpf_limpo = email_or_cpf.replace('.', '').replace('-', '')
+            cpf_limpo = normalize_digits(email_or_cpf)
             profile = UserProfile.objects.select_related('user').filter(cpf=cpf_limpo).first()
             user = profile.user if profile else None
-        
+
         user_auth = authenticate(request, username=user.username, password=password) if user else None
-        if user_auth is None:
+        if user_auth is None or user_auth.pharmacies.exists():
             cache.set(throttle_key, attempts + 1, LOGIN_LOCK_SECONDS)
             messages.error(request, 'Credenciais invalidas.')
         else:
             cache.delete(throttle_key)
             login(request, user_auth)
+            merge_session_cart_to_user(request)
+            next_url = request.GET.get('next') or request.POST.get('next')
+            if next_url and url_has_allowed_host_and_scheme(
+                next_url,
+                allowed_hosts={request.get_host()},
+                require_https=request.is_secure()
+            ):
+                return redirect(next_url)
             return redirect('dashboard')
-    
+
     return render(request, 'login.html')
+
+
+def pharmacy_auth_view(request):
+    active_tab = request.GET.get('tab', 'login')
+    form = PharmacyRegistrationForm()
+
+    if request.method == 'POST':
+        form_type = request.POST.get('form_type', 'login')
+
+        if form_type == 'login':
+            email_or_cnpj = request.POST.get('username', '').strip()
+            password = request.POST.get('password', '')
+            remote_address = request.META.get('REMOTE_ADDR', '')
+            throttle_digest = hashlib.sha256(f'{remote_address}:{email_or_cnpj.lower()}'.encode('utf-8')).hexdigest()
+            throttle_key = f'pharmacy_login_attempts:{throttle_digest}'
+            attempts = cache.get(throttle_key, 0)
+            if attempts >= LOGIN_ATTEMPT_LIMIT:
+                messages.error(request, 'Muitas tentativas. Aguarde alguns minutos.')
+                return render(request, 'pharmacy_auth.html', {
+                    'active_tab': active_tab,
+                    'form': form,
+                })
+            user = None
+
+            if '@' in email_or_cnpj:
+                user = User.objects.filter(email__iexact=email_or_cnpj).first()
+            else:
+                cnpj_limpo = normalize_digits(email_or_cnpj)
+                pharmacy = Pharmacy.objects.filter(cnpj=cnpj_limpo).select_related('owner').first()
+                if pharmacy and pharmacy.owner:
+                    user = pharmacy.owner
+
+            user_auth = authenticate(request, username=user.username, password=password) if user else None
+            if user_auth is None or not user_auth.pharmacies.exists():
+                cache.set(throttle_key, attempts + 1, LOGIN_LOCK_SECONDS)
+                messages.error(request, 'Credenciais invalidas.')
+            else:
+                cache.delete(throttle_key)
+                login(request, user_auth)
+                return redirect('pharmacy_dashboard')
+
+        elif form_type == 'register':
+            active_tab = 'register'
+            username = request.POST.get('username', '').strip()
+            email = request.POST.get('email', '').strip().lower()
+            password = request.POST.get('password', '')
+            password_confirm = request.POST.get('password_confirm', '')
+            cnpj = request.POST.get('cnpj', '').strip()
+            cnpj_clean = normalize_digits(cnpj)
+
+            post_data = request.POST.copy()
+            post_data['name'] = username
+            post_data['cnpj'] = cnpj
+            form = PharmacyRegistrationForm(post_data, request.FILES)
+
+            candidate = User(username=username, email=email)
+            password_error = ''
+            try:
+                validate_email(email)
+                validate_password(password, candidate)
+            except ValidationError as exc:
+                password_error = ' '.join(exc.messages)
+
+            if password != password_confirm:
+                messages.error(request, 'Senhas não coincidem')
+            elif password_error:
+                messages.error(request, f'Dados de acesso invalidos: {password_error}')
+            elif User.objects.filter(username=username).exists():
+                messages.error(request, 'Nome de usuário já existe')
+            elif User.objects.filter(email__iexact=email).exists():
+                messages.error(request, 'Este email já está cadastrado. Não pode ser usado para farmácia.')
+            elif cnpj_clean and Pharmacy.objects.filter(cnpj=cnpj_clean).exists():
+                messages.error(request, 'Este CNPJ já está cadastrado')
+            elif form.is_valid():
+                pharmacy = form.save(commit=False)
+                pharmacy.is_active = True
+
+                image_file = request.FILES.get('image_file')
+                if image_file:
+                    image_error = validate_product_image(image_file)
+                    if image_error:
+                        messages.error(request, image_error)
+                        return render(request, 'pharmacy_auth.html', {
+                            'active_tab': active_tab,
+                            'form': form,
+                        })
+                    try:
+                        pharmacy.logo = upload_image(image_file)
+                    except Exception:
+                        logger.exception('Falha no upload de logo da farmacia para Supabase.')
+                        messages.error(request, 'Não foi possível enviar a logo. Tente novamente.')
+                        return render(request, 'pharmacy_auth.html', {
+                            'active_tab': active_tab,
+                            'form': form,
+                        })
+
+                with transaction.atomic():
+                    user = User.objects.create_user(username=username, email=email, password=password)
+                    pharmacy.owner = user
+                    pharmacy.save()
+                    UserProfile.objects.create(user=user)
+                messages.success(request, 'Cadastro de farmácia realizado com sucesso! Faça login com seu email ou CNPJ.')
+                return redirect('pharmacy_auth')
+            else:
+                messages.error(request, 'Confira os dados da farmácia.')
+
+    return render(request, 'pharmacy_auth.html', {
+        'active_tab': active_tab,
+        'form': form,
+    })
+
 
 def register_view(request):
     if request.method == 'POST':
@@ -218,8 +420,8 @@ def register_view(request):
         email = request.POST.get('email', '').strip().lower()
         password = request.POST.get('password', '')
         password_confirm = request.POST.get('password_confirm', '')
-        cpf = request.POST.get('cpf', '').replace('.', '').replace('-', '')
-        
+        cpf = normalize_digits(request.POST.get('cpf', ''))
+
         if password != password_confirm:
             messages.error(request, 'Senhas nao coincidem.')
             return render(request, 'register.html')
@@ -233,12 +435,12 @@ def register_view(request):
         if not cpf or not valid_cpf(cpf):
             messages.error(request, 'Informe um CPF valido.')
             return render(request, 'register.html')
-        
+
         if User.objects.filter(Q(username=username) | Q(email__iexact=email)).exists():
             messages.error(request, 'Nome ou e-mail ja cadastrado.')
             return render(request, 'register.html')
-        
-        if cpf and User.objects.filter(profile__cpf=cpf).exists():
+
+        if UserProfile.objects.filter(cpf=cpf).exists():
             messages.error(request, 'CPF ja cadastrado.')
             return render(request, 'register.html')
 
@@ -251,10 +453,17 @@ def register_view(request):
 
         user = User.objects.create_user(username=username, email=email, password=password)
         UserProfile.objects.create(user=user, cpf=cpf)
-        
-        messages.success(request, 'Registro realizado! Faca login.')
+
+        messages.success(request, 'Registro realizado! Faça login.')
+        next_url = request.POST.get('next')
+        if next_url and url_has_allowed_host_and_scheme(
+            next_url,
+            allowed_hosts={request.get_host()},
+            require_https=request.is_secure()
+        ):
+            return redirect(f"{reverse('login')}?{urlencode({'next': next_url})}")
         return redirect('login')
-   
+
     return render(request, 'register.html')
 
 def logout_view(request):
@@ -264,15 +473,13 @@ def logout_view(request):
 def password_recovery_view(request):
     return render(request, 'password.recovery.html')
 
-@login_required(login_url='login')
 def dashboard_view(request):
-    username = request.user.username.strip()
-    parts = username.split()
-
-    if len(parts) >= 2:
-        display_name = f"{parts[0]} {parts[-1]}"
+    if request.user.is_authenticated:
+        display_name = get_display_name(request.user)
+        cart_count = get_cart_count(request.user)
     else:
-        display_name = username
+        display_name = 'Visitante'
+        cart_count = get_session_cart_count(request)
 
     search_query = request.GET.get('q', '').strip()
     selected_categories = request.GET.getlist('category')
@@ -306,16 +513,34 @@ def dashboard_view(request):
 
     categories = Category.objects.all()
 
+    category_queryset = Category.objects.filter(
+        medicine__pharmacy_inventory__pharmacy__is_active=True,
+        medicine__pharmacy_inventory__is_available=True,
+        medicine__pharmacy_inventory__stock__gt=0,
+    ).distinct().order_by('name')
+
+    if selected_categories:
+        category_queryset = category_queryset.filter(id__in=selected_categories)
+
+    inventory_items_by_category = []
+    for category in category_queryset:
+        category_items = inventory_items.filter(medicine__category=category)
+        if category_items.exists():
+            inventory_items_by_category.append({
+                'category': category,
+                'items': category_items,
+            })
+
     return render(request, 'dashboard.html', {
         'display_name': display_name,
-        'cart_count': get_cart_count(request.user),
-        'inventory_items': inventory_items,
+        'cart_count': cart_count,
+        'inventory_items_by_category': inventory_items_by_category,
         'categories': categories,
         'search_query': search_query,
         'selected_categories': selected_categories,
         'selected_tarja': selected_tarja,
     })
-@login_required(login_url='login')
+
 @require_POST
 def add_inventory_to_cart(request, inventory_id):
     inventory = get_object_or_404(
@@ -325,26 +550,37 @@ def add_inventory_to_cart(request, inventory_id):
         pharmacy__owner__isnull=False,
         is_available=True,
     )
-    cart, created = Cart.objects.get_or_create(user=request.user)
     next_url = request.POST.get('next')
 
     if inventory.stock <= 0:
         messages.error(request, 'Produto sem estoque nesta farmácia.')
         return redirect(next_url or 'dashboard')
 
-    item, created = CartItem.objects.get_or_create(
-        cart=cart,
-        inventory=inventory,
-        defaults={'medicine': inventory.medicine}
-    )
+    if request.user.is_authenticated:
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        item, created = CartItem.objects.get_or_create(
+            cart=cart,
+            inventory=inventory,
+            defaults={'medicine': inventory.medicine}
+        )
 
-    if not created:
-        if item.quantity >= inventory.stock:
+        if not created:
+            if item.quantity >= inventory.stock:
+                messages.error(request, 'Quantidade máxima disponível no estoque desta farmácia.')
+                return redirect(next_url or 'cart')
+
+            item.quantity += 1
+            item.save()
+    else:
+        session_cart = get_session_cart(request)
+        current_quantity = session_cart.get(str(inventory.id), 0)
+
+        if current_quantity >= inventory.stock:
             messages.error(request, 'Quantidade máxima disponível no estoque desta farmácia.')
             return redirect(next_url or 'cart')
 
-        item.quantity += 1
-        item.save()
+        session_cart[str(inventory.id)] = current_quantity + 1
+        request.session.modified = True
 
     if inventory.medicine.tarja == 'preta':
         clear_prescription_session(request)
@@ -361,7 +597,6 @@ def add_inventory_to_cart(request, inventory_id):
     return redirect('cart')
 
 
-@login_required(login_url='login')
 @require_POST
 def add_to_cart(request, medicine_id):
     medicine = get_object_or_404(Medicine, id=medicine_id)
@@ -380,9 +615,21 @@ def add_to_cart(request, medicine_id):
     return add_inventory_to_cart(request, inventory.id)
 
 
-@login_required(login_url='login')
 @require_POST
 def decrease_cart_item(request, item_id):
+    if not request.user.is_authenticated:
+        session_cart = get_session_cart(request)
+        key = str(item_id)
+        quantity = session_cart.get(key, 0)
+
+        if quantity > 1:
+            session_cart[key] = quantity - 1
+        else:
+            session_cart.pop(key, None)
+
+        request.session.modified = True
+        return redirect('cart')
+
     item = get_object_or_404(
         CartItem,
         id=item_id,
@@ -398,9 +645,14 @@ def decrease_cart_item(request, item_id):
     return redirect('cart')
 
 
-@login_required(login_url='login')
 @require_POST
 def remove_cart_item(request, item_id):
+    if not request.user.is_authenticated:
+        session_cart = get_session_cart(request)
+        session_cart.pop(str(item_id), None)
+        request.session.modified = True
+        return redirect('cart')
+
     item = get_object_or_404(
         CartItem,
         id=item_id,
@@ -411,9 +663,14 @@ def remove_cart_item(request, item_id):
 
     return redirect('cart')
 
-@login_required(login_url='login')
 @require_POST
 def clear_cart(request):
+    if not request.user.is_authenticated:
+        request.session.pop('cart', None)
+        clear_prescription_session(request)
+        messages.success(request, 'Carrinho limpo.')
+        return redirect('cart')
+
     cart = get_object_or_404(Cart, user=request.user)
     cart.cartitem_set.all().delete()
     clear_prescription_session(request)
@@ -422,17 +679,24 @@ def clear_cart(request):
     return redirect('cart')
 
 
-@login_required(login_url='login')
 def cart_view(request):
-    cart, items, total = get_cart_items_and_total(request.user)
+    if request.user.is_authenticated:
+        cart, items, total = get_cart_items_and_total(request.user)
+        display_name = get_display_name(request.user)
+        cart_count = get_cart_count(request.user)
+    else:
+        cart, items, total = get_session_cart_items_and_total(request)
+        display_name = 'Visitante'
+        cart_count = get_session_cart_count(request)
+
     requires_prescription = cart_requires_prescription(items)
 
     return render(request, 'cart.html', {
         'cart': cart,
         'items': items,
         'total': total,
-        'display_name': get_display_name(request.user),
-        'cart_count': get_cart_count(request.user),
+        'display_name': display_name,
+        'cart_count': cart_count,
         'requires_prescription': requires_prescription,
         'prescription_uploaded': prescription_uploaded(request),
     })
@@ -488,6 +752,9 @@ def checkout_view(request):
                 complement = request.POST.get('complement') or ''
             delivery_method = request.POST.get('delivery_method') or 'delivery'
             payment_method = request.POST.get('payment_method') or 'pix'
+            if payment_method not in {'pix', 'cash'}:
+                messages.error(request, 'Utilize Pix ou dinheiro ate a integracao segura de cartoes.')
+                return redirect('checkout')
             created_orders = []
 
             grouped_items = {}
@@ -495,6 +762,29 @@ def checkout_view(request):
                 grouped_items.setdefault(item.pharmacy, []).append(item)
 
             with transaction.atomic():
+                locked_inventories = {}
+                for item in items:
+                    if not item.inventory_id:
+                        messages.error(request, 'Um item do carrinho nao possui farmacia disponivel.')
+                        return redirect('cart')
+                    locked_inventory = PharmacyInventory.objects.select_related('pharmacy').select_for_update().get(
+                        id=item.inventory_id
+                    )
+                    if (
+                        not locked_inventory.is_available
+                        or locked_inventory.stock < item.quantity
+                        or not locked_inventory.pharmacy.is_active
+                        or not locked_inventory.pharmacy.owner_id
+                    ):
+                        messages.error(
+                            request,
+                            f'Estoque indisponivel para {item.medicine.name} em {locked_inventory.pharmacy.name}.'
+                        )
+                        return redirect('cart')
+                    locked_inventories[item.inventory_id] = locked_inventory
+                    item.unit_price = locked_inventory.effective_price
+                    item.subtotal = item.unit_price * item.quantity
+
                 if request.POST.get('save_address') == 'on' and not selected_address:
                     Address.objects.create(
                         user=request.user,
@@ -557,7 +847,7 @@ def checkout_view(request):
                         )
 
                         if item.inventory:
-                            locked_inventory = PharmacyInventory.objects.select_for_update().get(id=item.inventory.id)
+                            locked_inventory = locked_inventories[item.inventory_id]
                             locked_inventory.stock -= item.quantity
                             locked_inventory.save(update_fields=['stock', 'updated_at'])
 
@@ -662,6 +952,29 @@ def orders_view(request):
 
 @login_required(login_url='login')
 def pharmacy_dashboard_view(request):
+    if request.method == 'POST' and request.POST.get('action') == 'update_logo':
+        pharmacy = get_accessible_pharmacy_or_404(request.user, request.POST.get('pharmacy_id'))
+        image_file = request.FILES.get('image_file')
+
+        if not image_file:
+            messages.error(request, 'Selecione a imagem da farmácia para enviar.')
+            return redirect('pharmacy_dashboard')
+
+        image_error = validate_product_image(image_file)
+        if image_error:
+            messages.error(request, image_error)
+            return redirect('pharmacy_dashboard')
+
+        try:
+            pharmacy.logo = upload_image(image_file)
+            pharmacy.save(update_fields=['logo'])
+            messages.success(request, 'Logo da farmácia atualizada com sucesso.')
+        except Exception:
+            logger.exception('Falha no upload de logo da farmacia para Supabase.')
+            messages.error(request, 'Não foi possível enviar a imagem. Tente novamente.')
+
+        return redirect('pharmacy_dashboard')
+
     pharmacies = get_accessible_pharmacies(request.user).annotate(
         total_products=Count('inventory_items', distinct=True),
         active_products=Count(
@@ -705,16 +1018,38 @@ def pharmacy_dashboard_view(request):
 @login_required(login_url='login')
 def pharmacy_register_view(request):
     if request.method == 'POST':
-        form = PharmacyRegistrationForm(request.POST)
+        form = PharmacyRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
             pharmacy = form.save(commit=False)
             pharmacy.owner = request.user
             pharmacy.is_active = True
+
+            image_file = request.FILES.get('image_file')
+            if image_file:
+                image_error = validate_product_image(image_file)
+                if image_error:
+                    messages.error(request, image_error)
+                    return render(request, 'pharmacy_register.html', {
+                        'form': form,
+                        'display_name': get_display_name(request.user),
+                        'cart_count': get_cart_count(request.user),
+                    })
+                try:
+                    pharmacy.logo = upload_image(image_file)
+                except Exception:
+                    logger.exception('Falha no upload de logo da farmacia para Supabase.')
+                    messages.error(request, 'Não foi possível enviar a imagem. Tente novamente.')
+                    return render(request, 'pharmacy_register.html', {
+                        'form': form,
+                        'display_name': get_display_name(request.user),
+                        'cart_count': get_cart_count(request.user),
+                    })
+
             pharmacy.save()
-            messages.success(request, 'Farmacia cadastrada. Agora voce pode configurar o estoque.')
+            messages.success(request, 'Farmácia cadastrada. Agora você pode configurar o estoque.')
             return redirect('pharmacy_inventory', pharmacy_id=pharmacy.id)
 
-        messages.error(request, 'Confira os dados da farmacia.')
+        messages.error(request, 'Confira os dados da farmácia.')
     else:
         form = PharmacyRegistrationForm()
 
@@ -850,6 +1185,20 @@ def pharmacy_inventory_update(request, inventory_id):
     return redirect('pharmacy_inventory', pharmacy_id=pharmacy.id)
 
 @login_required(login_url='login')
+@require_POST
+def pharmacy_inventory_delete(request, inventory_id):
+    inventory_item = get_object_or_404(PharmacyInventory.objects.select_related('pharmacy'), id=inventory_id)
+    pharmacy = get_accessible_pharmacy_or_404(request.user, inventory_item.pharmacy.id)
+
+    medicine_name = inventory_item.medicine.name
+    pharmacy_id = pharmacy.id
+
+    inventory_item.delete()
+    messages.success(request, f'{medicine_name} foi removido do estoque.')
+
+    return redirect('pharmacy_inventory', pharmacy_id=pharmacy_id)
+
+@login_required(login_url='login')
 def pharmacy_orders_view(request, pharmacy_id):
     pharmacy = get_accessible_pharmacy_or_404(request.user, pharmacy_id)
 
@@ -964,17 +1313,89 @@ def profile_view(request):
     else:
         display_name = username
 
-    form = AddressForm(initial={
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    pharmacy = request.user.pharmacies.order_by('created_at').first()
+    is_pharmacy_user = pharmacy is not None
+
+    profile_initial = {
+        'username': request.user.username,
+        'email': request.user.email,
+        'cpf': profile.cpf,
+        'nickname': profile.nickname,
+    }
+    address_initial = {
         'recipient_name': request.user.username,
-    })
+    }
+
+    if is_pharmacy_user:
+        profile_initial.update({
+            'username': pharmacy.name,
+            'cpf': pharmacy.cnpj,
+        })
+        address_initial.update({
+            'label': pharmacy.name,
+            'recipient_name': pharmacy.name,
+            'phone': pharmacy.phone,
+            'cep': pharmacy.cep,
+            'state': pharmacy.state,
+            'city': pharmacy.city,
+            'neighborhood': pharmacy.district,
+            'street': pharmacy.street,
+            'number': pharmacy.number,
+            'complement': pharmacy.complement,
+        })
+
+    profile_form = UserProfileForm(initial={
+        **profile_initial,
+    }, is_pharmacy_user=is_pharmacy_user)
+    address_form = AddressForm(initial=address_initial)
 
     if request.method == 'POST':
         action = request.POST.get('action')
 
-        if action == 'add_address':
-            form = AddressForm(request.POST)
-            if form.is_valid():
-                address = form.save(commit=False)
+        if action == 'save_profile':
+            profile_form = UserProfileForm(request.POST, is_pharmacy_user=is_pharmacy_user)
+            if profile_form.is_valid():
+                username_clean = profile_form.cleaned_data['username'].strip()
+                email_clean = profile_form.cleaned_data['email'].strip()
+                document_clean = normalize_digits(profile_form.cleaned_data['cpf'])
+
+                if not is_pharmacy_user and User.objects.exclude(pk=request.user.pk).filter(username=username_clean).exists():
+                    messages.error(request, 'Nome de usuário já está em uso.')
+                elif User.objects.exclude(pk=request.user.pk).filter(email=email_clean).exists():
+                    messages.error(request, 'Email já está em uso.')
+                elif not is_pharmacy_user and document_clean and not valid_cpf(document_clean):
+                    messages.error(request, 'Informe um CPF valido.')
+                elif (
+                    not is_pharmacy_user
+                    and document_clean
+                    and UserProfile.objects.exclude(pk=profile.pk).filter(cpf=document_clean).exists()
+                ):
+                    messages.error(request, 'CPF já está em uso.')
+                elif is_pharmacy_user and document_clean and Pharmacy.objects.exclude(pk=pharmacy.pk).filter(cnpj=document_clean).exists():
+                    messages.error(request, 'CNPJ já está em uso.')
+                else:
+                    if is_pharmacy_user:
+                        pharmacy.name = username_clean
+                        pharmacy.cnpj = document_clean
+                        pharmacy.save(update_fields=['name', 'cnpj', 'updated_at'])
+                    else:
+                        request.user.username = username_clean
+                    request.user.email = email_clean
+                    request.user.save(update_fields=['username', 'email'] if not is_pharmacy_user else ['email'])
+
+                    profile.cpf = (document_clean or None) if not is_pharmacy_user else profile.cpf
+                    profile.nickname = profile_form.cleaned_data['nickname']
+                    profile.save(update_fields=['cpf', 'nickname'])
+                    messages.success(request, 'Perfil atualizado com sucesso.')
+                    return redirect('perfil')
+            else:
+                messages.error(request, 'Confira os dados do perfil.')
+
+        elif action == 'add_address':
+            address_form = AddressForm(request.POST)
+            if address_form.is_valid():
+                address = address_form.save(commit=False)
                 address.user = request.user
                 address.save()
                 messages.success(request, 'Endereco salvo.')
@@ -994,25 +1415,50 @@ def profile_view(request):
             address.delete()
             messages.success(request, 'Endereco removido.')
             return redirect('perfil')
+
     return render(request, 'profile.html', {
         'display_name': display_name,
-        'address_form': form,
+        'profile_form': profile_form,
+        'address_form': address_form,
         'addresses': request.user.addresses.all(),
         'cart_count': get_cart_count(request.user),
+        'is_pharmacy_user': is_pharmacy_user,
+        'user_email': request.user.email,
+        'user_cpf': profile.cpf,
+        'user_nickname': profile.nickname or '',
+        'user_username': request.user.username,
     })
 
 @login_required(login_url='login')
 def payment_view(request):
     username = request.user.username.strip()
     parts = username.split()
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
 
     if len(parts) >= 2:
         display_name = f"{parts[0]} {parts[-1]}"
     else:
         display_name = username
 
+    payment_form = PaymentForm(initial={
+        'payment_method': profile.payment_method,
+        'card_name': profile.payment_card_owner,
+        'card_number': profile.payment_card_last4 and f'**** **** **** {profile.payment_card_last4}' or '',
+        'card_expiry': profile.payment_card_expiry,
+    })
+
+    if request.method == 'POST' and request.POST.get('action') == 'save_payment':
+        messages.warning(
+            request,
+            'Cartoes ainda nao podem ser cadastrados: utilize Pix ou dinheiro ate a integracao com gateway seguro.'
+        )
+        return redirect('pagamento')
+
     return render(request, 'payment.html', {
-        'display_name': display_name
+        'display_name': display_name,
+        'cart_count': get_cart_count(request.user),
+        'payment_form': payment_form,
+        'profile': profile,
     })
 
 @login_required(login_url='login')
@@ -1026,5 +1472,6 @@ def help_view(request):
         display_name = username
 
     return render(request, 'help.html', {
-        'display_name': display_name
+        'display_name': display_name,
+        'cart_count': get_cart_count(request.user),
     })

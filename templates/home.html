@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Remaz Pharm</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
 
@@ -17,14 +18,15 @@
         </div>
         
         <nav class="menu">
-            <a href="#">Home</a>
-            <a href="#sobre">Sobre</a>
-            <a href="#">Contato</a>
+            <a href="{% url 'home' %}">Home</a>
+            <a href="{% url 'about' %}">Quem somos</a>
+            <a href="{% url 'contact' %}">Contato</a>
         </nav>
 
         <div class="acoes">
             <a href="{% url 'login' %}" class="btn btn-claro">Entrar</a>
             <a href="{% url 'registro' %}" class="btn btn-vermelho">Inscreva-se</a>
+            <a href="{% url 'pharmacy_auth' %}" class="btn btn-claro">Farmácia</a>
         </div>
     </div>
     <div class="linha"></div>
@@ -96,28 +98,28 @@
         <div class="cards-funciona">
 
             <div class="card-func">
-                <img src="{% static 'img/icon1.png' %}">
+                <span class="feature-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
                 <div class="numero">1</div>
                 <h3>Busque o medicamento</h3>
                 <p>Encontre medicamentos comuns e controlados de forma rápida pelo aplicativo.</p>
             </div>
 
             <div class="card-func">
-                <img src="{% static 'img/icon2.png' %}">
+                <span class="feature-icon"><i class="fa-solid fa-tags"></i></span>
                 <div class="numero verde">2</div>
                 <h3>Compare preços</h3>
                 <p>Veja preços de diferentes farmácias e escolha a melhor opção.</p>
             </div>
 
             <div class="card-func">
-                <img src="{% static 'img/icon3.png' %}">
+                <span class="feature-icon"><i class="fa-solid fa-file-medical"></i></span>
                 <div class="numero azul">3</div>
                 <h3>Envie sua receita</h3>
                 <p>Para medicamentos controlados, envie a receita de forma segura.</p>
             </div>
 
             <div class="card-func">
-                <img src="{% static 'img/icon4.png' %}">
+                <span class="feature-icon"><i class="fa-solid fa-truck-fast"></i></span>
                 <div class="numero vermelho">4</div>
                 <h3>Receba em casa</h3>
                 <p>Receba seus medicamentos com rapidez e segurança onde estiver.</p>
@@ -154,7 +156,7 @@
             <div class="lista-beneficios">
 
                 <div class="item-beneficio">
-                    <img src="{% static 'img/benef1.png' %}">
+                    <span class="beneficio-icon"><i class="fa-solid fa-chart-line"></i></span>
                     <div>
                         <h5>Aumente suas vendas</h5>
                         <p>Alcance novos clientes da sua região.</p>
@@ -162,7 +164,7 @@
                 </div>
 
                 <div class="item-beneficio">
-                    <img src="{% static 'img/benef2.png' %}">
+                    <span class="beneficio-icon"><i class="fa-solid fa-money-bill-wave"></i></span>
                     <div>
                         <h5>Destaque seus preços</h5>
                         <p>Mostre seus medicamentos com preços competitivos.</p>
@@ -170,7 +172,7 @@
                 </div>
 
                 <div class="item-beneficio">
-                    <img src="{% static 'img/benef3.png' %}">
+                    <span class="beneficio-icon"><i class="fa-solid fa-motorcycle"></i></span>
                     <div>
                         <h5>Delivery facilitado</h5>
                         <p>Gerencie pedidos e entregas.</p>
@@ -178,7 +180,7 @@
                 </div>
 
                 <div class="item-beneficio">
-                    <img src="{% static 'img/benef4.png' %}">
+                    <span class="beneficio-icon"><i class="fa-solid fa-shield-halved"></i></span>
                     <div>
                         <h5>Segurança e conformidade</h5>
                         <p>Venda dentro das normas exigidas.</p>
@@ -186,7 +188,7 @@
                 </div>
 
                 <div class="item-beneficio">
-                    <img src="{% static 'img/benef5.png' %}">
+                    <span class="beneficio-icon"><i class="fa-solid fa-chart-pie"></i></span>
                     <div>
                         <h5>Gestão inteligente</h5>
                         <p>Acompanhe desempenho em tempo real.</p>
@@ -205,19 +207,7 @@
 </section>
 
 <!-- RODAPÉ -->
-<footer class="rodape">
-    <div class="container">
-
-        <h2 class="logo-rodape">REMAZ <span>PHARM</span></h2>
-
-        <div class="links-rodape">
-            <a href="#">Careers</a>
-            <a href="#">Privacy Policy</a>
-            <a href="#">Terms & Conditions</a>
-        </div>
-
-    </div>
-</footer>
+{% include 'partials/footer.html' with footer_class='rodape' %}
 
 </body>
 </html>

@@ -8,6 +8,13 @@ body {
     font-family: Arial, sans-serif;
     background: #f0f0f0;
     color: #22597a;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main.dashboard-wrapper {
+    flex: 1;
 }
 
 img {
@@ -23,12 +30,18 @@ img {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 24px;
     padding: 0 60px;
+}
+
+.topo-publico {
+    position: relative;
 }
 
 .logo-topo {
     display: flex;
     align-items: center;
+    flex-shrink: 0;
 }
 
 .logo-topo img {
@@ -44,6 +57,16 @@ img {
 .busca-topo {
     position: relative;
     width: 380px;
+    max-width: 100%;
+    min-width: 220px;
+    flex: 0 1 380px;
+}
+
+.topo-publico .busca-topo {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 300px;
 }
 
 .busca-topo input {
@@ -67,10 +90,60 @@ img {
 /* PERFIL */
 
 .usuario-topo {
-    display: flex;
+    display: flex !important;
     align-items: center;
     color: white;
     font-size: 13px;
+    flex-shrink: 0;
+}
+
+.menu-publico-dashboard,
+.acoes-publicas-dashboard {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.acoes-publicas-dashboard {
+    margin-left: auto;
+}
+
+.menu-publico-dashboard a {
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.menu-publico-dashboard a:hover {
+    color: #dff3fb;
+}
+
+.btn-publico {
+    border-radius: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 22px;
+    font-size: 14px;
+    font-weight: bold;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: 0.3s;
+}
+
+.btn-publico:hover {
+    transform: translateY(-2px);
+}
+
+.btn-publico-claro {
+    background: white;
+    color: #2c7696;
+}
+
+.btn-publico-vermelho {
+    background: #ff4d43;
+    color: white;
 }
 
 .perfil-container {
@@ -168,6 +241,111 @@ img {
     padding: 24px;
 }
 
+.dashboard-wrapper > section {
+    padding-inline: 24px;
+}
+
+.dashboard-wrapper > section:not(.banner-area) {
+    margin-bottom: 28px;
+}
+
+.banner-area {
+    margin-bottom: 28px;
+}
+
+.menu-publico-home {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin: 2px 0 18px;
+}
+
+.menu-publico-home a {
+    color: #2b7695;
+    font-size: 14px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.menu-publico-home a:hover {
+    color: #d6472d;
+}
+
+body.page-carrinho {
+  min-height: 100vh;
+  position: relative;
+}
+
+body.page-carrinho main.dashboard-wrapper {
+  margin: 0 auto;
+  padding-bottom: 140px;
+}
+
+body.page-carrinho footer.rodape-dashboard {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  margin-top: 0;
+}
+
+.page-contato .dashboard-wrapper {
+    width: 100%;
+}
+
+.contato-area {
+    min-height: 420px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 0 70px;
+}
+
+.contato-card {
+    width: min(720px, 100%);
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 42px;
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(43, 118, 149, 0.12);
+}
+
+.contato-card h1 {
+    color: #2b7695;
+    font-size: 34px;
+    margin-bottom: 14px;
+}
+
+.contato-card p {
+    color: #2c5f84;
+    font-size: 18px;
+    line-height: 1.6;
+    max-width: 560px;
+    margin: 0 auto 28px;
+}
+
+.contato-info {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    flex-wrap: wrap;
+}
+
+.contato-info div {
+    min-width: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: #2b7695;
+    font-weight: bold;
+}
+
+.contato-info i {
+    color: #ff4d43;
+}
+
 /* ICONES */
 
 .categorias-home {
@@ -217,6 +395,98 @@ img {
     text-align: center;
 }
 
+.hidden {
+    display: none !important;
+}
+
+.farmacias-listagem {
+    margin-bottom: 28px;
+}
+
+.farmacias-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 18px;
+}
+
+.farmacia-card {
+    background: #f7f7f7;
+    border-radius: 18px;
+    padding: 18px;
+    border: 1px solid #d8d8d8;
+    text-align: left;
+    cursor: pointer;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.farmacia-card:hover {
+    transform: translateY(-3px);
+}
+
+.farmacia-logo {
+    width: 72px;
+    min-width: 72px;
+    height: 72px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #d8d8d8;
+}
+
+.farmacia-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.farmacia-logo-placeholder {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2b7695;
+    font-size: 20px;
+}
+
+.farmacia-dados h3 {
+    margin: 0 0 6px;
+    font-size: 16px;
+    color: #1f4e69;
+}
+
+.farmacia-dados p {
+    margin: 0;
+    color: #5d7a8c;
+    font-size: 14px;
+}
+
+.categoria-grupo {
+    margin-bottom: 28px;
+    padding-inline: 24px;
+}
+
+.categoria-header {
+    padding-inline: 24px;
+}
+
+.produtos-scroll {
+    display: flex;
+    gap: 22px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scroll-snap-type: x proximity;
+    padding: 0 24px 10px;
+}
+
 /* BANNER */
 
 .banner-area {
@@ -227,7 +497,7 @@ img {
 .banner-slider {
     position: relative;
     width: 100%;
-    height: 340px;
+    height: clamp(180px, 25vw, 340px);
     overflow: hidden;
     border-radius: 24px;
 }
@@ -293,8 +563,10 @@ img {
 .produtos-scroll {
     display: flex;
     gap: 22px;
+    width: 100%;
     overflow-x: auto;
     scroll-behavior: smooth;
+    scroll-snap-type: x proximity;
     padding-bottom: 10px;
 }
 
@@ -302,9 +574,26 @@ img {
     display: none;
 }
 
+.produtos-scroll.grid-view {
+    display: grid !important;
+    grid-template-columns: repeat(6, minmax(220px, 1fr));
+    gap: 22px;
+    overflow: visible;
+    padding-bottom: 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.produtos-scroll.grid-view .produto-card {
+    width: 100%;
+    min-width: 0;
+    flex-shrink: 0;
+}
+
 /* CARD */
 
 .produto-card {
+    width: 220px;
     min-width: 220px;
     background: #f3f3f3;
     border: 1px solid #9bb9c8;
@@ -313,13 +602,25 @@ img {
     position: relative;
     text-align: center;
     flex-shrink: 0;
+    scroll-snap-align: start;
 }
 
-.produto-card img {
+.produto-card img,
+.produto-card .produto-imagem-placeholder {
     width: 120px;
     height: 140px;
     object-fit: contain;
     margin: 0 auto 12px;
+}
+
+.produto-imagem-placeholder {
+    align-items: center;
+    background: #e8f2f6;
+    border-radius: 12px;
+    color: #2b7695;
+    display: flex;
+    font-size: 34px;
+    justify-content: center;
 }
 
 .produto-card h4 {
@@ -391,9 +692,9 @@ img {
 
 .rodape-dashboard {
     background: #2b7695;
-    margin-top: 60px;
     padding: 38px 20px 24px;
     text-align: center;
+    margin-top: auto;
 }
 
 .logo-rodape {
@@ -436,7 +737,7 @@ img {
     border-radius: 8px;
     background: white;
     color: #2b7695;
-    display: flex;
+    display: flex !important;
     align-items: center;
     justify-content: center;
     text-decoration: none;
@@ -468,71 +769,165 @@ img {
     display: flex;
     flex-wrap: wrap;
     align-items: flex-end;
-    gap: 16px 24px;
-    margin: -44px 0 26px;
-    padding: 16px;
-    background: #f7f7f7;
-    border: 1px solid #9bb9c8;
-    border-radius: 14px;
+    gap: 16px;
+
+    margin: 18px 0 26px;
+
+    padding: 16px 20px;
+
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafb 100%);
+    border: 1px solid #e8f1f6;
+    border-radius: 12px;
+
+    box-shadow: 0 2px 8px rgba(43, 118, 149, 0.06);
+}
+
+.filtro-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+    border: none;
+}
+
+.filtro-grupo:hover {
+    box-shadow: none;
+    border-color: transparent;
+}
+
+.filtro-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.filtro-header i {
+    font-size: 16px;
+    color: #2b7695;
 }
 
 .filtro-grupo h3 {
-    font-size: 15px;
+    font-size: 14px;
+    font-weight: 600;
     color: #1f4e69;
-    margin-bottom: 8px;
+    margin: 0;
+    letter-spacing: 0.3px;
 }
 
 .filtro-opcoes {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px 14px;
+    gap: 10px;
+    align-items: center;
 }
 
-.filtro-opcoes label,
-.filtro-opcoes span {
+.filtro-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     font-size: 13px;
     color: #2e6585;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 6px 10px;
+    border-radius: 6px;
+    user-select: none;
+    white-space: nowrap;
 }
 
-.filtro-opcoes input {
-    margin-right: 5px;
+.filtro-label:hover {
+    background-color: #f0f7fb;
+    color: #1f4e69;
+}
+
+.filtro-checkbox {
+    display: none;
+}
+
+.checkmark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #9bb9c8;
+    border-radius: 4px;
+    background-color: white;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.filtro-checkbox:checked + .checkmark {
+    background-color: #2b7695;
+    border-color: #2b7695;
+}
+
+.filtro-checkbox:checked + .checkmark::after {
+    content: "✓";
+    color: white;
+    font-size: 11px;
+    font-weight: bold;
 }
 
 .filtro-acoes {
     display: flex;
     gap: 10px;
+    margin-left: auto;
+    align-items: center;
 }
 
-.filtro-acoes button,
-.filtro-acoes a,
-.btn-continuar,
-.btn-limpar,
-.btn-finalizar,
-.carrinho-vazio a {
+.filtro-btn {
     height: 38px;
     border-radius: 8px;
     padding: 0 16px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 6px;
     text-decoration: none;
-    font-size: 14px;
-}
-
-.filtro-acoes button,
-.btn-finalizar,
-.carrinho-vazio a {
+    font-size: 13px;
+    font-weight: 600;
     border: none;
-    background: #2b7695;
-    color: white;
     cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
 }
 
-.filtro-acoes a,
-.btn-continuar {
-    border: 1px solid #9bb9c8;
+.filtro-btn-primary {
+    background: linear-gradient(135deg, #2b7695 0%, #1f4e69 100%);
+    color: white;
+    box-shadow: 0 2px 6px rgba(43, 118, 149, 0.2);
+}
+
+.filtro-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(43, 118, 149, 0.3);
+}
+
+.filtro-btn-primary:active {
+    transform: translateY(0);
+}
+
+.filtro-btn-secondary {
     background: white;
     color: #2b7695;
+    border: 1.5px solid #2b7695;
+}
+
+.filtro-btn-secondary:hover {
+    background-color: #f0f7fb;
+    transform: translateY(-2px);
+}
+
+.filtro-btn-secondary:active {
+    transform: translateY(0);
+}
+
+.filtro-btn i {
+    font-size: 14px;
 }
 
 .btn-limpar {
@@ -544,8 +939,13 @@ img {
 }
 
 .sem-produtos {
-    color: #2e6585;
-    padding: 20px 0;
+    color: #718096;
+    padding: 40px 20px;
+    text-align: center;
+    font-size: 18px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 2px dashed #e2e8f0;
 }
 
 .carrinho-header {
@@ -556,21 +956,48 @@ img {
     margin-bottom: 25px;
 }
 
+.gestao-area .carrinho-header,
+.checkout-area .carrinho-header {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fbfc 100%);
+    padding: 28px 32px;
+    border-radius: 24px;
+    box-shadow: 0 18px 40px rgba(15, 54, 80, 0.06);
+    border: 1px solid rgba(43, 118, 149, 0.08);
+    position: relative;
+    overflow: hidden;
+}
+
+.gestao-area .carrinho-header::before,
+.checkout-area .carrinho-header::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, #2b7695, #1f4e69, #2b7695);
+    background-size: 200% 100%;
+}
+
 .carrinho-header h1 {
-    font-size: 30px;
+    font-size: 32px;
     color: #1f4e69;
+    font-weight: 800;
+    letter-spacing: -0.8px;
+    margin-bottom: 4px;
 }
 
 .carrinho-header p {
     font-size: 14px;
-    color: #6a737a;
+    color: #5a7185;
     margin-top: 4px;
+    line-height: 1.5;
 }
 
 .carrinho-acoes-topo {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 12px;
     justify-content: flex-end;
 }
 
@@ -603,9 +1030,10 @@ img {
     align-items: center;
 }
 
-.carrinho-item img {
-    width: 90px;
-    height: 90px;
+.carrinho-item img,
+.carrinho-item .produto-imagem-placeholder {
+    width: 80px;
+    height: 80px;
     object-fit: contain;
 }
 
@@ -684,23 +1112,64 @@ img {
 
 .carrinho-vazio {
     text-align: center;
-    padding: 42px 20px;
+    padding: 50px 30px;
+    background: linear-gradient(135deg, #f8fbfc 0%, #f0f6fb 100%);
+    border: 2px dashed rgba(43, 118, 149, 0.18);
+    border-radius: 28px;
+    grid-column: 1 / -1;
+    transition: all 0.3s ease;
+}
+
+.carrinho-vazio:hover {
+    border-color: rgba(43, 118, 149, 0.28);
+    background: linear-gradient(135deg, #fcfdfe 0%, #f5f9fc 100%);
 }
 
 .carrinho-vazio i {
-    font-size: 34px;
+    font-size: 56px;
     color: #2b7695;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
+    display: block;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
 }
 
 .carrinho-vazio h2 {
     color: #1f4e69;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
 }
 
 .carrinho-vazio p {
-    color: #6a737a;
-    margin-bottom: 16px;
+    color: #5a7185;
+    margin-bottom: 24px;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.carrinho-vazio a {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #2b7695 0%, #1f4e69 100%);
+    color: white;
+    padding: 12px 28px;
+    border-radius: 999px;
+    text-decoration: none;
+    font-weight: 700;
+    transition: all 0.2s ease;
+    box-shadow: 0 12px 24px rgba(43, 118, 149, 0.2);
+}
+
+.carrinho-vazio a:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 32px rgba(43, 118, 149, 0.3);
 }
 
 /* CHECKOUT */
@@ -859,7 +1328,8 @@ img {
     align-items: center;
 }
 
-.checkout-item img {
+.checkout-item img,
+.checkout-item .produto-imagem-placeholder {
     width: 48px;
     height: 48px;
     object-fit: contain;
@@ -939,7 +1409,8 @@ img {
     padding: 10px;
 }
 
-.receita-produto img {
+.receita-produto img,
+.receita-produto .produto-imagem-placeholder {
     width: 58px;
     height: 58px;
     object-fit: contain;
@@ -1053,79 +1524,156 @@ img {
 
 .produto-promocao {
     min-height: 24px;
-    border-radius: 8px;
-    padding: 5px 8px;
+    border-radius: 999px;
+    padding: 6px 12px;
     display: inline-flex;
     align-items: center;
-    background: #fff0ea;
+    background: #fff4f1;
     color: #d6472d;
-    border: 1px solid #f1b8a8;
+    border: 1px solid #f7c5b8;
     font-size: 12px;
     font-weight: bold;
 }
 
 .farmacia-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 18px;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 26px;
+    padding: 4px;
 }
 
 .farmacia-card,
 .gestao-card {
-    background: #f3f3f3;
-    border: 1px solid #9bb9c8;
-    border-radius: 14px;
-    padding: 18px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fbfc 100%);
+    border: 1px solid rgba(43, 118, 149, 0.12);
+    border-radius: 24px;
+    padding: 24px;
+    box-shadow: 0 18px 40px rgba(15, 54, 80, 0.06);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.farmacia-card::before,
+.gestao-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #2b7695, #1f4e69);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.farmacia-card:hover,
+.gestao-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 32px 56px rgba(15, 54, 80, 0.15);
+    border-color: rgba(43, 118, 149, 0.24);
+}
+
+.farmacia-card:hover::before,
+.gestao-card:hover::before {
+    opacity: 1;
 }
 
 .farmacia-admin-card {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
+    position: relative;
 }
 
 .farmacia-card-top {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 12px;
+    gap: 16px;
 }
 
 .farmacia-card-icone {
-    width: 54px;
-    height: 54px;
-    border-radius: 16px;
-    background: white;
-    border: 1px solid #d8d8d8;
-    color: #d63031;
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #2b7695 0%, #1f4e69 100%);
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
-    margin-bottom: 12px;
+    font-size: 28px;
+    box-shadow: 0 12px 28px rgba(43, 118, 149, 0.22);
+    position: relative;
+    flex-shrink: 0;
+}
+
+.farmacia-card-icone img.farmacia-logo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 20px;
+}
+
+.farmacia-card-icone::after {
+    content: "";
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 24px;
+    height: 24px;
+    background: #10c876;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 4px 12px rgba(16, 200, 118, 0.3);
+}
+
+.logo-upload-form {
+    margin-top: 12px;
+}
+
+.upload-logo-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    background: #1f4e69;
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.upload-logo-button:hover {
+    background: #163f56;
 }
 
 .farmacia-card h2,
 .gestao-card h2 {
-    color: #1f4e69;
-    font-size: 22px;
+    color: #122f45;
+    font-size: 24px;
     margin-bottom: 6px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
 }
 
 .farmacia-card p,
 .farmacia-card span,
 .gestao-card p,
 .gestao-nota {
-    color: #6a737a;
+    color: #5a7185;
     font-size: 14px;
-    line-height: 1.4;
+    line-height: 1.6;
 }
 
 .farmacia-card-acoes {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 16px;
+    gap: 12px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(43, 118, 149, 0.08);
 }
 
 .farmacia-card-acoes .btn-finalizar,
@@ -1134,61 +1682,196 @@ img {
 .receita-review-acoes .btn-recusa {
     width: auto;
     margin-top: 0;
-    gap: 8px;
+    gap: 10px;
+    min-width: 140px;
+    font-size: 13px;
+}
+
+.gestao-area .btn-finalizar,
+.gestao-area .btn-continuar,
+.checkout-area .btn-finalizar,
+.checkout-area .btn-continuar,
+.farmacia-card-acoes .btn-finalizar,
+.farmacia-card-acoes .btn-continuar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 22px;
+    border-radius: 999px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+}
+
+.gestao-area .btn-finalizar,
+.farmacia-card-acoes .btn-finalizar,
+.checkout-area .btn-finalizar {
+    background: linear-gradient(135deg, #2b7695 0%, #1f4e69 100%);
+    color: white;
+    box-shadow: 0 16px 30px rgba(43, 118, 149, 0.18);
+    border: 1px solid transparent;
+}
+
+.gestao-area .btn-continuar,
+.farmacia-card-acoes .btn-continuar,
+.checkout-area .btn-continuar {
+    background: linear-gradient(135deg, rgba(43, 118, 149, 0.08) 0%, rgba(31, 78, 105, 0.04) 100%);
+    color: #1f4e69;
+    border: 1.5px solid rgba(43, 118, 149, 0.24);
+}
+
+.gestao-area .btn-finalizar:hover,
+.farmacia-card-acoes .btn-finalizar:hover,
+.checkout-area .btn-finalizar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 24px 40px rgba(43, 118, 149, 0.28);
+}
+
+.gestao-area .btn-continuar:hover,
+.farmacia-card-acoes .btn-continuar:hover,
+.checkout-area .btn-continuar:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, rgba(43, 118, 149, 0.14) 0%, rgba(31, 78, 105, 0.08) 100%);
+    border-color: rgba(43, 118, 149, 0.32);
+}
+
+.gestao-area .btn-finalizar:active,
+.farmacia-card-acoes .btn-finalizar:active,
+.checkout-area .btn-finalizar:active,
+.gestao-area .btn-continuar:active,
+.farmacia-card-acoes .btn-continuar:active,
+.checkout-area .btn-continuar:active {
+    transform: translateY(0);
 }
 
 .farmacia-metricas {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 8px;
-    margin-top: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    gap: 14px;
+    margin-top: 20px;
+    padding: 16px 0;
+    flex-wrap: nowrap;
 }
 
 .farmacia-metricas div {
-    border: 1px solid #adc2cf;
-    border-radius: 8px;
-    background: white;
-    padding: 10px;
+    flex: 1;
+    min-width: 120px;
+
+    min-height: 120px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    border: none;
+    background: linear-gradient(135deg, #f4fbff 0%, #eef8fc 100%);
+    padding: 18px 16px;
+    border-radius: 18px;
+
+    box-shadow:
+        inset 0 0 0 1px rgba(43, 118, 149, 0.12),
+        0 4px 12px rgba(43, 118, 149, 0.06);
+
+    transition: transform 0.2s ease, background 0.2s ease;
+
+    border-left: 4px solid transparent;
+    position: relative;
+}
+
+.farmacia-metricas div:nth-child(1) {
+    border-left-color: #2b7695;
+    background: linear-gradient(135deg, #f4fbff 0%, #eef8fc 100%);
+}
+
+.farmacia-metricas div:nth-child(2) {
+    border-left-color: #d6472d;
+    background: linear-gradient(135deg, #fff5f3 0%, #fef0ed 100%);
+}
+
+.farmacia-metricas div:nth-child(3) {
+    border-left-color: #ff9800;
+    background: linear-gradient(135deg, #fff9f0 0%, #fef6f0 100%);
+}
+
+.farmacia-metricas div:nth-child(4) {
+    border-left-color: #4caf50;
+    background: linear-gradient(135deg, #f5f9f5 0%, #f1f8f1 100%);
+}
+
+.farmacia-metricas div:hover {
+    transform: translateY(-2px);
+    box-shadow: inset 0 0 0 1px rgba(43, 118, 149, 0.16), 0 8px 16px rgba(43, 118, 149, 0.12);
 }
 
 .farmacia-metricas strong {
     display: block;
-    color: #d6472d;
-    font-size: 20px;
+    font-size: 24px;
     line-height: 1;
+    margin-bottom: 6px;
+    font-weight: 800;
+}
+
+.farmacia-metricas div:nth-child(1) strong {
+    color: #2b7695;
+}
+
+.farmacia-metricas div:nth-child(2) strong {
+    color: #d6472d;
+}
+
+.farmacia-metricas div:nth-child(3) strong {
+    color: #ff9800;
+}
+
+.farmacia-metricas div:nth-child(4) strong {
+    color: #4caf50;
 }
 
 .farmacia-metricas span {
-    color: #2e6585;
-    font-size: 11px;
-    font-weight: bold;
+    color: #4f6f8c;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    display: block;
 }
 
 .gestao-lista {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 18px;
 }
 
 .gestao-card-topo {
     display: flex;
     justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 14px;
+    gap: 18px;
+    margin-bottom: 16px;
 }
 
 .status-pedido {
-    height: 30px;
-    border-radius: 8px;
-    padding: 0 10px;
+    min-height: 32px;
+    border-radius: 999px;
+    padding: 0 14px;
     display: inline-flex;
     align-items: center;
-    background: white;
+    background: linear-gradient(135deg, #f0f6fb 0%, #e8f1f7 100%);
     color: #2b7695;
-    border: 1px solid #9bb9c8;
+    border: 1px solid rgba(43, 118, 149, 0.16);
     font-size: 12px;
-    font-weight: bold;
+    font-weight: 700;
     white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.status-pedido:hover {
+    border-color: rgba(43, 118, 149, 0.32);
+    box-shadow: 0 4px 12px rgba(43, 118, 149, 0.12);
 }
 
 .status-grupo {
@@ -1323,14 +2006,28 @@ img {
 
 /* RESPONSIVO */
 
+@media (max-width: 1200px) {
+    .topo-dashboard {
+        padding: 0 30px;
+    }
+
+    .dashboard-wrapper {
+        padding: 20px;
+    }
+
+    .categorias-home {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
 @media (max-width: 1100px) {
 
     .categorias-home {
         grid-template-columns: repeat(3, 1fr);
     }
 
-    .banner-principal img {
-        height: 250px;
+    .banner-slider {
+        height: 280px;
     }
 
     .carrinho-layout {
@@ -1346,7 +2043,8 @@ img {
     }
 
     .farmacia-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: 1fr;
+        gap: 18px;
     }
 
     .checkout-resumo {
@@ -1356,35 +2054,230 @@ img {
     .receita-envio {
         position: static;
     }
+
+    .filtro-acoes {
+        margin-left: 0;
+    }
+
 }
+
 
 @media (max-width: 768px) {
 
     .topo-dashboard {
-        flex-wrap: wrap;
+        flex-direction: column;
         height: auto;
-        gap: 14px;
-        padding: 20px;
+        gap: 12px;
+        padding: 12px;
+    }
+
+    .logo-topo {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .logo-topo img {
+        height: 50px;
     }
 
     .busca-topo {
         width: 100%;
+        max-width: 300px;
+        margin: 0 auto;
+    }
+
+    .topo-publico .busca-topo {
+        position: relative;
+        left: auto;
+        transform: none;
+        width: 100%;
+    }
+
+    .busca-topo input {
+        height: 36px;
+        font-size: 13px;
+    }
+
+    .usuario-topo {
+        width: 100%;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .menu-publico-dashboard,
+    .acoes-publicas-dashboard {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .acoes-publicas-dashboard {
+        margin-left: 0;
+    }
+
+    .menu-publico-home {
+        flex-wrap: wrap;
+        gap: 18px;
+        margin: 0 0 16px;
+    }
+
+    .btn-publico {
+        padding: 9px 16px;
+        font-size: 12px;
+    }
+
+    .atalho-carrinho {
+        margin-right: 8px;
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+    }
+
+    .atalho-carrinho span {
+        font-size: 10px;
+        min-width: 18px;
+        height: 18px;
+    }
+
+    .perfil-container {
+        align-items: center;
+        gap: 6px;
+    }
+
+    .perfil-name {
+        font-size: 12px;
+        max-width: 80px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .menu-dropdown {
+        min-width: 160px;
+    }
+
+    .dashboard-wrapper {
+        padding: 15px 10px;
     }
 
     .categorias-home {
         grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 20px;
     }
 
-    .banner-principal img {
+    .categoria-item {
+        padding: 12px 8px;
+        border-radius: 12px;
+    }
+
+    .categoria-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        margin-bottom: 8px;
+    }
+
+    .categoria-icon i {
+        font-size: 20px;
+    }
+
+    .categoria-item span {
+        font-size: 12px;
+    }
+
+    .banner-area {
+        margin-bottom: 48px;
+    }
+
+    .banner-slider {
         height: 220px;
+        border-radius: 16px;
+    }
+
+    .categoria-header {
+        gap: 12px;
+        margin-bottom: 18px;
     }
 
     .categoria-header h2 {
-        font-size: 24px;
+        font-size: 22px;
     }
 
     .filtros-produtos {
-        margin-top: -44px;
+        flex-direction: column;
+        align-items: stretch;
+        margin-top: 12;
+        gap: 10px;
+    }
+
+    .filtro-grupo {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .filtro-header {
+        margin-bottom: 0;
+        min-width: auto;
+    }
+
+    .filtro-opcoes {
+        flex: 1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .filtro-label {
+        padding: 6px 10px;
+        font-size: 12px;
+        border-radius: 14px;
+    }
+
+    .filtro-acoes {
+        width: 100%;
+        margin-left: 0;
+        margin-top: 8px;
+        display: flex;
+        flex-direction: row;
+        gap: 8px;
+    }
+
+    .filtro-btn {
+        flex: 1;
+        padding: 10px 8px;
+        font-size: 12px;
+        border-radius: 14px;
+    }
+
+    .produtos-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .produtos-scroll {
+        gap: 14px;
+        padding-bottom: 12px;
+    }
+
+    .produto-card {
+        width: 200px;
+        min-width: 200px;
+        border-radius: 12px;
+        padding: 10px;
+    }
+
+    .produto-card img,
+    .produto-card .produto-imagem-placeholder {
+        width: 105px;
+        height: 125px;
+    }
+
+    .rodape-card strong {
+        font-size: 17px;
     }
 
     .carrinho-header {
@@ -1393,21 +2286,31 @@ img {
     }
 
     .carrinho-item {
-        grid-template-columns: 72px 1fr;
+        grid-template-columns: 70px 1fr;
+        gap: 10px;
     }
 
-    .carrinho-item img {
-        width: 72px;
-        height: 72px;
+    .carrinho-item img,
+    .carrinho-item .produto-imagem-placeholder {
+        width: 70px;
+        height: 70px;
+        border-radius: 8px;
     }
 
     .checkout-opcoes,
     .checkout-grid {
         grid-template-columns: 1fr;
+        gap: 12px;
     }
 
     .checkout-campo.maior {
         grid-column: span 1;
+    }
+
+    .checkout-campo input,
+    .checkout-campo select {
+        height: 38px;
+        font-size: 13px;
     }
 
     .farmacia-grid,
@@ -1420,34 +2323,384 @@ img {
         grid-template-columns: 1fr;
     }
 
+    .gestao-card {
+        padding: 12px;
+    }
+
     .gestao-card-topo {
         flex-direction: column;
+        gap: 12px;
+    }
+
+    .gestao-card h2 {
+        font-size: 15px;
+    }
+
+    .gestao-card p {
+        font-size: 12px;
     }
 
     .status-grupo {
         justify-content: flex-start;
     }
 
-    .farmacia-metricas {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+    .metrica-card {
+        padding: 12px;
+        border-radius: 8px;
+    }
+
+    .metrica-valor {
+        font-size: 18px;
+    }
+
+    .metrica-label {
+        font-size: 12px;
     }
 }
 
 @media (max-width: 500px) {
 
-    .categorias-home {
-        grid-template-columns: 1fr;
-    }
-
-    .produto-card {
-        min-width: 190px;
-    }
-
-    .banner-principal img {
-        height: 180px;
+    .topo-dashboard {
+        padding: 10px;
+        gap: 8px;
     }
 
     .logo-topo img {
+        height: 40px;
+    }
+
+    .busca-topo {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .busca-topo input {
+        height: 33px;
+        padding: 0 30px 0 12px;
+        font-size: 12px;
+        border-radius: 16px;
+    }
+
+    .icone-busca {
+        font-size: 12px;
+    }
+
+    .usuario-topo {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-around;
+    }
+
+    .atalho-carrinho {
+        width: 34px;
+        height: 34px;
+        font-size: 14px;
+        margin-right: 0;
+    }
+
+    .atalho-carrinho span {
+        width: 16px;
+        height: 16px;
+        font-size: 9px;
+        right: -4px;
+        top: -4px;
+    }
+
+    .avatar {
+        width: 26px;
+        height: 26px;
+    }
+
+    .avatar::after {
+        width: 10px;
+        height: 10px;
+        left: 8px;
+        top: 4px;
+    }
+
+    .avatar::before {
+        width: 14px;
+        height: 7px;
+        left: 6px;
+        bottom: 4px;
+    }
+
+    .perfil-name {
+        font-size: 9px;
+        max-width: 60px;
+    }
+
+    .menu-dropdown {
+        min-width: 140px;
+        top: 35px;
+        font-size: 11px;
+    }
+
+    .menu-dropdown a {
+        padding: 8px 10px;
+        font-size: 11px;
+    }
+
+    .dashboard-wrapper {
+        padding: 10px 8px;
+    }
+
+    .categorias-home {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+
+    .categoria-item {
+        padding: 10px 6px;
+        border-radius: 10px;
+    }
+
+    .categoria-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 10px;
+        margin-bottom: 6px;
+    }
+
+    .categoria-icon i {
+        font-size: 18px;
+    }
+
+    .categoria-item span {
+        font-size: 11px;
+    }
+
+    .banner-slider {
+        height: 170px;
+        border-radius: 12px;
+    }
+
+    .produto-card {
+        width: 170px;
+        min-width: 160px;
+        border-radius: 10px;
+    }
+
+    .categoria-header h2 {
+        font-size: 18px;
+        margin-bottom: 12px;
+    }
+
+    .filtros-produtos {
+        flex-direction: column;
+        padding: 10px 10px;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .filtro-grupo {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .filtro-header {
+        min-width: auto;
+        font-size: 12px;
+    }
+
+    .filtro-opcoes {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .filtro-label {
+        padding: 4px 8px;
+        font-size: 11px;
+        border-radius: 12px;
+    }
+
+    .filtro-acoes {
+        width: 100%;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .filtro-btn {
+        width: 100%;
+        padding: 8px 6px;
+        font-size: 11px;
+        border-radius: 12px;
+    }
+
+    .produto-card {
+        width: 170px;
+        min-width: 160px;
+    }
+
+    .produto-card img,
+    .produto-card .produto-imagem-placeholder {
+        width: 92px;
+        height: 112px;
+    }
+
+    .checkout-opcoes,
+    .checkout-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .checkout-campo input,
+    .checkout-campo select {
+        height: 36px;
+        font-size: 12px;
+        border-radius: 14px;
+    }
+
+    .carrinho-item {
+        grid-template-columns: 60px 1fr;
+        gap: 8px;
+    }
+
+    .carrinho-item img,
+    .carrinho-item .produto-imagem-placeholder {
+        width: 60px;
         height: 60px;
+        border-radius: 6px;
+    }
+
+    .farmacia-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .gestao-card {
+        padding: 10px;
+        border-radius: 8px;
+    }
+
+    .gestao-card h2 {
+        font-size: 13px;
+    }
+
+    .gestao-card p {
+        font-size: 11px;
+    }
+
+    .gestao-card-topo {
+        flex-direction: column;
+        gap: 8px;
+        align-items: stretch;
+    }
+
+    .metrica-card {
+        padding: 10px;
+        border-radius: 6px;
+        text-align: center;
+    }
+
+    .metrica-valor {
+        font-size: 16px;
+    }
+
+    .metrica-label {
+        font-size: 11px;
+    }
+
+    .rodape-dashboard {
+        padding: 15px 10px;
+    }
+
+    .logo-rodape {
+        font-size: 18px;
+    }
+
+    .links-rodape a {
+        font-size: 10px;
+        margin: 0 4px;
+    }
+}
+
+@media (max-width: 420px) {
+    .topo-dashboard {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .logo-topo,
+    .busca-topo,
+    .usuario-topo {
+        width: 100%;
+    }
+
+    .busca-topo {
+        max-width: 100%;
+    }
+
+    .usuario-topo {
+        justify-content: space-between;
+    }
+
+    .dashboard-wrapper {
+        padding: 8px 12px;
+    }
+
+    .banner-slider {
+        width: 100%;
+        height: 150px;
+    }
+
+    .categoria-item {
+        min-height: auto;
+    }
+
+    .rodape-dashboard {
+        padding: 12px 10px;
+    }
+}
+
+/* seu css atual acima */
+
+/* =========================
+   AJUSTE DE ALINHAMENTO
+========================= */
+
+/* ALINHAMENTO SOMENTE DO DASHBOARD (não afeta outras páginas) */
+.dashboard-wrapper .banner-area,
+.dashboard-wrapper .conteudo-principal,
+.dashboard-wrapper .categorias-home {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+/* Remove diferenças internas que causavam desalinhamento */
+.categoria-grupo,
+.categoria-header,
+.produtos-scroll {
+    margin-left: 0;
+    padding-left: 0;
+}
+
+/* =========================
+   AJUSTE RESPONSIVO CONSISTENTE
+========================= */
+
+@media (max-width: 1100px) {
+    .dashboard-wrapper {
+        padding: 18px;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-wrapper {
+        padding: 14px;
+    }
+
+    .dashboard-wrapper .banner-area,
+    .dashboard-wrapper .conteudo-principal {
+        padding: 0;
+    }
+}
+
+@media (max-width: 500px) {
+    .dashboard-wrapper {
+        padding: 10px;
     }
 }

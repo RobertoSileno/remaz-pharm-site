@@ -1,3 +1,5 @@
+import re
+
 from django import forms
 from .models import Address, Medicine, Pharmacy, PharmacyInventory
 
@@ -39,7 +41,60 @@ class AddressForm(forms.ModelForm):
         }
 
 
+class UserProfileForm(forms.Form):
+    username = forms.CharField(max_length=150, label='Nome completo', widget=forms.TextInput(attrs={'placeholder': 'Digite seu nome'}))
+    email = forms.EmailField(label='Email', widget=forms.EmailInput(attrs={'placeholder': 'Digite seu e-mail'}))
+    cpf = forms.CharField(max_length=14, required=False, label='CPF', widget=forms.TextInput(attrs={'placeholder': '000.000.000-00'}))
+    nickname = forms.CharField(max_length=15, required=False, label='Apelido', widget=forms.TextInput(attrs={'placeholder': 'Como gostaria de ser chamado'}))
+
+    def __init__(self, *args, is_pharmacy_user=False, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if is_pharmacy_user:
+            self.fields['username'].label = 'Nome fantasia'
+            self.fields['username'].widget.attrs['placeholder'] = 'Digite o nome fantasia'
+            self.fields['cpf'] = forms.CharField(
+                max_length=18,
+                required=False,
+                label='CNPJ',
+                widget=forms.TextInput(attrs={'placeholder': '00.000.000/0000-00'})
+            )
+
+
+class PaymentForm(forms.Form):
+    PAYMENT_METHOD_CHOICES = [
+        ('debit', 'Cartão de Débito'),
+        ('credit', 'Cartão de Crédito'),
+    ]
+
+    payment_method = forms.ChoiceField(
+        choices=PAYMENT_METHOD_CHOICES,
+        widget=forms.RadioSelect,
+        required=False,
+        label='Forma de pagamento'
+    )
+    card_name = forms.CharField(max_length=100, required=False, label='Nome no cartão', widget=forms.TextInput(attrs={'placeholder': 'Nome impresso no cartão'}))
+    card_number = forms.CharField(max_length=19, required=False, label='Número do cartão', widget=forms.TextInput(attrs={'placeholder': '0000 0000 0000 0000'}))
+    card_expiry = forms.CharField(max_length=5, required=False, label='Validade', widget=forms.TextInput(attrs={'placeholder': 'MM/AA'}))
+
+    def clean_card_number(self):
+        card_number = self.cleaned_data.get('card_number', '')
+        if not card_number:
+            return ''
+
+        cleaned = re.sub(r'\D', '', card_number)
+        if not cleaned.isdigit() or len(cleaned) < 13 or len(cleaned) > 19:
+            raise forms.ValidationError('Informe um número de cartão válido.')
+
+        return cleaned
+
+
 class PharmacyRegistrationForm(forms.ModelForm):
+    image_file = forms.ImageField(
+        required=False,
+        label='Logo da farmácia',
+        widget=forms.ClearableFileInput(attrs={'accept': 'image/png,image/jpeg,image/webp', 'style': 'display: none;'})
+    )
     cep = forms.CharField(max_length=12, required=False, widget=forms.TextInput(attrs={
         'placeholder': '00000-000',
         'data-cep-field': 'true',
@@ -70,6 +125,25 @@ class PharmacyRegistrationForm(forms.ModelForm):
             'number': forms.TextInput(attrs={'placeholder': 'Numero'}),
             'complement': forms.TextInput(attrs={'placeholder': 'Complemento'}),
         }
+
+    def clean_cnpj(self):
+        cnpj = re.sub(r'\D', '', self.cleaned_data.get('cnpj', ''))
+        if not cnpj:
+            return None
+        if len(cnpj) != 14 or cnpj == cnpj[0] * 14:
+            raise forms.ValidationError('Informe um CNPJ valido.')
+
+        for size in (12, 13):
+            weights = (5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2) if size == 12 else (
+                6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2
+            )
+            total = sum(int(digit) * weight for digit, weight in zip(cnpj[:size], weights))
+            remainder = total % 11
+            expected = 0 if remainder < 2 else 11 - remainder
+            if expected != int(cnpj[size]):
+                raise forms.ValidationError('Informe um CNPJ valido.')
+
+        return cnpj
 
 
 class PharmacyMedicineCreateForm(forms.ModelForm):

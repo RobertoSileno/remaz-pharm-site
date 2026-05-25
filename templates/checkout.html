@@ -42,7 +42,9 @@
                 <a href="{% url 'pagamento' %}">Pagamento</a>
                 <a href="{% url 'cart' %}">Carrinho</a>
                 <a href="{% url 'orders' %}">Pedidos</a>
+                {% if user.pharmacies.exists %}
                 <a href="{% url 'pharmacy_dashboard' %}">Área da farmácia</a>
+                {% endif %}
                 <a href="{% url 'ajuda' %}">Ajuda</a>
                 <a href="{% url 'logout' %}">Sair</a>
             </div>
@@ -118,7 +120,7 @@
 
                         <div class="checkout-grid" id="manual-address-fields">
                             <div class="checkout-campo">
-                                <label>Nome do endereco</label>
+                                <label>Nome do endereço</label>
                                 <input type="text" name="address_label" placeholder="Casa, trabalho...">
                             </div>
                             <div class="checkout-campo maior">
@@ -167,12 +169,12 @@
                             </div>
                             <label class="gestao-check">
                                 <input type="checkbox" name="save_address" checked>
-                                Salvar endereco para proximas compras
+                                Salvar endereço para próximas compras
                             </label>
 
                             <label class="gestao-check">
                                 <input type="checkbox" name="address_default">
-                                Usar como endereco principal
+                                Usar como endereço principal
                             </label>
                         </div>
                     </section>
@@ -218,18 +220,18 @@
                             </label>
 
                             <label class="checkout-opcao">
-                                <input type="radio" name="payment_method" value="credit_card">
+                                <input type="radio" name="payment_method" value="credit_card" disabled>
                                 <span>
                                     <strong>Cartão de crédito</strong>
-                                    <small>Informe os dados com segurança no próximo passo.</small>
+                                    <small>Indisponível até integração com gateway seguro.</small>
                                 </span>
                             </label>
 
                             <label class="checkout-opcao">
-                                <input type="radio" name="payment_method" value="debit_card">
+                                <input type="radio" name="payment_method" value="debit_card" disabled>
                                 <span>
                                     <strong>Cartão de débito</strong>
-                                    <small>Pagamento processado pela farmácia.</small>
+                                    <small>Indisponível até integração com gateway seguro.</small>
                                 </span>
                             </label>
 
@@ -275,7 +277,7 @@
                                 {% if item.medicine.image %}
                                     <img src="{{ item.medicine.image }}" alt="{{ item.medicine.name }}">
                                 {% else %}
-                                    <img src="{% static 'img/medicamento.png' %}" alt="Sem imagem">
+                                    <span class="produto-imagem-placeholder" aria-label="Sem imagem"><i class="fa-solid fa-pills"></i></span>
                                 {% endif %}
 
                                 <div>
@@ -316,15 +318,7 @@
     </section>
 </main>
 
-<footer class="rodape-dashboard">
-    <div class="logo-rodape">REMAZ <span>PHARM</span></div>
-
-    <div class="links-rodape">
-        <a href="#">Careers</a>
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms & Conditions</a>
-    </div>
-</footer>
+{% include 'partials/footer.html' %}
 
 <script>
     const perfilBtn = document.getElementById('perfil-btn');

@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ajuda - Remaz Pharm</title>
     <link rel="stylesheet" href="{% static 'css/help.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 
 <body>
@@ -22,18 +23,28 @@
         <span class="icone-busca">⌕</span>
     </div>
 
-    <div class="usuario-topo">
+     <div class="usuario-topo">
+        <a class="atalho-carrinho" href="{% url 'cart' %}" aria-label="Ver carrinho">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span>{{ cart_count|default:0 }}</span>
+        </a>
+
         <div class="perfil-container">
-            <button class="perfil-icon" id="perfil-btn">
+            <button class="perfil-icon" id="perfil-btn" type="button">
                 <div class="avatar"></div>
             </button>
+
             <div class="perfil-name">{{ display_name }}</div>
 
             <div class="menu-dropdown" id="menu-dropdown">
                 <a href="#">Configurações</a>
                 <a href="{% url 'perfil' %}">Perfil</a>
                 <a href="{% url 'pagamento' %}">Pagamento</a>
-                <a href="#">Pedidos</a>
+                <a href="{% url 'cart' %}">Carrinho</a>
+                <a href="{% url 'orders' %}">Pedidos</a>
+                {% if user.pharmacies.exists %}
+                <a href="{% url 'pharmacy_dashboard' %}">Área da farmácia</a>
+                {% endif %}
                 <a href="{% url 'ajuda' %}">Ajuda</a>
                 <a href="{% url 'logout' %}">Sair</a>
             </div>
@@ -55,41 +66,41 @@
             <span>Devolução de produtos</span>
             <span class="seta">▶</span>
         </div>
-        <div class="conteudo-ajuda"></div>
+        <div class="conteudo-ajuda">
+            <p><strong>Devolução de produtos</strong></p>
+            <p>Você pode devolver itens em até 7 dias após o recebimento, desde que estejam lacrados e em perfeito estado. Acesse o pedido em sua conta, selecione o item e siga o passo a passo para solicitar a devolução.</p>
+        </div>
 
         <div class="item-ajuda" onclick="toggleItem(this)">
             <span>Prazo de recebimento das compras</span>
             <span class="seta">▶</span>
         </div>
-        <div class="conteudo-ajuda"></div>
+        <div class="conteudo-ajuda">
+            <p><strong>Prazo de recebimento das compras</strong></p>
+            <p>O prazo de entrega varia de acordo com a sua localização e o tipo de frete escolhido. Após a confirmação do pedido, você receberá o código de rastreamento para acompanhar a entrega.</p>
+        </div>
 
         <div class="item-ajuda" onclick="toggleItem(this)">
             <span>Perguntas frequentes</span>
             <span class="seta">▶</span>
         </div>
-        <div class="conteudo-ajuda"></div>
+        <div class="conteudo-ajuda">
+            <p><strong>Perguntas frequentes</strong></p>
+            <p>Encontre respostas rápidas sobre cadastro, pagamento, envio e troca de produtos. Clique na opção desejada para ver as informações mais comuns.</p>
+        </div>
 
         <div class="item-ajuda" onclick="toggleItem(this)">
             <span>Cupons</span>
             <span class="seta">▶</span>
         </div>
-        <div class="conteudo-ajuda"></div>
-
+        <div class="conteudo-ajuda">
+            <p><strong>Cupons</strong></p>
+            <p>Insira seu cupom no campo de desconto durante o checkout. Verifique regras de validade e promoções específicas; alguns cupons podem não ser cumulativos com outras ofertas.</p>
+        </div>
     </div>
-
-    <button class="btn-contato">Fale conosco</button>
-
 </main>
 
-<footer class="rodape-dashboard">
-    <div class="logo-rodape">REMAZ <span>PHARM</span></div>
-
-    <div class="links-rodape">
-        <a href="#">Careers</a>
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms & Conditions</a>
-    </div>
-</footer>
+{% include 'partials/footer.html' %}
 
 <script>
     const perfilBtn = document.getElementById('perfil-btn');

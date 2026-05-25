@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Remaz Pharm - Pedidos da Farmacia</title>
+    <title>Remaz Pharm - Pedidos da Farmácia</title>
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
@@ -35,6 +35,15 @@
                 <div class="avatar"></div>
             </button>
             <div class="perfil-name">{{ display_name }}</div>
+            <div class="menu-dropdown" id="menu-dropdown">
+                <a href="#">Configurações</a>
+                <a href="{% url 'perfil' %}">Perfil</a>
+                <a href="{% url 'pagamento' %}">Pagamento</a>
+                <a href="{% url 'pharmacy_dashboard' %}">Área da farmácia</a>
+                <a href="#">Pedidos</a>
+                <a href="{% url 'ajuda' %}">Ajuda</a>
+                <a href="{% url 'logout' %}">Sair</a>
+            </div>
         </div>
     </div>
 </header>
@@ -43,7 +52,7 @@
     <section class="gestao-area">
         <div class="carrinho-header">
             <div>
-                <h1>Pedidos da farmacia</h1>
+                <h1>Pedidos da farmácia</h1>
                 <p>{{ pharmacy.name }}</p>
             </div>
             <div class="carrinho-acoes-topo">
@@ -53,7 +62,7 @@
                 </a>
                 <a class="btn-continuar" href="{% url 'pharmacy_dashboard' %}">
                     <i class="fa-solid fa-arrow-left"></i>
-                    Area da farmacia
+                    Área da farmácia
                 </a>
             </div>
         </div>
@@ -105,7 +114,7 @@
                     {% endif %}
 
                     {% if order.prescription_review_reason %}
-                        <p class="gestao-nota">Motivo da analise: {{ order.prescription_review_reason }}</p>
+                        <p class="gestao-nota">Motivo da análise: {{ order.prescription_review_reason }}</p>
                     {% endif %}
 
                     <div class="resumo-linha total">
@@ -127,7 +136,7 @@
                         </div>
 
                         <div class="checkout-campo maior">
-                            <label>Observacao da farmacia</label>
+                            <label>Observação da farmácia</label>
                             <input type="text" name="pharmacy_notes" value="{{ order.pharmacy_notes|default:'' }}" placeholder="Ex: Pedido pronto para retirada">
                         </div>
 
@@ -138,12 +147,29 @@
                 <div class="carrinho-vazio">
                     <i class="fa-solid fa-clipboard-list"></i>
                     <h2>Nenhum pedido recebido</h2>
-                    <p>Pedidos desta farmacia aparecerao aqui.</p>
+                    <p>Pedidos desta farmácia aparecerão aqui.</p>
                 </div>
             {% endfor %}
         </div>
     </section>
 </main>
 
+<script>
+    const perfilBtn = document.getElementById('perfil-btn');
+    const menuDropdown = document.getElementById('menu-dropdown');
+
+    if (perfilBtn && menuDropdown) {
+        perfilBtn.addEventListener('click', function() {
+            menuDropdown.classList.toggle('ativo');
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.perfil-container')) {
+                menuDropdown.classList.remove('ativo');
+            }
+        });
+    }
+</script>
+{% include 'partials/footer.html' %}
 </body>
 </html>

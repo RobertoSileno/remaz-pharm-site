@@ -164,7 +164,11 @@ def serialize_inventory(inventory):
         'category': inventory.medicine.category.name,
         'tarja': inventory.medicine.tarja,
         'requires_prescription': inventory.medicine.tarja == 'preta',
-        'pharmacy': {'id': inventory.pharmacy_id, 'name': inventory.pharmacy.name},
+        'pharmacy': {
+            'id': inventory.pharmacy_id,
+            'name': inventory.pharmacy.name,
+            'logo': inventory.pharmacy.logo or '',
+        },
         'stock': inventory.stock,
         'price': str(inventory.price),
         'effective_price': str(inventory.effective_price),
@@ -394,6 +398,14 @@ def api_me(request):
 @mobile_auth_required
 def api_catalog(request):
     query = request.GET.get('q', '').strip()
+    category_ids = [
+        category_id for category_id in request.GET.getlist('category')
+        if category_id.isdigit()
+    ]
+    tarjas = [
+        tarja for tarja in request.GET.getlist('tarja')
+        if tarja in {'sem', 'vermelha', 'preta'}
+    ]
     inventory = visible_inventories()
     if query:
         inventory = inventory.filter(
@@ -402,7 +414,22 @@ def api_catalog(request):
             | Q(medicine__category__name__icontains=query)
             | Q(pharmacy__name__icontains=query)
         )
-    return JsonResponse({'results': [serialize_inventory(item) for item in inventory.order_by('medicine__name', 'price')]})
+    if category_ids:
+        inventory = inventory.filter(medicine__category_id__in=category_ids)
+    if tarjas:
+        inventory = inventory.filter(medicine__tarja__in=tarjas)
+
+    categories = visible_inventories().values(
+        'medicine__category_id',
+        'medicine__category__name',
+    ).distinct().order_by('medicine__category__name')
+    return JsonResponse({
+        'results': [serialize_inventory(item) for item in inventory.order_by('medicine__name', 'price')],
+        'categories': [
+            {'id': item['medicine__category_id'], 'name': item['medicine__category__name']}
+            for item in categories
+        ],
+    })
 
 
 @csrf_exempt
@@ -543,8 +570,8 @@ def api_checkout(request):
 
     payment_method = payload.get('payment_method', 'pix')
     delivery_method = payload.get('delivery_method', 'delivery')
-    if payment_method not in dict(Order.PAYMENT_CHOICES):
-        return api_error('Metodo de pagamento invalido.')
+    if payment_method not in {'pix', 'cash'}:
+        return api_error('Utilize Pix ou dinheiro ate a integracao segura de cartoes.')
     if delivery_method not in dict(Order.DELIVERY_CHOICES):
         return api_error('Metodo de entrega invalido.')
 

@@ -31,7 +31,7 @@
 
             <div class="tabs">
 
-                <a href="{% url 'login' %}" class="tab-link">
+                <a href="{% url 'login' %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="tab-link">
                     <div class="tab {% if request.path == '/login/' %}ativo{% endif %}">
                         Entrar
                     </div>
@@ -46,6 +46,9 @@
             </div>
             <form class="login-form" method="post">
                 {% csrf_token %}
+                {% if request.GET.next %}
+                    <input type="hidden" name="next" value="{{ request.GET.next }}">
+                {% endif %}
 
                 <div class="campo">
                     <label for="nome">Nome completo</label>

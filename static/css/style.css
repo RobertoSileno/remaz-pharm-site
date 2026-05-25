@@ -251,9 +251,21 @@ img {
     transform: translateY(-6px);
 }
 
-.card-func img {
+.card-func img,
+.card-func .feature-icon {
     width: 78px;
+    height: 78px;
     margin: 0 auto 10px;
+}
+
+.card-func .feature-icon {
+    background: #e9f3f7;
+    border-radius: 50%;
+    color: #2b7695;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 34px;
 }
 
 .numero {
@@ -359,10 +371,21 @@ img {
     box-shadow: 0 3px 0 rgba(0, 0, 0, 0.55), 0 5px 14px rgba(0, 0, 0, 0.08);
 }
 
-.item-beneficio img {
+.item-beneficio img,
+.item-beneficio .beneficio-icon {
     width: 48px;
     height: 48px;
     flex-shrink: 0;
+}
+
+.item-beneficio .beneficio-icon {
+    align-items: center;
+    background: #e5f2f7;
+    border-radius: 50%;
+    color: #2b7695;
+    display: inline-flex;
+    font-size: 22px;
+    justify-content: center;
 }
 
 .item-beneficio h5 {
@@ -562,5 +585,79 @@ img {
 
     .links-rodape {
         gap: 12px;
+    }
+}
+
+@media (max-width: 540px) {
+    .nav {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .menu {
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .acoes {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .btn {
+        width: 100%;
+        max-width: 240px;
+    }
+
+    .hero {
+        padding: 30px 0 80px;
+    }
+
+    .hero-texto h1 {
+        font-size: 24px;
+    }
+
+    .hero-imagens {
+        height: auto;
+    }
+
+    .farmacias-conteudo {
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+    }
+
+    .item-beneficio {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .titulo-destaque,
+    .descricao {
+        text-align: center;
+    }
+}
+
+@media (max-width: 420px) {
+    .hero-texto {
+        width: 100%;
+    }
+
+    .menu a,
+    .links-rodape a {
+        font-size: 13px;
+    }
+
+    .sobre-texto p,
+    .descricao,
+    .card-func p {
+        font-size: 15px;
+    }
+
+    .sobre,
+    .funciona,
+    .farmacias {
+        padding-left: 15px;
+        padding-right: 15px;
     }
 }

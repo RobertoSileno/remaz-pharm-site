@@ -37,11 +37,14 @@
             <div class="perfil-name">{{ display_name }}</div>
 
             <div class="menu-dropdown" id="menu-dropdown">
+                <a href="{ # }">Configurações</a>
                 <a href="{% url 'perfil' %}">Perfil</a>
                 <a href="{% url 'pagamento' %}">Pagamento</a>
                 <a href="{% url 'cart' %}">Carrinho</a>
                 <a href="{% url 'orders' %}">Pedidos</a>
+                {% if user.pharmacies.exists %}
                 <a href="{% url 'pharmacy_dashboard' %}">Área da farmácia</a>
+                {% endif %}
                 <a href="{% url 'ajuda' %}">Ajuda</a>
                 <a href="{% url 'logout' %}">Sair</a>
             </div>
@@ -102,7 +105,7 @@
                         </div>
                     {% endif %}
 
-                    {% if order.payment_transaction %}
+                    {% if order.payment_transaction and order.payment_transaction.status != 'gateway_not_configured' and order.payment_transaction.status != 'error' %}
                         <div class="aviso-receita">
                             <i class="fa-solid fa-qrcode"></i>
                             <span>Pagamento: {{ order.payment_transaction.get_status_display }}</span>
@@ -110,23 +113,6 @@
                         {% if order.payment_transaction.payment_url %}
                             <a class="btn-finalizar" href="{{ order.payment_transaction.payment_url }}" target="_blank" rel="noopener">Pagar Pix</a>
                         {% endif %}
-                        {% if order.payment_transaction.qr_code %}
-                            <p class="gestao-nota">{{ order.payment_transaction.qr_code }}</p>
-                        {% endif %}
-                        {% if order.payment_transaction.error_message %}
-                            <p class="gestao-nota">{{ order.payment_transaction.error_message }}</p>
-                        {% endif %}
-                    {% endif %}
-
-                    {% if order.status_history.all %}
-                        <div class="gestao-itens">
-                            {% for history in order.status_history.all %}
-                                <div class="gestao-item-linha">
-                                    <span>{{ history.created_at|date:"d/m/Y H:i" }} - {{ history.to_status }}</span>
-                                    <strong>{{ history.note }}</strong>
-                                </div>
-                            {% endfor %}
-                        </div>
                     {% endif %}
 
                     {% if order.pharmacy_notes %}
@@ -160,5 +146,6 @@
     });
 </script>
 
+{% include 'partials/footer.html' %}
 </body>
 </html>

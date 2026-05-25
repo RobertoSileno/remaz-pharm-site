@@ -1,0 +1,110 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farmácia - Remaz Pharm</title>
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+</head>
+<body>
+
+<section class="login-page">
+
+    <!-- LADO ESQUERDO -->
+    <div class="lado-esquerdo">
+
+        <div class="logo-area">
+            <h1 class="logo">
+                <img src="{% static 'img/logo/logo.png' %}" alt="Logo Remaz Pharm">
+            </h1>
+        </div>
+
+    </div>
+
+    <!-- LADO DIREITO -->
+    <div class="lado-direito">
+        <div class="form-box">
+
+            <p class="boas-vindas">Área da Farmácia</p>
+
+            <div class="tabs">
+
+                <a href="{% url 'pharmacy_auth' %}?tab=login" class="tab-link">
+                    <div class="tab {% if active_tab != 'register' %}ativo{% endif %}">
+                        Entrar
+                    </div>
+                </a>
+
+                <a href="{% url 'pharmacy_auth' %}?tab=register" class="tab-link">
+                    <div class="tab {% if active_tab == 'register' %}ativo{% endif %}">
+                        Registrar
+                    </div>
+                </a>
+
+            </div>
+
+            {% if active_tab != 'register' %}
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="login">
+
+                    <div class="campo">
+                        <label>Email ou CNPJ</label>
+                        <input type="text" name="username" placeholder="Digite aqui">
+                    </div>
+
+                    <div class="campo">
+                        <label>Senha</label>
+                        <input type="password" name="password" placeholder="Digite sua senha">
+                    </div>
+
+                    <button type="submit" class="btn-entrar">Entrar</button>
+                </form>
+            {% else %}
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="register">
+
+                    <div class="campo">
+                        <label>Nome fantasia</label>
+                        <input type="text" name="username" placeholder="Digite o nome da farmácia" required>
+                    </div>
+
+                    <div class="campo">
+                        <label>CNPJ</label>
+                        <input type="text" name="cnpj" placeholder="00.000.000/0000-00" required>
+                    </div>
+
+                    <div class="campo">
+                        <label>E-mail</label>
+                        <input type="email" name="email" placeholder="Digite o e-mail da farmácia" required>
+                    </div>
+
+                    <div class="campo">
+                        <label>Senha</label>
+                        <input type="password" name="password" placeholder="Digite sua senha" required>
+                    </div>
+
+                    <div class="campo">
+                        <label>Confirmar senha</label>
+                        <input type="password" name="password_confirm" placeholder="Confirme sua senha" required>
+                    </div>
+
+                    <button type="submit" class="btn-entrar">Registrar</button>
+                </form>
+            {% endif %}
+
+            {% if messages %}
+                {% for message in messages %}
+                    <p style="color: red; margin-top: 10px;">{{ message }}</p>
+                {% endfor %}
+            {% endif %}
+
+        </div>
+    </div>
+
+</section>
+
+</body>
+</html>

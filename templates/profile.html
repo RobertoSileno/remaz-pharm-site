@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Remaz Pharm - Usuário</title>
     <link rel="stylesheet" href="{% static 'css/profile.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 
 <body>
@@ -24,6 +25,11 @@
     </div>
 
     <div class="usuario-topo">
+        <a class="atalho-carrinho" href="{% url 'cart' %}" aria-label="Ver carrinho">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span>{{ cart_count|default:0 }}</span>
+        </a>
+
         <div class="perfil-container">
             <button class="perfil-icon" id="perfil-btn" type="button">
                 <div class="avatar"></div>
@@ -34,8 +40,12 @@
                 <a href="#">Configurações</a>
                 <a href="{% url 'perfil' %}">Perfil</a>
                 <a href="{% url 'pagamento' %}">Pagamento</a>
-                <a href="#">Pedidos</a>
-                <a href="#">Ajuda</a>
+                <a href="{% url 'cart' %}">Carrinho</a>
+                {% if user.pharmacies.exists %}
+                <a href="{% url 'pharmacy_dashboard' %}">Área da farmácia</a>
+                {% endif %}
+                <a href="{% url 'orders' %}">Pedidos</a>
+                <a href="{% url 'ajuda' %}">Ajuda</a>
                 <a href="{% url 'logout' %}">Sair</a>
             </div>
         </div>
@@ -54,67 +64,29 @@
     <section class="usuario-area">
         <h2>Informações</h2>
 
-        <form class="form-usuario">
+        <form class="form-usuario" method="post" action="{% url 'perfil' %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="save_profile">
+
             <div class="form-linha">
                 <div class="form-grupo">
-                    <label>Nome completo</label>
-                    <input type="text" placeholder="Digite">
+                    <label>{% if is_pharmacy_user %}Nome fantasia{% else %}Nome completo{% endif %}</label>
+                    {{ profile_form.username }}
                 </div>
-
                 <div class="form-grupo">
-                    <label>Email de recuperação de senha</label>
-                    <input type="email" placeholder="Digite">
+                    <label>Email</label>
+                    {{ profile_form.email }}
                 </div>
             </div>
 
             <div class="form-linha">
                 <div class="form-grupo">
-                    <label>Usuário</label>
-                    <input type="text" placeholder="Digite">
+                    <label>{% if is_pharmacy_user %}CNPJ{% else %}CPF{% endif %}</label>
+                    {{ profile_form.cpf }}
                 </div>
-
                 <div class="form-grupo">
-                    <label>Confirmar e-mail</label>
-                    <input type="email" placeholder="Digite">
-                </div>
-
-                <div class="form-grupo">
-                    <label>Data de nascimento</label>
-                    <input type="date">
-                </div>
-            </div>
-
-            <div class="form-linha">
-                <div class="form-grupo">
-                    <label>CPF</label>
-                    <input type="text" placeholder="Digite">
-                </div>
-
-                <div class="form-grupo">
-                    <label>Telefone</label>
-                    <input type="text" placeholder="Digite">
-                </div>
-
-                <div class="form-grupo">
-                    <label>Gênero</label>
-                    <select class="select-estilizado">
-                        <option value="" disabled selected>Selecionar</option>
-                        <option value="masculino">Masculino</option>
-                        <option value="feminino">Feminino</option>
-                        <option value="prefiro-nao-opinar">Prefiro não opinar</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="form-linha">
-                <div class="form-grupo">
-                    <label>Senha</label>
-                    <input type="password" placeholder="Digite">
-                </div>
-
-                <div class="form-grupo">
-                    <label>Confirmar senha</label>
-                    <input type="password" placeholder="Digite">
+                    <label>Apelido</label>
+                    {{ profile_form.nickname }}
                 </div>
             </div>
 
@@ -125,7 +97,7 @@
     </section>
 
     <section class="endereco-area">
-        <h2>Enderecos salvos</h2>
+        <h2>Endereços salvos</h2>
 
         <div class="gestao-lista">
             {% for address in addresses %}
@@ -149,7 +121,7 @@
                     </form>
                 </article>
             {% empty %}
-                <p>Nenhum endereco salvo ainda.</p>
+                <p>Nenhum endereço salvo ainda.</p>
             {% endfor %}
         </div>
 
@@ -164,7 +136,7 @@
                     {{ address_form.label }}
                 </div>
                 <div class="form-grupo">
-                    <label>Quem recebe</label>
+                    <label>{% if is_pharmacy_user %}Responsável pela entrega{% else %}Quem recebe{% endif %}</label>
                     {{ address_form.recipient_name }}
                 </div>
                 <div class="form-grupo">
@@ -198,7 +170,7 @@
                     {{ address_form.street }}
                 </div>
                 <div class="form-grupo">
-                    <label>Numero</label>
+                    <label>Número</label>
                     {{ address_form.number }}
                 </div>
             </div>
@@ -210,12 +182,12 @@
                 </div>
                 <label class="gestao-check">
                     {{ address_form.is_default }}
-                    Usar como endereco principal
+                    Usar como endereço principal
                 </label>
             </div>
 
             <div class="form-acoes">
-                <button type="submit">Salvar endereco</button>
+                <button type="submit">Salvar endereço</button>
             </div>
         </form>
     </section>
@@ -273,28 +245,23 @@
     </section>
 </main>
 
-<footer class="rodape-dashboard">
-    <div class="logo-rodape">REMAZ <span>PHARM</span></div>
-    <div class="links-rodape">
-        <a href="#">Careers</a>
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms & Conditions</a>
-    </div>
-</footer>
+{% include 'partials/footer.html' %}
 
 <script>
     const perfilBtn = document.getElementById('perfil-btn');
     const menuDropdown = document.getElementById('menu-dropdown');
 
-    perfilBtn.addEventListener('click', function() {
-        menuDropdown.classList.toggle('ativo');
-    });
+    if (perfilBtn && menuDropdown) {
+        perfilBtn.addEventListener('click', function() {
+            menuDropdown.classList.toggle('ativo');
+        });
 
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.perfil-container')) {
-            menuDropdown.classList.remove('ativo');
-        }
-    });
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.perfil-container')) {
+                menuDropdown.classList.remove('ativo');
+            }
+        });
+    }
 
     const cepField = document.querySelector('[data-cep-field]');
     if (cepField) {

@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
 
-from .models import Category, MobileAuthToken, Order, Pharmacy, PharmacyInventory, Medicine
+from .models import Category, MobileAuthToken, Order, Pharmacy, PharmacyInventory, Medicine, UserProfile
 from .views import validate_prescription_file
 
 
@@ -17,9 +17,18 @@ class MobileApiTests(TestCase):
         self.private_media_settings = self.settings(PRIVATE_MEDIA_ROOT=Path(self.private_media.name))
         self.private_media_settings.enable()
         self.client = Client()
-        self.owner = User.objects.create_user('Farmacia Responsavel', password='Owner-password-2026!')
+        self.owner = User.objects.create_user(
+            'Farmacia Responsavel',
+            email='responsavel@farmacia.test',
+            password='Owner-password-2026!',
+        )
         self.category = Category.objects.create(name='Medicamentos')
-        self.pharmacy = Pharmacy.objects.create(owner=self.owner, name='Remaz Centro', is_active=True)
+        self.pharmacy = Pharmacy.objects.create(
+            owner=self.owner,
+            name='Remaz Centro',
+            logo='https://storage.example/remacenter.png',
+            is_active=True,
+        )
         self.common = Medicine.objects.create(
             name='Dipirona',
             description='Alivio de dor',
@@ -117,6 +126,22 @@ class MobileApiTests(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(User.objects.filter(username='Maria Cliente').count(), 0)
 
+    def test_registration_rejects_invalid_cpf(self):
+        response = self.client.post(
+            '/api/auth/register/',
+            data=json.dumps({
+                'name': 'Mario Cliente',
+                'cpf': '032.765.452-08',
+                'email': 'mario@example.com',
+                'password': 'Compra-Segura-2026!',
+            }),
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()['error'], 'CPF invalido.')
+        self.assertFalse(User.objects.filter(email='mario@example.com').exists())
+
     def test_address_api_validates_model_field_lengths(self):
         headers, _ = self.register_customer()
         payload = self.checkout_payload()
@@ -149,6 +174,43 @@ class MobileApiTests(TestCase):
         )
         self.assertEqual(blocked.status_code, 429)
 
+    def test_mobile_login_allows_pharmacy_owner_as_customer(self):
+        response = self.client.post(
+            '/api/auth/login/',
+            data=json.dumps({
+                'identifier': 'responsavel@farmacia.test',
+                'password': 'Owner-password-2026!',
+            }),
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        token = response.json()['token']
+        headers = {'HTTP_AUTHORIZATION': f'Bearer {token}'}
+        self.assertTrue(MobileAuthToken.objects.filter(user=self.owner).exists())
+        self.assertEqual(self.client.get('/api/catalog/', **headers).status_code, 200)
+
+    def test_pharmacy_registration_normalizes_cnpj_used_for_login(self):
+        register_response = self.client.post('/farmacia/auth/', data={
+            'form_type': 'register',
+            'username': 'Farmacia Nova',
+            'email': 'nova@farmacia.test',
+            'password': 'Cadastro-Seguro-2026!',
+            'password_confirm': 'Cadastro-Seguro-2026!',
+            'cnpj': '11.222.333/0001-81',
+        })
+
+        self.assertRedirects(register_response, '/farmacia/auth/', fetch_redirect_response=False)
+        self.assertTrue(Pharmacy.objects.filter(cnpj='11222333000181').exists())
+
+        login_response = self.client.post('/farmacia/auth/', data={
+            'form_type': 'login',
+            'username': '11.222.333/0001-81',
+            'password': 'Cadastro-Seguro-2026!',
+        })
+
+        self.assertRedirects(login_response, '/farmacia/', fetch_redirect_response=False)
+
     def test_catalog_only_exposes_sellable_owned_pharmacy_inventory(self):
         ownerless = Pharmacy.objects.create(name='Farmacia Legada', is_active=True)
         hidden_medicine = Medicine.objects.create(
@@ -161,12 +223,16 @@ class MobileApiTests(TestCase):
         PharmacyInventory.objects.create(pharmacy=ownerless, medicine=hidden_medicine, price='9.00', stock=20)
         headers, _ = self.register_customer()
 
-        response = self.client.get('/api/catalog/', **headers)
+        response = self.client.get('/api/catalog/?tarja=sem', **headers)
 
         self.assertEqual(response.status_code, 200)
-        names = [item['name'] for item in response.json()['results']]
+        result = response.json()
+        names = [item['name'] for item in result['results']]
         self.assertIn('Dipirona', names)
+        self.assertNotIn('Controlado', names)
         self.assertNotIn('Produto Fantasma', names)
+        self.assertEqual(result['results'][0]['pharmacy']['logo'], 'https://storage.example/remacenter.png')
+        self.assertEqual(result['categories'], [{'id': self.category.id, 'name': 'Medicamentos'}])
 
     def test_customer_can_checkout_and_stock_is_reduced_atomically(self):
         headers, _ = self.register_customer()
@@ -185,6 +251,52 @@ class MobileApiTests(TestCase):
         order = Order.objects.get()
         self.assertFalse(order.requires_prescription)
         self.assertEqual(order.payment_transaction.status, 'manual')
+
+    def test_mobile_checkout_rejects_card_payment_until_gateway_is_tokenized(self):
+        headers, _ = self.register_customer()
+        self.add_to_cart(headers, self.common_inventory)
+        payload = self.checkout_payload()
+        payload['payment_method'] = 'credit_card'
+
+        response = self.client.post(
+            '/api/checkout/',
+            data=json.dumps(payload),
+            content_type='application/json',
+            **headers,
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(Order.objects.exists())
+
+    def test_web_checkout_rejects_card_payment_until_gateway_is_tokenized(self):
+        headers, _ = self.register_customer()
+        self.add_to_cart(headers, self.common_inventory)
+        self.client.force_login(User.objects.get(email='maria@example.com'))
+        payload = self.checkout_payload()
+        payload['payment_method'] = 'credit_card'
+
+        response = self.client.post('/concluir-pedido/', data=payload)
+
+        self.assertRedirects(response, '/concluir-pedido/', fetch_redirect_response=False)
+        self.assertFalse(Order.objects.exists())
+
+    def test_payment_page_does_not_store_raw_card_submission(self):
+        self.register_customer()
+        user = User.objects.get(email='maria@example.com')
+        self.client.force_login(user)
+
+        response = self.client.post('/pagamento/', data={
+            'action': 'save_payment',
+            'payment_method': 'credit',
+            'card_name': 'Maria Cliente',
+            'card_number': '4111111111111111',
+            'card_expiry': '12/30',
+            'card_cvv': '123',
+        })
+
+        self.assertRedirects(response, '/pagamento/', fetch_redirect_response=False)
+        profile = UserProfile.objects.get(user=user)
+        self.assertIsNone(profile.payment_card_last4)
 
     def test_controlled_medicine_requires_valid_pdf_prescription(self):
         headers, _ = self.register_customer()

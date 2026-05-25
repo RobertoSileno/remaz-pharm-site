@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Remaz Pharm - Estoque e Promocoes</title>
+    <title>Remaz Pharm - Estoque e Promoções</title>
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
@@ -35,6 +35,15 @@
                 <div class="avatar"></div>
             </button>
             <div class="perfil-name">{{ display_name }}</div>
+            <div class="menu-dropdown" id="menu-dropdown">
+                <a href="#">Configurações</a>
+                <a href="{% url 'perfil' %}">Perfil</a>
+                <a href="{% url 'pagamento' %}">Pagamento</a>
+                <a href="{% url 'pharmacy_dashboard' %}">Área da farmácia</a>
+                <a href="#">Pedidos</a>
+                <a href="{% url 'ajuda' %}">Ajuda</a>
+                <a href="{% url 'logout' %}">Sair</a>
+            </div>
         </div>
     </div>
 </header>
@@ -43,8 +52,8 @@
     <section class="gestao-area">
         <div class="carrinho-header">
             <div>
-                <h1>Estoque e promocoes</h1>
-                <p>{{ pharmacy.name }} controla disponibilidade, preco e campanhas dos produtos.</p>
+                <h1>Estoque e promoções</h1>
+                <p>{{ pharmacy.name }} controla disponibilidade, preço e campanhas dos produtos.</p>
             </div>
             <div class="carrinho-acoes-topo">
                 <a class="btn-continuar" href="{% url 'pharmacy_prescriptions' pharmacy.id %}">
@@ -53,7 +62,7 @@
                 </a>
                 <a class="btn-continuar" href="{% url 'pharmacy_dashboard' %}">
                     <i class="fa-solid fa-arrow-left"></i>
-                    Area da farmacia
+                    Área da farmácia
                 </a>
             </div>
         </div>
@@ -102,27 +111,27 @@
 
                 <label class="gestao-check">
                     <input type="checkbox" name="is_available" checked>
-                    Disponivel para venda
+                    Disponível para venda
                 </label>
 
                 <div class="checkout-campo">
-                    <label>Preco promocional</label>
+                    <label>Preço promocional</label>
                     <input type="number" name="promotional_price" min="0" step="0.01" placeholder="Opcional">
                 </div>
 
                 <div class="checkout-campo maior">
-                    <label>Nome da promocao</label>
+                    <label>Nome da promoção</label>
                     <input type="text" name="promotion_title" placeholder="Ex: Oferta da semana">
                 </div>
 
                 <div class="checkout-campo maior">
-                    <label>Descricao da promocao</label>
+                    <label>Descrição da promoção</label>
                     <input type="text" name="promotion_description" placeholder="Ex: Valido enquanto durar o estoque">
                 </div>
 
                 <label class="gestao-check">
                     <input type="checkbox" name="promotion_active">
-                    Promocao ativa
+                    Promoção ativa
                 </label>
 
                 <button class="btn-finalizar" type="submit">Salvar estoque</button>
@@ -158,13 +167,13 @@
                 </div>
 
                 <div class="checkout-campo">
-                    <label>Preco base</label>
+                    <label>Preço base</label>
                     {{ new_medicine_form.price }}
                     {{ new_medicine_form.price.errors }}
                 </div>
 
                 <div class="checkout-campo">
-                    <label>Preco de venda</label>
+                    <label>Preço de venda</label>
                     {{ new_medicine_form.inventory_price }}
                     {{ new_medicine_form.inventory_price.errors }}
                 </div>
@@ -182,30 +191,30 @@
                 </div>
 
                 <div class="checkout-campo maior">
-                    <label>Descricao</label>
+                    <label>Descrição</label>
                     {{ new_medicine_form.description }}
                     {{ new_medicine_form.description.errors }}
                 </div>
 
                 <label class="gestao-check">
                     {{ new_medicine_form.is_available }}
-                    Disponivel para venda
+                    Disponível para venda
                 </label>
 
                 <div class="checkout-campo">
-                    <label>Preco promocional</label>
+                    <label>Preço promocional</label>
                     {{ new_medicine_form.promotional_price }}
                     {{ new_medicine_form.promotional_price.errors }}
                 </div>
 
                 <div class="checkout-campo maior">
-                    <label>Nome da promocao</label>
+                    <label>Nome da promoção</label>
                     {{ new_medicine_form.promotion_title }}
                     {{ new_medicine_form.promotion_title.errors }}
                 </div>
 
                 <div class="checkout-campo maior">
-                    <label>Descricao da promocao</label>
+                    <label>Descrição da promoção</label>
                     {{ new_medicine_form.promotion_description }}
                     {{ new_medicine_form.promotion_description.errors }}
                 </div>
@@ -254,18 +263,18 @@
                         </div>
                         <label class="gestao-check">
                             <input type="checkbox" name="is_available" {% if item.is_available %}checked{% endif %}>
-                            Disponivel
+                            Disponível
                         </label>
                         <div class="checkout-campo">
                             <label>Preco promocional</label>
                             <input type="number" name="promotional_price" min="0" step="0.01" value="{{ item.promotional_price|default:'' }}">
                         </div>
                         <div class="checkout-campo maior">
-                            <label>Nome da promocao</label>
+                            <label>Nome da promoção</label>
                             <input type="text" name="promotion_title" value="{{ item.promotion_title }}" placeholder="Ex: Oferta da semana">
                         </div>
                         <div class="checkout-campo maior">
-                            <label>Descricao</label>
+                            <label>Descrição</label>
                             <input type="text" name="promotion_description" value="{{ item.promotion_description }}" placeholder="Ex: Valido enquanto durar o estoque">
                         </div>
                         <div class="checkout-campo maior">
@@ -274,21 +283,45 @@
                         </div>
                         <label class="gestao-check">
                             <input type="checkbox" name="promotion_active" {% if item.promotion_active %}checked{% endif %}>
-                            Promocao ativa
+                            Promoção ativa
                         </label>
-                        <button class="btn-finalizar" type="submit">Atualizar</button>
+                        <div style="display: flex; gap: 10px; width: 100%;">
+                            <button class="btn-finalizar" type="submit" style="flex: 1;">Atualizar</button>
+                            <button class="btn-finalizar" style="background-color: #d32f2f; flex: 1; cursor: pointer;" type="button" onclick="if(confirm('Tem certeza que deseja excluir este produto do estoque?')) { document.getElementById('delete-form-{{ item.id }}').submit(); }">Excluir</button>
+                        </div>
+                    </form>
+
+                    <form id="delete-form-{{ item.id }}" method="post" action="{% url 'pharmacy_inventory_delete' item.id %}" style="display: none;">
+                        {% csrf_token %}
                     </form>
                 </article>
             {% empty %}
                 <div class="carrinho-vazio">
                     <i class="fa-solid fa-box-open"></i>
                     <h2>Nenhum produto no estoque</h2>
-                    <p>Adicione medicamentos para que aparecam no dashboard dos clientes.</p>
+                    <p>Adicione medicamentos para que apareçam no dashboard dos clientes.</p>
                 </div>
             {% endfor %}
         </div>
     </section>
 </main>
 
+<script>
+    const perfilBtn = document.getElementById('perfil-btn');
+    const menuDropdown = document.getElementById('menu-dropdown');
+
+    if (perfilBtn && menuDropdown) {
+        perfilBtn.addEventListener('click', function() {
+            menuDropdown.classList.toggle('ativo');
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.perfil-container')) {
+                menuDropdown.classList.remove('ativo');
+            }
+        });
+    }
+</script>
+{% include 'partials/footer.html' %}
 </body>
 </html>
