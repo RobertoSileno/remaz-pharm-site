@@ -123,13 +123,13 @@
             <div class="categoria-icon">
                 <i class="fa-solid fa-shop"></i>
             </div>
-            <span>Farmácias</span>
+            <span>Suplementos</span>
         </div>
 
     </section>
 
     <section class="farmacias-listagem hidden" id="farmaciasListagem">
-        <h2>Farmácias com produtos</h2>
+        <h2>Suplementos</h2>
         <div class="farmacias-grid" id="farmaciasGrid"></div>
     </section>
 
@@ -246,7 +246,10 @@
                             {% if inventory.medicine.image %}
                                 <img src="{{ inventory.medicine.image }}" alt="{{ inventory.medicine.name }}">
                             {% else %}
-                                <span class="produto-imagem-placeholder" aria-label="Sem imagem"><i class="fa-solid fa-pills"></i></span>
+                                <div class="produto-imagem-placeholder">
+                                    <i class="fa-solid fa-image"></i>
+                                    <span>Imagem não localizada</span>
+                                </div>
                             {% endif %}
 
                             <h4>{{ inventory.medicine.name }}</h4>
@@ -281,7 +284,7 @@
                 </div>
             {% endfor %}
         {% else %}
-            <p class="sem-produtos">Nenhum produto disponível no estoque das farmácias.</p>
+            <p class="sem-produtos">Nenhum produto disponível no estoque de suplementos.</p>
         {% endif %}
 
     </section>

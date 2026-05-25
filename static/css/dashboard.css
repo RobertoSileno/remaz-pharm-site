@@ -492,6 +492,8 @@ body.page-carrinho footer.rodape-dashboard {
 .banner-area {
     width: 100%;
     margin-bottom: 70px;
+    position: relative;
+    z-index: 4;
 }
 
 .banner-slider {
@@ -500,6 +502,7 @@ body.page-carrinho footer.rodape-dashboard {
     height: clamp(180px, 25vw, 340px);
     overflow: hidden;
     border-radius: 24px;
+    z-index: 5;
 }
 
 .banner {
@@ -568,6 +571,7 @@ body.page-carrinho footer.rodape-dashboard {
     scroll-behavior: smooth;
     scroll-snap-type: x proximity;
     padding-bottom: 10px;
+    align-items: flex-start;
 }
 
 .produtos-scroll::-webkit-scrollbar {
@@ -603,6 +607,10 @@ body.page-carrinho footer.rodape-dashboard {
     text-align: center;
     flex-shrink: 0;
     scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 360px; /* padroniza altura dos cards */
 }
 
 .produto-card img,
@@ -614,13 +622,25 @@ body.page-carrinho footer.rodape-dashboard {
 }
 
 .produto-imagem-placeholder {
-    align-items: center;
-    background: #e8f2f6;
-    border-radius: 12px;
-    color: #2b7695;
+    width: 120px;
+    height: 140px;
+    margin: 0 auto 12px;
+    border: 1px solid #d8d8d8;
+    border-radius: 14px;
     display: flex;
-    font-size: 34px;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
+    gap: 8px;
+    background: #ffffff;
+    color: #2b7695;
+    font-size: 12px;
+    text-align: center;
+    padding: 10px;
+}
+
+.produto-imagem-placeholder i {
+    font-size: 24px;
 }
 
 .produto-card h4 {

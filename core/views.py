@@ -330,7 +330,12 @@ def pharmacy_auth_view(request):
                 user = User.objects.filter(email__iexact=email_or_cnpj).first()
             else:
                 cnpj_limpo = normalize_digits(email_or_cnpj)
-                pharmacy = Pharmacy.objects.filter(cnpj=cnpj_limpo).select_related('owner').first()
+                # Buscar farmácia comparando apenas os dígitos do CNPJ, pois o DB pode ter formato
+                pharmacy = None
+                for p in Pharmacy.objects.select_related('owner').all():
+                    if p.cnpj and normalize_digits(p.cnpj) == cnpj_limpo:
+                        pharmacy = p
+                        break
                 if pharmacy and pharmacy.owner:
                     user = pharmacy.owner
 
@@ -373,8 +378,11 @@ def pharmacy_auth_view(request):
                 messages.error(request, 'Nome de usuário já existe')
             elif User.objects.filter(email__iexact=email).exists():
                 messages.error(request, 'Este email já está cadastrado. Não pode ser usado para farmácia.')
-            elif cnpj_clean and Pharmacy.objects.filter(cnpj=cnpj_clean).exists():
-                messages.error(request, 'Este CNPJ já está cadastrado')
+            elif cnpj_clean:
+                # Verifica duplicidade comparando apenas os dígitos do CNPJ
+                existing = any(normalize_digits(p.cnpj or '') == cnpj_clean for p in Pharmacy.objects.exclude(cnpj__isnull=True))
+                if existing:
+                    messages.error(request, 'Este CNPJ já está cadastrado')
             elif form.is_valid():
                 pharmacy = form.save(commit=False)
                 pharmacy.is_active = True
@@ -401,6 +409,7 @@ def pharmacy_auth_view(request):
                 with transaction.atomic():
                     user = User.objects.create_user(username=username, email=email, password=password)
                     pharmacy.owner = user
+                    pharmacy.cnpj = cnpj_clean
                     pharmacy.save()
                     UserProfile.objects.create(user=user)
                 messages.success(request, 'Cadastro de farmácia realizado com sucesso! Faça login com seu email ou CNPJ.')
@@ -1359,6 +1368,7 @@ def profile_view(request):
                 username_clean = profile_form.cleaned_data['username'].strip()
                 email_clean = profile_form.cleaned_data['email'].strip()
                 document_clean = normalize_digits(profile_form.cleaned_data['cpf'])
+                cnpj_conflict = False
 
                 if not is_pharmacy_user and User.objects.exclude(pk=request.user.pk).filter(username=username_clean).exists():
                     messages.error(request, 'Nome de usuário já está em uso.')
@@ -1366,14 +1376,13 @@ def profile_view(request):
                     messages.error(request, 'Email já está em uso.')
                 elif not is_pharmacy_user and document_clean and not valid_cpf(document_clean):
                     messages.error(request, 'Informe um CPF valido.')
-                elif (
-                    not is_pharmacy_user
-                    and document_clean
-                    and UserProfile.objects.exclude(pk=profile.pk).filter(cpf=document_clean).exists()
-                ):
+                elif not is_pharmacy_user and document_clean and UserProfile.objects.exclude(pk=profile.pk).filter(cpf=document_clean).exists():
                     messages.error(request, 'CPF já está em uso.')
-                elif is_pharmacy_user and document_clean and Pharmacy.objects.exclude(pk=pharmacy.pk).filter(cnpj=document_clean).exists():
-                    messages.error(request, 'CNPJ já está em uso.')
+                elif is_pharmacy_user and document_clean:
+                    other_pharmacies = Pharmacy.objects.exclude(pk=pharmacy.pk).exclude(cnpj__isnull=True)
+                    cnpj_conflict = any(normalize_digits(p.cnpj or '') == document_clean for p in other_pharmacies)
+                    if cnpj_conflict:
+                        messages.error(request, 'CNPJ já está em uso.')
                 else:
                     if is_pharmacy_user:
                         pharmacy.name = username_clean

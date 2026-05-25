@@ -41,3 +41,37 @@ def upload_image(file):
     public_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/{settings.SUPABASE_BUCKET}/{file_path}"
 
     return public_url
+
+
+def upload_prescription(file, user_id):
+    """Upload de receita (PDF) para Supabase Storage."""
+    if not settings.SUPABASE_URL or not settings.SUPABASE_KEY or not settings.SUPABASE_BUCKET:
+        raise RuntimeError("Supabase Storage nao esta configurado.")
+
+    # nome único com user_id para organização
+    file_name = f"user_{user_id}_{uuid.uuid4().hex}.pdf"
+
+    # caminho dentro do bucket
+    file_path = f"prescriptions/{file_name}"
+
+    # resetar ponteiro do arquivo
+    file.seek(0)
+
+    # upload
+    response = supabase.storage.from_(settings.SUPABASE_BUCKET).upload(
+        file_path,
+        file.read(),
+        {
+            "content-type": "application/pdf",
+            "x-upsert": "true"
+        }
+    )
+
+    # tratamento de erro
+    if hasattr(response, "error") and response.error:
+        raise RuntimeError(f"Erro no upload de receita Supabase: {response.error}")
+
+    # URL pública
+    public_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/{settings.SUPABASE_BUCKET}/{file_path}"
+
+    return file_path

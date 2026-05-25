@@ -12,7 +12,6 @@ from django.contrib.auth import authenticate, password_validation
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
-from django.core.files.storage import FileSystemStorage
 from django.core.validators import validate_email
 from django.db import IntegrityError, transaction
 from django.db.models import Q
@@ -33,6 +32,7 @@ from .models import (
     UserProfile,
 )
 from .views import create_order_payment, create_order_status_history
+from .services.supabase_storage import upload_prescription
 
 
 TOKEN_LIFETIME = timedelta(days=30)
@@ -597,13 +597,12 @@ def api_checkout(request):
             return api_error('Informe um endereco de entrega.', fields=errors)
 
     prescription_name = None
-    storage = None
     if prescription_upload:
-        storage = FileSystemStorage(location=str(settings.PRIVATE_MEDIA_ROOT / 'prescriptions'))
-        prescription_name = storage.save(
-            f'user_{request.mobile_user.id}_{uuid.uuid4().hex}.pdf',
-            prescription_upload,
-        )
+        try:
+            prescription_name = upload_prescription(prescription_upload, request.mobile_user.id)
+        except Exception as e:
+            logger.exception(f'Falha ao fazer upload da receita para Supabase: {str(e)}')
+            return api_error('Nao foi possivel enviar a receita. Tente novamente.')
 
     created_orders = []
     try:
@@ -665,8 +664,6 @@ def api_checkout(request):
                 created_orders.append(order)
             cart.cartitem_set.all().delete()
     except ValueError as exc:
-        if prescription_name and storage:
-            storage.delete(prescription_name)
         return api_error(str(exc), status=409)
 
     for order in created_orders:
