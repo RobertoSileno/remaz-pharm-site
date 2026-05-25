@@ -246,10 +246,7 @@
                             {% if inventory.medicine.image %}
                                 <img src="{{ inventory.medicine.image }}" alt="{{ inventory.medicine.name }}">
                             {% else %}
-                                <div class="produto-imagem-placeholder">
-                                    <i class="fa-solid fa-image"></i>
-                                    <span>Imagem não localizada</span>
-                                </div>
+                                <img class="produto-imagem-fallback" src="{% static 'img/medicine-placeholder.png' %}" alt="Imagem padrão de medicamento">
                             {% endif %}
 
                             <h4>{{ inventory.medicine.name }}</h4>

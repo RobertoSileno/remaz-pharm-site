@@ -659,6 +659,13 @@ body.page-checkout footer.rodape-dashboard {
     margin: 0 auto 12px;
 }
 
+.produto-card img.produto-imagem-fallback {
+    background: #f7fbfd;
+    border: 1px solid #d9ecf3;
+    border-radius: 14px;
+    padding: 10px;
+}
+
 .produto-imagem-placeholder {
     width: 120px;
     height: 140px;

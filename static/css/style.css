@@ -260,6 +260,22 @@ img {
     transform: translateY(-6px);
 }
 
+.card-func-img {
+    width: 119px;
+    height: 119px;
+    object-fit: cover;
+    margin: 0 auto 10px;
+    border-radius: 50%;
+}
+
+.card-func > img:first-child {
+    width: 119px;
+    height: 119px;
+    object-fit: cover;
+    margin: 0 auto 10px;
+    border-radius: 50%;
+}
+
 .card-func .feature-icon {
     width: 78px;
     height: 78px;
