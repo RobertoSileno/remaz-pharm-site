@@ -123,9 +123,50 @@
             <div class="categoria-icon">
                 <i class="fa-solid fa-shop"></i>
             </div>
-            <span>Suplementos</span>
+            <span>Farm&aacute;cias</span>
         </button>
 
+    </section>
+
+    <section class="farmacias-listagem hidden" id="farmaciasListagem">
+        <div class="farmacias-topo">
+            <div>
+                <h2>Farm&aacute;cias parceiras</h2>
+                <p>Escolha uma farm&aacute;cia para ver os produtos dispon&iacute;veis.</p>
+            </div>
+            <span class="farmacias-total">{{ dashboard_pharmacies|length }} cadastradas</span>
+        </div>
+
+        <div class="farmacias-grid" id="farmaciasGrid">
+            {% for pharmacy in dashboard_pharmacies %}
+                <button class="farmacia-card" data-pharmacy-id="{{ pharmacy.id }}" type="button">
+                    <div class="farmacia-logo">
+                        {% if pharmacy.logo %}
+                            <img src="{{ pharmacy.logo }}" alt="{{ pharmacy.name }}">
+                        {% else %}
+                            <div class="farmacia-logo-placeholder"><i class="fa-solid fa-house-medical"></i></div>
+                        {% endif %}
+                    </div>
+                    <div class="farmacia-dados">
+                        <span class="farmacia-status {% if pharmacy.available_product_count %}status-com-produto{% else %}status-sem-produto{% endif %}">
+                            {% if pharmacy.available_product_count %}
+                                {{ pharmacy.available_product_count }} produto{% if pharmacy.available_product_count != 1 %}s{% endif %}
+                            {% else %}
+                                Sem produtos
+                            {% endif %}
+                        </span>
+                        <h3>{{ pharmacy.name }}</h3>
+                        <p>
+                            <i class="fa-solid fa-location-dot"></i>
+                            {{ pharmacy.dashboard_address }}
+                        </p>
+                    </div>
+                    <span class="farmacia-acao"><i class="fa-solid fa-chevron-right"></i></span>
+                </button>
+            {% empty %}
+                <p class="sem-produtos">Nenhuma farm&aacute;cia dispon&iacute;vel no momento.</p>
+            {% endfor %}
+        </div>
     </section>
 
     <section class="suplementos-listagem hidden" id="suplementosListagem">
@@ -214,11 +255,52 @@
             </div>
         </form>
 
+        <section class="farmacias-listagem suplementos-farmacias-listagem hidden" id="suplementosFarmaciasListagem">
+            <div class="farmacias-topo">
+                <div>
+                    <h2>Farm&aacute;cias parceiras</h2>
+                    <p>Escolha uma farm&aacute;cia para ver os suplementos dispon&iacute;veis.</p>
+                </div>
+                <span class="farmacias-total">{{ dashboard_pharmacies|length }} cadastradas</span>
+            </div>
+
+            <div class="farmacias-grid">
+                {% for pharmacy in dashboard_pharmacies %}
+                    <button class="farmacia-card" data-pharmacy-id="{{ pharmacy.id }}" type="button">
+                        <div class="farmacia-logo">
+                            {% if pharmacy.logo %}
+                                <img src="{{ pharmacy.logo }}" alt="{{ pharmacy.name }}">
+                            {% else %}
+                                <div class="farmacia-logo-placeholder"><i class="fa-solid fa-house-medical"></i></div>
+                            {% endif %}
+                        </div>
+                        <div class="farmacia-dados">
+                            <span class="farmacia-status {% if pharmacy.available_product_count %}status-com-produto{% else %}status-sem-produto{% endif %}">
+                                {% if pharmacy.available_product_count %}
+                                    {{ pharmacy.available_product_count }} produto{% if pharmacy.available_product_count != 1 %}s{% endif %}
+                                {% else %}
+                                    Sem produtos
+                                {% endif %}
+                            </span>
+                            <h3>{{ pharmacy.name }}</h3>
+                            <p>
+                                <i class="fa-solid fa-location-dot"></i>
+                                {{ pharmacy.dashboard_address }}
+                            </p>
+                        </div>
+                        <span class="farmacia-acao"><i class="fa-solid fa-chevron-right"></i></span>
+                    </button>
+                {% empty %}
+                    <p class="sem-produtos">Nenhuma farm&aacute;cia dispon&iacute;vel no momento.</p>
+                {% endfor %}
+            </div>
+        </section>
+
         {% if inventory_items_by_category %}
             {% for group in inventory_items_by_category %}
                 <div class="categoria-grupo" data-category="{{ group.category.name }}" data-category-slug="{{ group.category.name|slugify }}" id="categoria-{{ group.category.name|slugify }}">
                     <div class="categoria-header">
-                        <h2>{{ group.category.name }}</h2>
+                        <h2>{% if group.category.name == 'Farmacias' or group.category.name == 'Farmácias' or group.category.name == 'Farmacia' or group.category.name == 'Farmácia' %}Suplementos{% else %}{{ group.category.name }}{% endif %}</h2>
 
                         <div class="setas-categoria">
                             <button class="scroll-btn" data-target="produtos-scroll-{{ forloop.counter }}" data-direction="left" type="button">
@@ -331,7 +413,9 @@
     const categorySection = document.querySelector('.conteudo-principal');
     const pharmacyListSection = document.getElementById('farmaciasListagem');
     const pharmacyGrid = document.getElementById('farmaciasGrid');
+    const supplementPharmacySection = document.getElementById('suplementosFarmaciasListagem');
     const noProductsMessage = document.getElementById('semProdutosFiltro');
+    let currentDashboardFilter = null;
     let selectedPharmacyId = null;
 
     const categoryAliases = {
@@ -362,9 +446,13 @@
         });
     }
 
-    function updateNoProductsMessage(hasVisibleProducts) {
+    function updateNoProductsMessage(hasVisibleProducts, message) {
         if (!noProductsMessage) {
             return;
+        }
+
+        if (message) {
+            noProductsMessage.textContent = message;
         }
 
         noProductsMessage.classList.toggle('hidden', hasVisibleProducts);
@@ -382,6 +470,19 @@
 
     function buildPharmacyCards() {
         if (!pharmacyGrid) {
+            return;
+        }
+
+        if (pharmacyGrid.querySelector('.farmacia-card')) {
+            pharmacyGrid.querySelectorAll('.farmacia-card').forEach(card => {
+                if (card.dataset.bound === '1') {
+                    return;
+                }
+                card.dataset.bound = '1';
+                card.addEventListener('click', () => {
+                    selectPharmacy(card.dataset.pharmacyId);
+                });
+            });
             return;
         }
 
@@ -425,6 +526,25 @@
         });
     }
 
+    function bindPharmacyCardClicks() {
+        document.querySelectorAll('.farmacia-card').forEach(card => {
+            if (card.dataset.bound === '1') {
+                return;
+            }
+
+            card.dataset.bound = '1';
+            card.addEventListener('click', () => {
+                selectPharmacy(card.dataset.pharmacyId);
+            });
+        });
+    }
+
+    function setSupplementPharmaciesVisible(isVisible) {
+        if (supplementPharmacySection) {
+            supplementPharmacySection.classList.toggle('hidden', !isVisible);
+        }
+    }
+
     function showPharmaciesView() {
         if (!pharmacyListSection || !categorySection) {
             showCategoryView();
@@ -432,9 +552,11 @@
         }
 
         selectedPharmacyId = null;
+        setSupplementPharmaciesVisible(false);
         pharmacyListSection.classList.remove('hidden');
         categorySection.classList.add('hidden');
         buildPharmacyCards();
+        bindPharmacyCardClicks();
         setProductsLayout(false);
     }
 
@@ -449,6 +571,7 @@
     }
 
     function applyDashboardFilter(filter) {
+        currentDashboardFilter = filter;
         selectedPharmacyId = null;
         setActiveFilter(filter);
 
@@ -458,6 +581,8 @@
         }
 
         showCategoryView();
+        setSupplementPharmaciesVisible(filter === 'suplementos');
+        bindPharmacyCardClicks();
         setProductsLayout(false);
         let hasVisibleProducts = false;
         const aliases = (categoryAliases[filter] || [filter]).map(normalizeText);
@@ -508,7 +633,11 @@
             }
         });
 
-        updateNoProductsMessage(hasVisibleProducts);
+        if (filter === 'suplementos') {
+            updateNoProductsMessage(true);
+        } else {
+            updateNoProductsMessage(hasVisibleProducts, 'Nenhum produto encontrado nessa categoria.');
+        }
 
         const firstVisibleGroup = Array.from(categoryGroups).find(group => group.style.display !== 'none');
         if (firstVisibleGroup) {
@@ -521,15 +650,24 @@
     function selectPharmacy(pharmacyId) {
         selectedPharmacyId = pharmacyId;
         showCategoryView();
+        setSupplementPharmaciesVisible(currentDashboardFilter === 'suplementos');
         setProductsLayout(false);
         let hasVisibleProducts = false;
 
         categoryGroups.forEach(group => {
+            const categoryName = normalizeText(group.dataset.category);
+            const activeAliases = (categoryAliases[currentDashboardFilter] || [currentDashboardFilter]).map(normalizeText);
+            const shouldRespectCategory = currentDashboardFilter && currentDashboardFilter !== 'farmacias' && currentDashboardFilter !== 'suplementos';
+            const categoryMatches = !shouldRespectCategory || activeAliases.some(alias => (
+                categoryName === alias ||
+                categoryName.includes(alias) ||
+                alias.includes(categoryName)
+            ));
             const cards = group.querySelectorAll('.produto-card');
             let groupVisible = false;
 
             cards.forEach(card => {
-                const visible = card.dataset.pharmacyId === pharmacyId;
+                const visible = card.dataset.pharmacyId === pharmacyId && categoryMatches;
                 card.style.display = visible ? '' : 'none';
                 if (visible) groupVisible = true;
             });
@@ -540,7 +678,7 @@
             }
         });
 
-        updateNoProductsMessage(hasVisibleProducts);
+        updateNoProductsMessage(true);
     }
 
     iconFilters.forEach(icon => {

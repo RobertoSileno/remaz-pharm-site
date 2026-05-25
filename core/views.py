@@ -65,6 +65,21 @@ def normalize_digits(value):
 
 
 def get_display_name(user):
+    if not user.is_authenticated:
+        return 'Visitante'
+
+    try:
+        nickname = user.profile.nickname
+    except UserProfile.DoesNotExist:
+        nickname = None
+
+    if nickname and nickname.strip():
+        return nickname.strip()
+
+    pharmacy = user.pharmacies.order_by('created_at').first()
+    if pharmacy and pharmacy.name and pharmacy.name.strip():
+        return pharmacy.name.strip()
+
     username = user.username.strip()
     parts = username.split()
 
@@ -88,6 +103,21 @@ def get_session_cart(request):
 
 def get_session_cart_count(request):
     return sum(get_session_cart(request).values())
+
+
+def format_pharmacy_address(pharmacy):
+    if pharmacy.street or pharmacy.number or pharmacy.district or pharmacy.city or pharmacy.state:
+        street = pharmacy.street or 'Endereco'
+        number = f', {pharmacy.number}' if pharmacy.number else ''
+        district = f' - {pharmacy.district}' if pharmacy.district else ''
+        city_state = f', {pharmacy.city or ""}/{pharmacy.state or ""}' if pharmacy.city or pharmacy.state else ''
+        return f'{street}{number}{district}{city_state}'
+
+    default_address = next(iter(pharmacy.owner.addresses.all()), None) if pharmacy.owner else None
+    if default_address:
+        return default_address.summary
+
+    return 'Endereço não informado'
 
 def get_session_cart_items_and_total(request):
     session_cart = get_session_cart(request)
@@ -535,6 +565,28 @@ def dashboard_view(request):
     if selected_categories:
         category_queryset = category_queryset.filter(id__in=selected_categories)
 
+    dashboard_pharmacies = Pharmacy.objects.filter(
+        is_active=True,
+        owner__isnull=False,
+    ).exclude(
+        name__iexact='dropal',
+    ).select_related(
+        'owner',
+    ).prefetch_related(
+        'owner__addresses',
+    ).annotate(
+        available_product_count=Count(
+            'inventory_items',
+            filter=Q(
+                inventory_items__is_available=True,
+                inventory_items__stock__gt=0,
+            ),
+        )
+    ).order_by('name')
+
+    for pharmacy in dashboard_pharmacies:
+        pharmacy.dashboard_address = format_pharmacy_address(pharmacy)
+
     inventory_items_by_category = []
     for category in category_queryset:
         category_items = inventory_items.filter(medicine__category=category)
@@ -548,6 +600,7 @@ def dashboard_view(request):
         'display_name': display_name,
         'cart_count': cart_count,
         'inventory_items_by_category': inventory_items_by_category,
+        'dashboard_pharmacies': dashboard_pharmacies,
         'categories': categories,
         'search_query': search_query,
         'selected_categories': selected_categories,
@@ -1330,15 +1383,8 @@ def pharmacy_prescriptions_view(request, pharmacy_id):
 @login_required(login_url='login')
 @csrf_protect
 def profile_view(request):
-    username = request.user.username.strip()
-    parts = username.split()
-
-    if len(parts) >= 2:
-        display_name = f"{parts[0]} {parts[-1]}"
-    else:
-        display_name = username
-
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    display_name = get_display_name(request.user)
     pharmacy = request.user.pharmacies.order_by('created_at').first()
     is_pharmacy_user = pharmacy is not None
 
@@ -1384,8 +1430,6 @@ def profile_view(request):
                 username_clean = profile_form.cleaned_data['username'].strip()
                 email_clean = profile_form.cleaned_data['email'].strip()
                 document_clean = normalize_digits(profile_form.cleaned_data['cpf'])
-                cnpj_conflict = False
-
                 if not is_pharmacy_user and User.objects.exclude(pk=request.user.pk).filter(username=username_clean).exists():
                     messages.error(request, 'Nome de usuário já está em uso.')
                 elif User.objects.exclude(pk=request.user.pk).filter(email=email_clean).exists():
@@ -1394,15 +1438,17 @@ def profile_view(request):
                     messages.error(request, 'Informe um CPF valido.')
                 elif not is_pharmacy_user and document_clean and UserProfile.objects.exclude(pk=profile.pk).filter(cpf=document_clean).exists():
                     messages.error(request, 'CPF já está em uso.')
-                elif is_pharmacy_user and document_clean:
-                    other_pharmacies = Pharmacy.objects.exclude(pk=pharmacy.pk).exclude(cnpj__isnull=True)
-                    cnpj_conflict = any(normalize_digits(p.cnpj or '') == document_clean for p in other_pharmacies)
-                    if cnpj_conflict:
-                        messages.error(request, 'CNPJ já está em uso.')
+                elif is_pharmacy_user and document_clean and any(
+                    normalize_digits(p.cnpj or '') == document_clean
+                    for p in Pharmacy.objects.exclude(pk=pharmacy.pk).exclude(cnpj__isnull=True)
+                ):
+                    messages.error(request, 'CNPJ já está em uso.')
                 else:
+                    nickname_clean = profile_form.cleaned_data['nickname'].strip()
+
                     if is_pharmacy_user:
                         pharmacy.name = username_clean
-                        pharmacy.cnpj = document_clean
+                        pharmacy.cnpj = document_clean or None
                         pharmacy.save(update_fields=['name', 'cnpj', 'updated_at'])
                     else:
                         request.user.username = username_clean
@@ -1410,7 +1456,7 @@ def profile_view(request):
                     request.user.save(update_fields=['username', 'email'] if not is_pharmacy_user else ['email'])
 
                     profile.cpf = (document_clean or None) if not is_pharmacy_user else profile.cpf
-                    profile.nickname = profile_form.cleaned_data['nickname']
+                    profile.nickname = nickname_clean
                     profile.save(update_fields=['cpf', 'nickname'])
                     messages.success(request, 'Perfil atualizado com sucesso.')
                     return redirect('perfil')
@@ -1423,6 +1469,28 @@ def profile_view(request):
                 address = address_form.save(commit=False)
                 address.user = request.user
                 address.save()
+
+                if is_pharmacy_user:
+                    pharmacy.phone = address.phone
+                    pharmacy.cep = address.cep
+                    pharmacy.state = address.state
+                    pharmacy.city = address.city
+                    pharmacy.district = address.neighborhood
+                    pharmacy.street = address.street
+                    pharmacy.number = address.number
+                    pharmacy.complement = address.complement
+                    pharmacy.save(update_fields=[
+                        'phone',
+                        'cep',
+                        'state',
+                        'city',
+                        'district',
+                        'street',
+                        'number',
+                        'complement',
+                        'updated_at',
+                    ])
+
                 messages.success(request, 'Endereco salvo.')
                 return redirect('perfil')
 
