@@ -47,6 +47,7 @@ from .services.mercado_pago import create_pix_payment
 from .services.supabase_storage import upload_image
 from django.db.models import Count, Q
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_protect
 from django.utils.http import url_has_allowed_host_and_scheme
 
 GOVBR_SIGNATURE_URL = 'https://assinador.iti.br'
@@ -263,6 +264,7 @@ def contact(request):
 def home(request):
     return dashboard_view(request)
 
+@csrf_protect
 def login_view(request):
     if request.method == 'POST':
         email_or_cpf = request.POST.get('username', '').strip()
@@ -304,6 +306,7 @@ def login_view(request):
     return render(request, 'login.html')
 
 
+@csrf_protect
 def pharmacy_auth_view(request):
     active_tab = request.GET.get('tab', 'login')
     form = PharmacyRegistrationForm()
@@ -423,6 +426,7 @@ def pharmacy_auth_view(request):
     })
 
 
+@csrf_protect
 def register_view(request):
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
@@ -551,6 +555,7 @@ def dashboard_view(request):
     })
 
 @require_POST
+@csrf_protect
 def add_inventory_to_cart(request, inventory_id):
     inventory = get_object_or_404(
         PharmacyInventory,
@@ -607,6 +612,7 @@ def add_inventory_to_cart(request, inventory_id):
 
 
 @require_POST
+@csrf_protect
 def add_to_cart(request, medicine_id):
     medicine = get_object_or_404(Medicine, id=medicine_id)
     inventory = PharmacyInventory.objects.filter(
@@ -625,6 +631,7 @@ def add_to_cart(request, medicine_id):
 
 
 @require_POST
+@csrf_protect
 def decrease_cart_item(request, item_id):
     if not request.user.is_authenticated:
         session_cart = get_session_cart(request)
@@ -655,6 +662,7 @@ def decrease_cart_item(request, item_id):
 
 
 @require_POST
+@csrf_protect
 def remove_cart_item(request, item_id):
     if not request.user.is_authenticated:
         session_cart = get_session_cart(request)
@@ -673,6 +681,7 @@ def remove_cart_item(request, item_id):
     return redirect('cart')
 
 @require_POST
+@csrf_protect
 def clear_cart(request):
     if not request.user.is_authenticated:
         request.session.pop('cart', None)
@@ -711,6 +720,7 @@ def cart_view(request):
     })
 
 @login_required(login_url='login')
+@csrf_protect
 def checkout_view(request):
     cart, items, total = get_cart_items_and_total(request.user)
     requires_prescription = cart_requires_prescription(items)
@@ -885,6 +895,7 @@ def checkout_view(request):
     })
 
 @login_required(login_url='login')
+@csrf_protect
 def prescription_upload_view(request):
     cart, items, total = get_cart_items_and_total(request.user)
     black_label_items = [item for item in items if item.medicine.tarja == 'preta']
@@ -1025,6 +1036,7 @@ def pharmacy_dashboard_view(request):
     })
 
 @login_required(login_url='login')
+@csrf_protect
 def pharmacy_register_view(request):
     if request.method == 'POST':
         form = PharmacyRegistrationForm(request.POST, request.FILES)
@@ -1158,6 +1170,7 @@ def pharmacy_inventory_view(request, pharmacy_id):
 
 @login_required(login_url='login')
 @require_POST
+@csrf_protect
 def pharmacy_inventory_update(request, inventory_id):
     inventory_item = get_object_or_404(PharmacyInventory.objects.select_related('pharmacy'), id=inventory_id)
     pharmacy = get_accessible_pharmacy_or_404(request.user, inventory_item.pharmacy.id)
@@ -1195,6 +1208,7 @@ def pharmacy_inventory_update(request, inventory_id):
 
 @login_required(login_url='login')
 @require_POST
+@csrf_protect
 def pharmacy_inventory_delete(request, inventory_id):
     inventory_item = get_object_or_404(PharmacyInventory.objects.select_related('pharmacy'), id=inventory_id)
     pharmacy = get_accessible_pharmacy_or_404(request.user, inventory_item.pharmacy.id)
@@ -1244,6 +1258,7 @@ def pharmacy_orders_view(request, pharmacy_id):
     })
 
 @login_required(login_url='login')
+@csrf_protect
 def pharmacy_prescriptions_view(request, pharmacy_id):
     pharmacy = get_accessible_pharmacy_or_404(request.user, pharmacy_id)
 
@@ -1313,6 +1328,7 @@ def pharmacy_prescriptions_view(request, pharmacy_id):
     })
 
 @login_required(login_url='login')
+@csrf_protect
 def profile_view(request):
     username = request.user.username.strip()
     parts = username.split()

@@ -274,20 +274,31 @@ img {
 
 body.page-carrinho {
   min-height: 100vh;
-  position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 body.page-carrinho main.dashboard-wrapper {
   margin: 0 auto;
-  padding-bottom: 140px;
+  flex: 1;
 }
 
 body.page-carrinho footer.rodape-dashboard {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  margin-top: 0;
+  margin-top: auto;
+}
+
+body.page-checkout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+body.page-checkout main.dashboard-wrapper {
+  flex: 1;
+}
+
+body.page-checkout footer.rodape-dashboard {
+  margin-top: auto;
 }
 
 .page-contato .dashboard-wrapper {
