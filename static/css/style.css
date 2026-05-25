@@ -218,6 +218,13 @@ img {
     color: #2c5f84;
 }
 
+.sobre-texto p.texto-negrito {
+    color: #174b6f;
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1.8;
+}
+
 .casal-imagem {
     width: 40%;
     text-align: center;
@@ -258,6 +265,10 @@ img {
 
 .card-func:hover {
     transform: translateY(-6px);
+}
+
+.texto-negrito {
+    font-weight: 700;
 }
 
 .card-func-img {
@@ -581,6 +592,10 @@ img {
         font-size: 16px;
     }
 
+    .sobre-texto p.texto-negrito {
+        font-size: 17px;
+    }
+
     .card-func {
         width: 100%;
         max-width: 280px;
@@ -670,6 +685,10 @@ img {
     .descricao,
     .card-func p {
         font-size: 15px;
+    }
+
+    .sobre-texto p.texto-negrito {
+        font-size: 16px;
     }
 
     .sobre,
