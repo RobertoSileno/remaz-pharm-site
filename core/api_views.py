@@ -1,5 +1,6 @@
 import hashlib
 import json
+import logging
 import secrets
 import uuid
 from datetime import timedelta
@@ -39,7 +40,13 @@ TOKEN_LIFETIME = timedelta(days=30)
 LOGIN_ATTEMPT_LIMIT = 5
 LOGIN_LOCK_SECONDS = 15 * 60
 PRESCRIPTION_MAX_SIZE = 10 * 1024 * 1024
-PRESCRIPTION_CONTENT_TYPES = {'application/pdf', 'application/octet-stream'}
+PRESCRIPTION_CONTENT_TYPES = {
+    '.pdf': {'application/pdf', 'application/octet-stream'},
+    '.jpg': {'image/jpeg', 'image/jpg'},
+    '.jpeg': {'image/jpeg', 'image/jpg'},
+    '.png': {'image/png'},
+}
+logger = logging.getLogger(__name__)
 
 
 def api_error(message, status=400, fields=None):
@@ -537,17 +544,23 @@ def api_address(request, address_id):
 
 def validate_prescription(upload):
     if not upload:
-        return 'Envie a receita assinada em PDF.'
-    if Path(upload.name).suffix.lower() != '.pdf':
-        return 'A receita deve estar em formato PDF.'
+        return 'Envie a receita assinada em PDF ou fotografe o documento.'
+    suffix = Path(upload.name).suffix.lower()
+    if suffix not in PRESCRIPTION_CONTENT_TYPES:
+        return 'A receita deve estar em PDF, JPG ou PNG.'
     if upload.size > PRESCRIPTION_MAX_SIZE:
         return 'A receita deve ter no maximo 10 MB.'
-    if upload.content_type not in PRESCRIPTION_CONTENT_TYPES:
-        return 'O arquivo enviado nao foi reconhecido como PDF.'
-    signature = upload.read(5)
+    if upload.content_type not in PRESCRIPTION_CONTENT_TYPES[suffix]:
+        return 'O arquivo enviado nao foi reconhecido como receita valida.'
+    signature = upload.read(8)
     upload.seek(0)
-    if signature != b'%PDF-':
-        return 'O arquivo enviado nao e um PDF valido.'
+    valid_signature = (
+        (suffix == '.pdf' and signature.startswith(b'%PDF-'))
+        or (suffix in {'.jpg', '.jpeg'} and signature.startswith(b'\xff\xd8\xff'))
+        or (suffix == '.png' and signature == b'\x89PNG\r\n\x1a\n')
+    )
+    if not valid_signature:
+        return 'O arquivo enviado nao e uma receita digitalizada valida.'
     return ''
 
 
@@ -600,8 +613,8 @@ def api_checkout(request):
     if prescription_upload:
         try:
             prescription_name = upload_prescription(prescription_upload, request.mobile_user.id)
-        except Exception as e:
-            logger.exception(f'Falha ao fazer upload da receita para Supabase: {str(e)}')
+        except Exception:
+            logger.exception('Falha ao fazer upload da receita para Supabase.')
             return api_error('Nao foi possivel enviar a receita. Tente novamente.')
 
     created_orders = []

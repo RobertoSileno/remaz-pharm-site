@@ -2,12 +2,14 @@ import hashlib
 import json
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
 
 from .models import Category, MobileAuthToken, Order, Pharmacy, PharmacyInventory, Medicine, UserProfile
+from .api_views import validate_prescription
 from .views import validate_prescription_file
 
 
@@ -298,7 +300,8 @@ class MobileApiTests(TestCase):
         profile = UserProfile.objects.get(user=user)
         self.assertIsNone(profile.payment_card_last4)
 
-    def test_controlled_medicine_requires_valid_pdf_prescription(self):
+    @patch('core.api_views.upload_prescription', return_value='supabase://prescriptions/mobile_receita.pdf')
+    def test_controlled_medicine_requires_valid_pdf_prescription(self, upload_prescription):
         headers, _ = self.register_customer()
         self.add_to_cart(headers, self.controlled_inventory)
 
@@ -322,6 +325,57 @@ class MobileApiTests(TestCase):
         self.assertTrue(order.requires_prescription)
         self.assertEqual(order.status, 'waiting_prescription')
         self.assertTrue(order.prescription_file.endswith('.pdf'))
+        upload_prescription.assert_called_once()
+
+    @patch('core.api_views.upload_prescription', return_value='supabase://prescriptions/camera_receita.jpg')
+    def test_mobile_checkout_accepts_camera_scanned_prescription(self, upload_prescription):
+        headers, _ = self.register_customer()
+        self.add_to_cart(headers, self.controlled_inventory)
+        payload = self.checkout_payload()
+        payload['prescription_file'] = SimpleUploadedFile(
+            'receita.jpg',
+            b'\xff\xd8\xff\xe0 signed prescription photograph',
+            content_type='image/jpeg',
+        )
+
+        response = self.client.post('/api/checkout/', data=payload, **headers)
+
+        self.assertEqual(response.status_code, 201, response.content)
+        self.assertEqual(Order.objects.get().prescription_file, 'supabase://prescriptions/camera_receita.jpg')
+        upload_prescription.assert_called_once()
+
+    @patch('core.views.download_prescription', return_value=(b'%PDF-1.4 signed', 'receita.pdf'))
+    @patch('core.views.upload_prescription', return_value='supabase://prescriptions/site_receita.pdf')
+    def test_web_upload_uses_supabase_and_pharmacy_can_open_or_download(self, upload_prescription, download_prescription):
+        headers, _ = self.register_customer()
+        self.add_to_cart(headers, self.controlled_inventory)
+        customer = User.objects.get(email='maria@example.com')
+        self.client.force_login(customer)
+
+        upload_response = self.client.post('/receita-digital/', data={
+            'prescription_file': SimpleUploadedFile(
+                'receita.pdf',
+                b'%PDF-1.4 signed prescription',
+                content_type='application/pdf',
+            ),
+        })
+        self.assertRedirects(upload_response, '/concluir-pedido/', fetch_redirect_response=False)
+        upload_prescription.assert_called_once()
+
+        checkout_response = self.client.post('/concluir-pedido/', data=self.checkout_payload())
+        self.assertRedirects(checkout_response, '/pedidos/', fetch_redirect_response=False)
+        order = Order.objects.get()
+        self.assertEqual(order.prescription_file, 'supabase://prescriptions/site_receita.pdf')
+
+        self.client.force_login(self.owner)
+        preview_response = self.client.get(f'/receitas/{order.id}/arquivo/')
+        self.assertEqual(preview_response.status_code, 200)
+        self.assertIn('inline', preview_response.headers['Content-Disposition'])
+
+        download_response = self.client.get(f'/receitas/{order.id}/arquivo/?download=1')
+        self.assertEqual(download_response.status_code, 200)
+        self.assertIn('attachment', download_response.headers['Content-Disposition'])
+        self.assertEqual(download_prescription.call_count, 2)
 
 
 class PrescriptionValidationTests(TestCase):
@@ -329,3 +383,12 @@ class PrescriptionValidationTests(TestCase):
         fake_pdf = SimpleUploadedFile('receita.pdf', b'not actually pdf', content_type='application/pdf')
 
         self.assertEqual(validate_prescription_file(fake_pdf), 'O arquivo enviado nao e um PDF valido.')
+
+    def test_mobile_prescription_validator_accepts_camera_jpeg(self):
+        photograph = SimpleUploadedFile(
+            'receita.jpg',
+            b'\xff\xd8\xff\xe0 signed prescription photograph',
+            content_type='image/jpeg',
+        )
+
+        self.assertEqual(validate_prescription(photograph), '')

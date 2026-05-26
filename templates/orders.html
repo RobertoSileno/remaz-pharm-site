@@ -100,8 +100,9 @@
 
                     {% if order.requires_prescription and order.prescription_file %}
                         <div class="aviso-receita">
-                            <i class="fa-solid fa-file-pdf"></i>
-                            <a href="{% url 'prescription_document' order.id %}" target="_blank" rel="noopener">Abrir receita enviada</a>
+                            <i class="fa-solid fa-file-medical"></i>
+                            <a href="{% url 'prescription_document' order.id %}" target="_blank" rel="noopener">Visualizar receita enviada</a>
+                            <a href="{% url 'prescription_document' order.id %}?download=1">Baixar arquivo</a>
                         </div>
                     {% endif %}
 

@@ -1,7 +1,7 @@
 import re
-import uuid
 import hashlib
 import logging
+from io import BytesIO
 from decimal import Decimal
 from pathlib import Path
 from types import SimpleNamespace
@@ -12,7 +12,6 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
-from django.core.files.storage import FileSystemStorage
 from django.db import transaction
 from django.http import FileResponse, Http404
 from django.shortcuts import render, redirect, get_object_or_404
@@ -44,7 +43,7 @@ from .forms import (
     PaymentForm,
 )
 from .services.mercado_pago import create_pix_payment
-from .services.supabase_storage import upload_image
+from .services.supabase_storage import download_prescription, upload_image, upload_prescription
 from django.db.models import Count, Q
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_protect
@@ -231,6 +230,15 @@ def validate_prescription_file(prescription_file):
     return ''
 
 
+def prescription_content_type(file_name):
+    suffix = Path(file_name).suffix.lower()
+    if suffix in {'.jpg', '.jpeg'}:
+        return 'image/jpeg'
+    if suffix == '.png':
+        return 'image/png'
+    return 'application/pdf'
+
+
 def valid_cpf(cpf):
     if not cpf.isdigit() or len(cpf) != 11 or cpf == cpf[0] * 11:
         return False
@@ -411,11 +419,11 @@ def pharmacy_auth_view(request):
                 messages.error(request, 'Nome de usuário já existe')
             elif User.objects.filter(email__iexact=email).exists():
                 messages.error(request, 'Este email já está cadastrado. Não pode ser usado para farmácia.')
-            elif cnpj_clean:
-                # Verifica duplicidade comparando apenas os dígitos do CNPJ
-                existing = any(normalize_digits(p.cnpj or '') == cnpj_clean for p in Pharmacy.objects.exclude(cnpj__isnull=True))
-                if existing:
-                    messages.error(request, 'Este CNPJ já está cadastrado')
+            elif cnpj_clean and any(
+                normalize_digits(p.cnpj or '') == cnpj_clean
+                for p in Pharmacy.objects.exclude(cnpj__isnull=True)
+            ):
+                messages.error(request, 'Este CNPJ já está cadastrado')
             elif form.is_valid():
                 pharmacy = form.save(commit=False)
                 pharmacy.is_active = True
@@ -970,15 +978,16 @@ def prescription_upload_view(request):
             if validation_error:
                 messages.error(request, validation_error)
             else:
-                storage = FileSystemStorage(location=str(settings.PRIVATE_MEDIA_ROOT / 'prescriptions'))
-                file_name = f'user_{request.user.id}_{uuid.uuid4().hex}.pdf'
-                saved_name = storage.save(file_name, prescription_file)
-
-                request.session['prescription_uploaded'] = True
-                request.session['prescription_file'] = saved_name
-                messages.success(request, 'Receita enviada. Ela será analisada pela farmácia antes da liberação.')
-
-                return redirect('checkout')
+                try:
+                    saved_name = upload_prescription(prescription_file, request.user.id)
+                except Exception:
+                    logger.exception('Falha no upload da receita para Supabase.')
+                    messages.error(request, 'Nao foi possivel enviar a receita. Tente novamente.')
+                else:
+                    request.session['prescription_uploaded'] = True
+                    request.session['prescription_file'] = saved_name
+                    messages.success(request, 'Receita enviada. Ela será analisada pela farmácia antes da liberação.')
+                    return redirect('checkout')
 
     return render(request, 'prescription_upload.html', {
         'items': items,
@@ -1004,14 +1013,32 @@ def prescription_document_view(request, order_id):
     if not order.prescription_file:
         raise Http404
 
-    file_name = Path(order.prescription_file).name
+    stored_reference = order.prescription_file
+    file_name = Path(stored_reference).name
     file_path = (settings.PRIVATE_MEDIA_ROOT / 'prescriptions' / file_name).resolve()
     prescriptions_root = (settings.PRIVATE_MEDIA_ROOT / 'prescriptions').resolve()
+    as_attachment = request.GET.get('download') == '1'
 
-    if not str(file_path).startswith(str(prescriptions_root)) or not file_path.exists():
+    if str(file_path).startswith(str(prescriptions_root)) and file_path.exists():
+        return FileResponse(
+            open(file_path, 'rb'),
+            as_attachment=as_attachment,
+            filename=file_name,
+            content_type=prescription_content_type(file_name),
+        )
+
+    try:
+        file_contents, file_name = download_prescription(stored_reference)
+    except Exception:
+        logger.exception('Falha ao recuperar receita protegida no Supabase.')
         raise Http404
 
-    return FileResponse(open(file_path, 'rb'), content_type='application/pdf')
+    return FileResponse(
+        BytesIO(file_contents),
+        as_attachment=as_attachment,
+        filename=file_name,
+        content_type=prescription_content_type(file_name),
+    )
 
 @login_required(login_url='login')
 def orders_view(request):

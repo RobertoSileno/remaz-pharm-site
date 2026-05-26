@@ -39,6 +39,10 @@ ALLOWED_HOSTS = [
     for host in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,10.0.2.2').split(',')
     if host.strip()
 ]
+# Explicitly enabled only by the local presentation launcher, so a phone on the
+# same LAN can reach this development server even if the network IP changes.
+if os.getenv('DEMO_ALLOW_LAN_HOSTS', 'False') == 'True':
+    ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -158,6 +162,8 @@ MEDIA_ROOT = BASE_DIR / 'media'
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 SUPABASE_BUCKET = os.getenv("SUPABASE_BUCKET")
+# Prescriptions contain sensitive data and must use a private bucket.
+SUPABASE_PRESCRIPTIONS_BUCKET = os.getenv("SUPABASE_PRESCRIPTIONS_BUCKET", "prescriptions")
 
 PRIVATE_MEDIA_ROOT = BASE_DIR / 'media_private'
 MERCADO_PAGO_ACCESS_TOKEN = os.getenv('MERCADO_PAGO_ACCESS_TOKEN', '')

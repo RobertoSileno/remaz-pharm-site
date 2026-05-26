@@ -1542,8 +1542,9 @@ body.page-checkout footer.rodape-dashboard {
 
 .aviso-receita {
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
-    align-items: flex-start;
+    align-items: center;
     padding: 10px;
     margin-bottom: 12px;
     border: 1px solid #d6472d;
@@ -1552,6 +1553,16 @@ body.page-checkout footer.rodape-dashboard {
     color: #d6472d;
     font-size: 13px;
     line-height: 1.35;
+}
+
+.aviso-receita a {
+    color: #b53425;
+    font-weight: bold;
+}
+
+.aviso-receita a + a {
+    border-left: 1px solid #e1a59c;
+    padding-left: 8px;
 }
 
 .receita-layout {
